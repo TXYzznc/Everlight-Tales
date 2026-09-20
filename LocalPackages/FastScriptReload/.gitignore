@@ -1,0 +1,16 @@
+/Library/
+/Logs/
+/Temp/
+/obj/Debug/
+/UserSettings
+*.csproj
+*.sln
+*.apk
+*.DotSettings
+*.vsconfig
+*.DS_Store
+/.vs/*
+/.vsCode
+/Packages/com.unity.asset-store-tools/
+/Assets/FastScriptReload/Plugins/ImmersiveVrToolsCommon_Debug~/
+/Assets/FastScriptReload/Plugins/Harmony_Debug~/

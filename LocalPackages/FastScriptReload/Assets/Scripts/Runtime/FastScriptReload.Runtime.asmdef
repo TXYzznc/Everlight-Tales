@@ -1,0 +1,28 @@
+{
+    "name": "FastScriptReload.Runtime",
+    "rootNamespace": "",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "0Harmony.dll",
+        "Mono.Cecil.dll",
+        "Mono.Cecil.Mdb.dll",
+        "Mono.Cecil.Pdb.dll",
+        "Mono.Cecil.Rocks.dll",
+        "MonoMod.Backports.dll",
+        "MonoMod.Core.dll",
+        "MonoMod.Iced.dll",
+        "MonoMod.ILHelpers.dll",
+        "MonoMod.Utils.dll",
+        "ImmersiveVRTools.Common.Runtime.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_EDITOR || LiveScriptReload_IncludeInBuild_Enabled"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

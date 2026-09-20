@@ -1,0 +1,34 @@
+{
+    "name": "FastScriptReload.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b75b497805046c443a21f90e84a5ff4f"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "0Harmony.dll",
+        "Mono.Cecil.dll",
+        "Mono.Cecil.Mdb.dll",
+        "Mono.Cecil.Pdb.dll",
+        "Mono.Cecil.Rocks.dll",
+        "MonoMod.Backports.dll",
+        "MonoMod.Core.dll",
+        "MonoMod.Iced.dll",
+        "MonoMod.ILHelpers.dll",
+        "MonoMod.Utils.dll",
+        "Microsoft.CodeAnalysis.dll",
+        "Microsoft.CodeAnalysis.CSharp.dll",
+        "ImmersiveVRTools.Common.Editor.dll",
+        "ImmersiveVRTools.Common.Runtime.dll",
+        "System.Collections.Immutable.FSR.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
