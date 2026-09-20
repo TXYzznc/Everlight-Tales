@@ -150,6 +150,13 @@ namespace Everlight.Tales.Board
                 {
                     context.Log.Add(new SettlementEvent(SettlementEventKind.Collision, entity.Id, entity.Coord, blocker.Coord, blocker.Id));
                     context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Collision, entity.Id, blocker.Id, context.Settle.GravityDirection));
+                    if (blocker.Kind == EntityKind.RepairTarget)
+                    {
+                        // D-116：适配零件下落受阻于维修对象时，入队一次维修效果；
+                        // 适配与公共维修能量校验在 RepairEffect.Apply 内完成。
+                        context.Queue.Enqueue(new RepairEffect(entity.PartType, blocker.Id));
+                    }
+
                     changed = true;
                 }
             }
