@@ -157,6 +157,12 @@ namespace Everlight.Tales.Board
                         context.Queue.Enqueue(new RepairEffect(entity.PartType, blocker.Id));
                     }
 
+                    // D-118：耐久障碍（O-002 脆裂隔板／O-008 承压支柱）受真实物理碰撞扣耐久。
+                    if (blocker.ObstacleType != Data.ObstacleType.None && blocker.MaxDurability > 0)
+                    {
+                        ObstacleService.Damage(context, blocker);
+                    }
+
                     changed = true;
                 }
             }

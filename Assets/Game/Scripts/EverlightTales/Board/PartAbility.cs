@@ -63,6 +63,14 @@ namespace Everlight.Tales.Board
                     outcome = Coil(context, target, config);
                     break;
 
+                case PartType.ReversalGear:
+                    outcome = ReversalGear(context, target, sourceId, kind == TriggerKinds.Collision, incoming, config);
+                    break;
+
+                case PartType.RivetPliers:
+                    outcome = RivetPliers(context, target);
+                    break;
+
                 default:
                     outcome = default;
                     break;
@@ -140,9 +148,19 @@ namespace Everlight.Tales.Board
             for (int i = 0; i < HexDirections.Count; i++)
             {
                 BoardEntity occupant = context.Board.EntityAt(center.Neighbor(HexDirections.All[i]));
-                if (occupant != null && occupant.Kind == EntityKind.Part && occupant.PartType != PartType.None)
+                if (occupant == null)
+                {
+                    continue;
+                }
+
+                if (occupant.Kind == EntityKind.Part && occupant.PartType != PartType.None)
                 {
                     hitTargets.Add(occupant);
+                }
+                else if (occupant.ObstacleType != ObstacleType.None && occupant.MaxDurability > 0)
+                {
+                    // D-118：爆破冲击扣耐久障碍（O-002 脆裂隔板／O-008 承压支柱／O-007 封条）。
+                    ObstacleService.Damage(context, occupant);
                 }
             }
 
@@ -155,6 +173,60 @@ namespace Everlight.Tales.Board
             }
 
             return new Outcome(hitTargets.Count * config.EffectScorePerTarget, 0);
+        }
+
+        /// <summary>换向齿轮（P-004）：有实体入射且能量足够时，消耗 1 点把来撞实体沿入射方向顺时针偏转 60° 推进 1 格。</summary>
+        private static Outcome ReversalGear(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, HexDirection incoming, PartConfig config)
+        {
+            if (!hasIncoming)
+            {
+                return default; // 信号无入射实体：不换向不耗能。
+            }
+
+            if (target.Energy < config.EffectCost)
+            {
+                return default; // 能量不足：只触发分。
+            }
+
+            target.Energy -= config.EffectCost;
+
+            if (!context.Board.TryGetEntity(sourceId, out BoardEntity source) || !source.IsMovable)
+            {
+                return default;
+            }
+
+            HexDirection deflected = HexDirections.Rotate(incoming, 1); // 顺时针偏转 60°（D0→D1）。
+            HexCoord destination = source.Coord.Neighbor(deflected);
+            if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
+            {
+                return default; // 落点非法：耗能但不移动。
+            }
+
+            context.Board.Move(source, destination);
+            return new Outcome(config.EffectScorePerCell, 0);
+        }
+
+        /// <summary>铆合钳（P-014）：受击／信号时检查 D0 邻格可修复节点，公共维修能量足够时入队一次维修。</summary>
+        private static Outcome RivetPliers(SettlementContext context, BoardEntity target)
+        {
+            BoardEntity node = context.Board.EntityAt(target.Coord.Neighbor(HexDirection.D0));
+            if (node == null || node.Kind != EntityKind.RepairTarget || node.RepairCompleted)
+            {
+                return default; // 无合法目标：只触发分。
+            }
+
+            if (node.RepairConfig == null || !node.RepairConfig.Accepts(target.PartType))
+            {
+                return default;
+            }
+
+            if (context.Session.PublicRepairEnergy < node.RepairConfig.EnergyCost)
+            {
+                return default; // 公共储备不足：只触发分，不扣能量。
+            }
+
+            context.Queue.Enqueue(new RepairEffect(target.PartType, node.Id));
+            return default; // 维修效果分由 RepairEffect 记入。
         }
     }
 }

@@ -94,6 +94,19 @@ namespace Everlight.Tales.Data
                 effectCost: 1,
                 effectScorePerTarget: 6,
                 removesSelf: true),
+
+            [PartType.ReversalGear] = new PartConfig(
+                type: PartType.ReversalGear,
+                triggerScore: 4,
+                energyCapacity: 4,
+                effectCost: 1,
+                effectScorePerCell: 8),
+
+            [PartType.RivetPliers] = new PartConfig(
+                type: PartType.RivetPliers,
+                triggerScore: 4,
+                energyCapacity: 0,
+                effectCost: 0),
         };
 
         /// <summary>取零件配置；无能力零件返回 null。</summary>

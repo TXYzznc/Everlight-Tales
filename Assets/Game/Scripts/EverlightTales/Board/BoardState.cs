@@ -51,6 +51,7 @@ namespace Everlight.Tales.Board
         private readonly Dictionary<int, BoardEntity> _byId = new Dictionary<int, BoardEntity>();
         private readonly Dictionary<HexCoord, TerrainKind> _terrain = new Dictionary<HexCoord, TerrainKind>();
         private readonly Dictionary<HexCoord, int> _endpointLabels = new Dictionary<HexCoord, int>();
+        private readonly List<AnomalyRegion> _anomalyRegions = new List<AnomalyRegion>();
 
         /// <summary>盘面边长（每边格数）。</summary>
         public int SideLength => _sideLength;
@@ -234,6 +235,34 @@ namespace Everlight.Tales.Board
         public bool RemoveEndpointLabel(HexCoord coord)
         {
             return _endpointLabels.Remove(coord);
+        }
+
+        /// <summary>已注册的棋盘异常区域（P2-003）。</summary>
+        public IReadOnlyList<AnomalyRegion> AnomalyRegions => _anomalyRegions;
+
+        /// <summary>注册一个棋盘异常区域（P2-003，关卡实例配置）。</summary>
+        public void RegisterAnomaly(AnomalyRegion region)
+        {
+            if (region != null)
+            {
+                _anomalyRegions.Add(region);
+            }
+        }
+
+        /// <summary>按标签查首个端点格（P2-004 锚点映射：锚点标签 → 盘面节点）。</summary>
+        public bool TryGetLabelCoord(int label, out HexCoord coord)
+        {
+            foreach (System.Collections.Generic.KeyValuePair<HexCoord, int> pair in _endpointLabels)
+            {
+                if (pair.Value == label)
+                {
+                    coord = pair.Key;
+                    return true;
+                }
+            }
+
+            coord = default;
+            return false;
         }
     }
 }

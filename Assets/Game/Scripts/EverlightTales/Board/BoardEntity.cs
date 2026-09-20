@@ -46,6 +46,33 @@ namespace Everlight.Tales.Board
         /// <summary>维修进度要求，来自配置。</summary>
         public int RepairRequired => RepairConfig == null ? 0 : RepairConfig.RequiredProgress;
 
+        /// <summary>障碍设施种类（Kind==Facility 且非 None）。</summary>
+        public ObstacleType ObstacleType { get; private set; } = ObstacleType.None;
+
+        /// <summary>障碍最大耐久。</summary>
+        public int MaxDurability { get; private set; }
+
+        /// <summary>障碍当前耐久（跨拍保留）。</summary>
+        public int Durability { get; internal set; }
+
+        /// <summary>闸门是否开启（LinkedGate 初始关）。</summary>
+        public bool IsOpen { get; internal set; }
+
+        /// <summary>轨道／百叶的通行方向（相位方向）。</summary>
+        public HexDirection PassDirection { get; internal set; }
+
+        /// <summary>夹持座当前锁定的实体 ID（0=未夹持）。</summary>
+        public int ClampedEntityId { get; internal set; }
+
+        /// <summary>增生封条根是否仍在生长（O-007，切根后 false）。</summary>
+        public bool SealActive { get; internal set; }
+
+        /// <summary>棋盘异常种类（Kind==Facility 且非 None）。</summary>
+        public AnomalyType AnomalyType { get; private set; } = AnomalyType.None;
+
+        /// <summary>任务标记的特殊目标配置（Kind==TaskMarker）。</summary>
+        public GoalConfig Goal { get; private set; }
+
         public BoardEntity(
             int id,
             EntityKind kind,
@@ -105,16 +132,51 @@ namespace Everlight.Tales.Board
             return new BoardEntity(id, EntityKind.Facility, true);
         }
 
-        /// <summary>创建一个任务标记（默认固定，不接受普通移动）。</summary>
-        public static BoardEntity TaskMarker(int id)
+        /// <summary>创建一个任务标记（默认固定，不接受普通移动），可携带特殊目标配置。</summary>
+        public static BoardEntity TaskMarker(int id, GoalConfig goal = null)
         {
-            return new BoardEntity(id, EntityKind.TaskMarker, true);
+            var marker = new BoardEntity(id, EntityKind.TaskMarker, true);
+            marker.Goal = goal;
+            return marker;
         }
 
         /// <summary>创建一个待维修对象（按配置初始化进度）。</summary>
         public static BoardEntity RepairTarget(int id, RepairTargetConfig config)
         {
             return new BoardEntity(id, EntityKind.RepairTarget, true, repairConfig: config);
+        }
+
+        /// <summary>创建一个障碍设施（固定，按配置初始化耐久／方向／闸门状态）。</summary>
+        public static BoardEntity Obstacle(int id, ObstacleConfig config)
+        {
+            var entity = new BoardEntity(id, EntityKind.Facility, true);
+            entity.ObstacleType = config.Type;
+            entity.MaxDurability = config.MaxDurability;
+            entity.Durability = config.MaxDurability;
+            if (config.Type == ObstacleType.LinkedGate)
+            {
+                entity.IsOpen = false; // O-003 初始关闭。
+            }
+
+            if (config.Type == ObstacleType.ProliferatingSeal)
+            {
+                entity.SealActive = true; // O-007 根初始生长中。
+            }
+
+            if (config.PassDirection >= 0)
+            {
+                entity.PassDirection = HexDirections.FromIndex(config.PassDirection);
+            }
+
+            return entity;
+        }
+
+        /// <summary>创建一个棋盘异常区域锚点（固定，按类型登记）。</summary>
+        public static BoardEntity Anomaly(int id, AnomalyType type)
+        {
+            var entity = new BoardEntity(id, EntityKind.Facility, true);
+            entity.AnomalyType = type;
+            return entity;
         }
 
         public override string ToString()
