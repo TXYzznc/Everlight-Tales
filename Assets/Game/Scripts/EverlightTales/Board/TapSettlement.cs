@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Everlight.Tales.Data;
 
 namespace Everlight.Tales.Board
 {
@@ -15,7 +16,7 @@ namespace Everlight.Tales.Board
         private readonly GravityOrderComparer _gravityComparer = new GravityOrderComparer();
 
         /// <summary>执行一次拍击结算，分数累加到 <paramref name="session"/>。</summary>
-        public SettlementResult Settle(BoardState board, SettleState settle, TapContext context, SessionState session)
+        public SettlementResult Settle(BoardState board, SettleState settle, TapContext context, SessionState session, BuffBonuses bonuses = null)
         {
             if (board == null)
             {
@@ -45,7 +46,7 @@ namespace Everlight.Tales.Board
             var log = new List<SettlementEvent>();
             var queue = new SettlementEventQueue();
             var tap = new TapScoreState();
-            var settlementContext = new SettlementContext(board, settle, queue, tap, session, log);
+            var settlementContext = new SettlementContext(board, settle, queue, tap, session, log, bonuses);
 
             // 1. 扣拍数。
             int quotaAfter = context.TapQuota - 1;

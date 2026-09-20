@@ -45,7 +45,7 @@ namespace Everlight.Tales.Board
                 return;
             }
 
-            int triggerScore = config.TriggerScore;
+            int triggerScore = config.TriggerScore + context.Bonuses.TriggerBonus(target.PartType);
             context.Tap.TriggerScore += triggerScore;
 
             Outcome outcome;
@@ -109,14 +109,23 @@ namespace Everlight.Tales.Board
                 return default;
             }
 
-            HexCoord destination = source.Coord.Neighbor(HexDirections.Opposite(incoming));
-            if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
+            // BF-016 长程撞锤：反推距离 +N 格；逐格执行，遇阻挡停止本次移动请求。
+            int distance = 1 + context.Bonuses.DistanceBonus(target.PartType);
+            int effectPerCell = config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType);
+            int moved = 0;
+            for (int step = 0; step < distance; step++)
             {
-                return default; // 无合法落点：耗能但不产生位移或效果分。
+                HexCoord destination = source.Coord.Neighbor(HexDirections.Opposite(incoming));
+                if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
+                {
+                    break;
+                }
+
+                context.Board.Move(source, destination);
+                moved++;
             }
 
-            context.Board.Move(source, destination);
-            return new Outcome(config.EffectScorePerCell, 0);
+            return moved > 0 ? new Outcome(moved * effectPerCell, 0) : default;
         }
 
         /// <summary>棘轮：能量足够时消耗 1 点、产出 1 点公共维修能量；本拍第 N 次及以后成功产能另得效果分。</summary>
@@ -130,7 +139,8 @@ namespace Everlight.Tales.Board
             target.Energy -= config.EffectCost;
             int successCount = context.Tap.BumpEffectCount(target.Id);
             int bonus = successCount >= config.BonusNth ? config.BonusScoreFromNth : 0;
-            return new Outcome(bonus, config.PublicEnergyPerEffect);
+            int energy = config.PublicEnergyPerEffect + context.Bonuses.PublicEnergyBonus(target.PartType);
+            return new Outcome(bonus, energy);
         }
 
         /// <summary>线圈：能量足够时消耗 1 点、向六邻格发冲击（每个实际接受的零件 6 效果分）并移除本体。</summary>
@@ -172,7 +182,8 @@ namespace Everlight.Tales.Board
                 context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Shock, target.Id, hitTargets[i].Id));
             }
 
-            return new Outcome(hitTargets.Count * config.EffectScorePerTarget, 0);
+            int effectPerTarget = config.EffectScorePerTarget + context.Bonuses.EffectUnitBonus(target.PartType);
+            return new Outcome(hitTargets.Count * effectPerTarget, 0);
         }
 
         /// <summary>换向齿轮（P-004）：有实体入射且能量足够时，消耗 1 点把来撞实体沿入射方向顺时针偏转 60° 推进 1 格。</summary>
@@ -203,7 +214,7 @@ namespace Everlight.Tales.Board
             }
 
             context.Board.Move(source, destination);
-            return new Outcome(config.EffectScorePerCell, 0);
+            return new Outcome(config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType), 0);
         }
 
         /// <summary>铆合钳（P-014）：受击／信号时检查 D0 邻格可修复节点，公共维修能量足够时入队一次维修。</summary>

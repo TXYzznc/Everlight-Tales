@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Everlight.Tales.Data;
 
 namespace Everlight.Tales.Board
 {
@@ -27,13 +28,17 @@ namespace Everlight.Tales.Board
         /// <summary>结算事件日志（追加写）。</summary>
         public List<SettlementEvent> Log { get; }
 
+        /// <summary>本拍生效的 Buff 加成（P2-005，解析自 Events 层 BuffSet）。</summary>
+        public BuffBonuses Bonuses { get; }
+
         public SettlementContext(
             BoardState board,
             SettleState settle,
             SettlementEventQueue queue,
             TapScoreState tap,
             SessionState session,
-            List<SettlementEvent> log)
+            List<SettlementEvent> log,
+            BuffBonuses bonuses = null)
         {
             Board = board;
             Settle = settle;
@@ -41,6 +46,7 @@ namespace Everlight.Tales.Board
             Tap = tap;
             Session = session;
             Log = log;
+            Bonuses = bonuses ?? BuffBonuses.Empty;
         }
     }
 }
