@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Everlight.Tales.Data;
 
 namespace Everlight.Tales.Board
 {
@@ -52,6 +53,7 @@ namespace Everlight.Tales.Board
         private readonly Dictionary<HexCoord, TerrainKind> _terrain = new Dictionary<HexCoord, TerrainKind>();
         private readonly Dictionary<HexCoord, int> _endpointLabels = new Dictionary<HexCoord, int>();
         private readonly List<AnomalyRegion> _anomalyRegions = new List<AnomalyRegion>();
+        private readonly Dictionary<int, MoveSource> _lastMoveSource = new Dictionary<int, MoveSource>();
 
         /// <summary>盘面边长（每边格数）。</summary>
         public int SideLength => _sideLength;
@@ -102,8 +104,8 @@ namespace Everlight.Tales.Board
             return PlaceResult.Ok;
         }
 
-        /// <summary>移动一个实体到目标格，遵守「固定锁盘面」「每格单实体」「不越界」。</summary>
-        public MoveResult Move(BoardEntity entity, HexCoord target)
+        /// <summary>移动一个实体到目标格，遵守「固定/锁定锁盘面」「每格单实体」「不越界」。</summary>
+        public MoveResult Move(BoardEntity entity, HexCoord target, MoveSource source = MoveSource.Gravity)
         {
             if (entity == null)
             {
@@ -120,7 +122,7 @@ namespace Everlight.Tales.Board
                 return MoveResult.Ok;
             }
 
-            if (entity.IsFixed)
+            if (!entity.IsMovable)
             {
                 return MoveResult.FixedEntity;
             }
@@ -138,7 +140,26 @@ namespace Everlight.Tales.Board
             _entities.Remove(entity.Coord);
             _entities.Add(target, entity);
             entity.Coord = target;
+            _lastMoveSource[entity.Id] = source;
+
+            // 门轴联系标记等：被普通推移送入校正格后锁定，停止移动（防重力接续拉回）。
+            if (source == MoveSource.Push
+                && entity.Kind == EntityKind.TaskMarker
+                && entity.Goal != null
+                && entity.Goal.Kind == GoalKind.PushedInto
+                && TryGetLabelCoord(entity.Goal.AnchorLabel, out HexCoord labelCoord)
+                && labelCoord == target)
+            {
+                entity.Lock();
+            }
+
             return MoveResult.Ok;
+        }
+
+        /// <summary>取某实体最近一次移动的来源（默认视为定势下落）。</summary>
+        public MoveSource LastMoveSource(int entityId)
+        {
+            return _lastMoveSource.TryGetValue(entityId, out MoveSource source) ? source : MoveSource.Gravity;
         }
 
         /// <summary>移除一个在盘实体，供回收／开门／销毁等效果使用（D-067 重力接续）。</summary>

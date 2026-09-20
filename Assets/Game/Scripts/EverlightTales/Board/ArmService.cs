@@ -47,7 +47,7 @@ namespace Everlight.Tales.Board
                 return ArmMoveResult.Ok;
             }
 
-            switch (board.Move(entity, target))
+            switch (board.Move(entity, target, MoveSource.Arm))
             {
                 case MoveResult.Ok:
                     session.ArmMoves--;

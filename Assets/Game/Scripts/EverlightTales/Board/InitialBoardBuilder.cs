@@ -10,6 +10,12 @@ namespace Everlight.Tales.Board
         Facility = 0,
         Obstacle = 1,
         TaskMarker = 2,
+
+        /// <summary>可移动任务标记（门轴联系标记等，携带特殊目标配置）。</summary>
+        MovableMarker = 3,
+
+        /// <summary>端点标签（校正格等，地形层不占实体容量）。</summary>
+        EndpointLabel = 4,
     }
 
     /// <summary>固定元素配置（P2-009）：每种元素由关卡设计单独指定固定或随机（D-080）。</summary>
@@ -23,12 +29,15 @@ namespace Everlight.Tales.Board
 
         public HexCoord Position { get; }
 
-        public FixedElementConfig(FixedElementKind kind, HexCoord position, ObstacleType obstacleType = ObstacleType.None, int label = 0)
+        public GoalConfig Goal { get; }
+
+        public FixedElementConfig(FixedElementKind kind, HexCoord position, ObstacleType obstacleType = ObstacleType.None, int label = 0, GoalConfig goal = null)
         {
             Kind = kind;
             Position = position;
             ObstacleType = obstacleType;
             Label = label;
+            Goal = goal;
         }
 
         public BoardEntity CreateEntity(int id)
@@ -40,6 +49,9 @@ namespace Everlight.Tales.Board
 
                 case FixedElementKind.TaskMarker:
                     return BoardEntity.TaskMarker(id);
+
+                case FixedElementKind.MovableMarker:
+                    return BoardEntity.MovableTaskMarker(id, Goal);
 
                 case FixedElementKind.Facility:
                 default:
@@ -65,9 +77,15 @@ namespace Everlight.Tales.Board
             var board = new BoardState(config.SideLength);
             int nextId = 1;
 
-            // 1. 固定元素（地形设施、障碍、任务标记）。
+            // 1. 固定元素（地形设施、障碍、任务标记、可移动标记、端点标签）。
             foreach (FixedElementConfig element in config.FixedElements)
             {
+                if (element.Kind == FixedElementKind.EndpointLabel)
+                {
+                    board.SetEndpointLabel(element.Position, element.Label);
+                    continue;
+                }
+
                 board.Place(element.CreateEntity(nextId++), element.Position);
             }
 
@@ -82,7 +100,8 @@ namespace Everlight.Tales.Board
             var empty = new List<HexCoord>();
             foreach (HexCoord coord in HexGrid.Enumerate(config.SideLength))
             {
-                if (!board.IsOccupied(coord))
+                // 端点标签格（校正格等）不参与随机落位，保持初盘空出。
+                if (!board.IsOccupied(coord) && !board.TryGetEndpointLabel(coord, out _))
                 {
                     empty.Add(coord);
                 }

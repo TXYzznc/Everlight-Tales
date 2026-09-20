@@ -121,7 +121,7 @@ namespace Everlight.Tales.Board
                     break;
                 }
 
-                context.Board.Move(source, destination);
+                context.Board.Move(source, destination, MoveSource.Push);
                 moved++;
             }
 

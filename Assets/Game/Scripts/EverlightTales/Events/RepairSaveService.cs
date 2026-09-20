@@ -50,6 +50,9 @@ namespace Everlight.Tales.Events
                     SealActive = entity.SealActive,
                     RepairProgress = entity.RepairProgress,
                     RepairCompleted = entity.RepairCompleted,
+                    IsLocked = entity.IsLocked,
+                    Movable = !entity.IsFixed,
+                    AnchorLabel = entity.Goal != null ? entity.Goal.AnchorLabel : 0,
                 };
 
                 if (entity.RepairConfig != null)
@@ -129,7 +132,18 @@ namespace Everlight.Tales.Events
                     break;
 
                 case EntityKind.TaskMarker:
-                    entity = BoardEntity.TaskMarker(saved.Id);
+                    if (saved.Movable)
+                    {
+                        GoalConfig goal = saved.AnchorLabel > 0
+                            ? new GoalConfig("gate", GoalKind.PushedInto, saved.Id, saved.AnchorLabel)
+                            : null;
+                        entity = BoardEntity.MovableTaskMarker(saved.Id, goal);
+                    }
+                    else
+                    {
+                        entity = BoardEntity.TaskMarker(saved.Id);
+                    }
+
                     break;
 
                 case EntityKind.Facility:
@@ -141,6 +155,7 @@ namespace Everlight.Tales.Events
             }
 
             entity.RestoreState(saved.Durability, saved.IsOpen, saved.PassDirection, saved.ClampedEntityId, saved.SealActive, saved.RepairProgress, saved.RepairCompleted);
+            entity.SetLocked(saved.IsLocked);
             return entity;
         }
     }

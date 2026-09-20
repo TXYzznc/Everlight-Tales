@@ -23,6 +23,9 @@ namespace Everlight.Tales.Board
         public int RepairRequired;
         public int RepairEnergyCost;
         public List<PartType> CompatibleParts = new List<PartType>();
+        public bool IsLocked;
+        public bool Movable;
+        public int AnchorLabel;
     }
 
     /// <summary>存档中的本局 Buff（P2-010）。</summary>

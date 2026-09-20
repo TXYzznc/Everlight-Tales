@@ -84,7 +84,27 @@ namespace Everlight.Tales.Board
                     }
 
                     break;
+
+                case GoalKind.PushedInto:
+                    IsComplete = IsLockedAtLabel(board, Config.AnchorLabel, Config.EntityId);
+                    break;
             }
+        }
+
+        private static bool IsLockedAtLabel(BoardState board, int label, int entityId)
+        {
+            if (!board.TryGetLabelCoord(label, out HexCoord coord))
+            {
+                return false;
+            }
+
+            BoardEntity occupant = board.EntityAt(coord);
+            if (occupant == null || !occupant.IsLocked)
+            {
+                return false;
+            }
+
+            return entityId == 0 || occupant.Id == entityId;
         }
     }
 }

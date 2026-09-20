@@ -15,6 +15,9 @@ namespace Everlight.Tales.Data
 
         /// <summary>顺序：指定实体按顺序到访多个锚点格。</summary>
         Order = 3,
+
+        /// <summary>推移进格：指定实体必须由普通推移送入锚点格并锁定（机械臂／下落不计）。</summary>
+        PushedInto = 4,
     }
 
     /// <summary>

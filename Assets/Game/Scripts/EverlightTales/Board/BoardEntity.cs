@@ -19,8 +19,11 @@ namespace Everlight.Tales.Board
         /// <summary>是否固定：固定设施锁盘面，不可移动。</summary>
         public bool IsFixed { get; }
 
-        /// <summary>是否可移动：非固定实体可受定势／能力／机械臂移动。</summary>
-        public bool IsMovable => !IsFixed;
+        /// <summary>是否可移动：非固定且未锁定实体可受定势／能力／机械臂移动。</summary>
+        public bool IsMovable => !IsFixed && !IsLocked;
+
+        /// <summary>是否已锁定（门轴联系标记等被普通推移送入校正格后停止移动）。</summary>
+        public bool IsLocked { get; private set; }
 
         /// <summary>当前坐标，由 <see cref="BoardState"/> 维护。</summary>
         public HexCoord Coord { get; internal set; }
@@ -138,6 +141,26 @@ namespace Everlight.Tales.Board
             var marker = new BoardEntity(id, EntityKind.TaskMarker, true);
             marker.Goal = goal;
             return marker;
+        }
+
+        /// <summary>创建一个可移动任务标记（如门轴联系标记），可携带特殊目标配置；受定势／推移／机械臂影响。</summary>
+        public static BoardEntity MovableTaskMarker(int id, GoalConfig goal = null)
+        {
+            var marker = new BoardEntity(id, EntityKind.TaskMarker, false);
+            marker.Goal = goal;
+            return marker;
+        }
+
+        /// <summary>锁定实体：停止移动（供门轴联系标记被推移进校正格等使用）。</summary>
+        public void Lock()
+        {
+            IsLocked = true;
+        }
+
+        /// <summary>恢复锁定状态（存档恢复用）。</summary>
+        public void SetLocked(bool locked)
+        {
+            IsLocked = locked;
         }
 
         /// <summary>创建一个待维修对象（按配置初始化进度）。</summary>
