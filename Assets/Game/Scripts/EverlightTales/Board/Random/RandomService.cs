@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Everlight.Tales.Board
 {
@@ -48,6 +48,17 @@ namespace Everlight.Tales.Board
             m_ConsumedCount++;
             long range = (long)maxExclusive - minInclusive;
             return minInclusive + (int)(NextUInt() % (uint)range);
+        }
+
+        /// <summary>恢复随机序列：重置种子并推进指定次数（存档恢复，P2-010）。</summary>
+        public void Restore(int seed, int consumed)
+        {
+            Reset(seed);
+            for (int i = 0; i < consumed; i++)
+            {
+                NextUInt();
+                m_ConsumedCount++;
+            }
         }
 
         /// <summary>返回 [0, 1) 区间的浮点数。</summary>

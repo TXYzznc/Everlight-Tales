@@ -179,6 +179,18 @@ namespace Everlight.Tales.Board
             return entity;
         }
 
+        /// <summary>存档恢复：设定障碍／维修对象的运行时状态（供 Board 层之外的存档恢复入口）。</summary>
+        public void RestoreState(int durability, bool isOpen, int passDirectionIndex, int clampedEntityId, bool sealActive, int repairProgress, bool repairCompleted)
+        {
+            Durability = durability;
+            IsOpen = isOpen;
+            PassDirection = passDirectionIndex >= 0 ? HexDirections.FromIndex(passDirectionIndex) : HexDirection.D0;
+            ClampedEntityId = clampedEntityId;
+            SealActive = sealActive;
+            RepairProgress = repairProgress;
+            RepairCompleted = repairCompleted;
+        }
+
         public override string ToString()
         {
             return "#" + Id + " " + Kind + (PartType == PartType.None ? string.Empty : ":" + PartType) + "@" + Coord;
