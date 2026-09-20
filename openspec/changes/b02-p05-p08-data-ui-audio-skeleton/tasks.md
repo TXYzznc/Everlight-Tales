@@ -23,7 +23,7 @@
 - [x] 2.4 页签：可切换且当前选中项有可辨识表现
 - [x] 2.5 登记页面壳到 `GameData/DataTables/Core/UITable.xlsx`，重新生成 `Assets/Game/Scripts/UI/Core/UIViews.cs`，确认枚举包含该页面
 - [x] 2.6 分组归属：挂载到预期 UI 分组，渲染层级与 `UIGroupTable` 的 `Depth` 一致
-- [ ] 2.7 反复开关验证：关闭后实例与 item 池被释放，场景无残留
+- [x] 2.7 反复开关验证：关闭后实例与 item 池被释放，场景无残留
 
 ## 3. 全局弹窗 / Toast / 加载 / 确认（P0-007）
 
@@ -32,16 +32,16 @@
 - [x] 3.3 确认：同上，结果经 `UIParams.ButtonClickCallback` 回传可区分的确认／取消
 - [x] 3.4 Toast：项目侧自建（不派生 `UIFormBase`），带排队与池化，挂 `Overlay(500)`
 - [x] 3.5 加载：项目侧自建，全屏屏蔽下层交互，挂 `Overlay(500)`
-- [ ] 3.6 验证 Toast 显示在弹窗之上、加载遮挡下层交互
+- [x] 3.6 验证 Toast 显示在弹窗之上、加载遮挡下层交互
 - [x] 3.7 按钮反馈：复用 `ClickUIButton` 与可覆写的 `PlayClickSound`，补齐连点不重复触发保护
-- [ ] 3.8 重复与并发调用验证：实例不泄漏，同帧多个 Toast 全部展示且顺序确定
+- [x] 3.8 重复与并发调用验证：实例不泄漏，同帧多个 Toast 全部展示且顺序确定
 
 ## 4. 音频分组与音量静音（P0-008）
 
 - [x] 4.1 在 `SoundGroupTable` 增补 `UISound` 分组，音乐与音效沿用框架既有分组
 - [x] 4.2 接入音乐／音效／UI 音三分组的播放通路
 - [x] 4.3 音量与静音设置入口，设置立即影响对应分组的实际输出且不影响其它分组
-- [ ] 4.4 用占位音验证通路，不依赖正式音频素材
+- [x] 4.4 用占位音验证通路，不依赖正式音频素材
 - [x] 4.5 登记持久化边界：本批次仅内存态，跨启动保留留给存档服务批次
 
 ## 5. 验证
@@ -51,5 +51,5 @@
 - [x] 5.3 Unity 编译通过（退出码 0，无 `error CS`）
 - [x] 5.4 表管线往返：重跑生成后 `git diff -- Assets/Game/DataTable Assets/Game/Scripts/DataTable` 为空
 - [x] 5.5 `python tools/datatable_excel_source.py --check` 与 `python tools/check_datatable_schema.py` 均通过；后者守住"备注行满宽、字段与备注逐列对齐"，避免注释整体错位
-- [ ] 5.6 Play Mode 走查：业务场景内表加载可读到数据、页面壳可开可关、四类全局组件可拉起、三分组可播放且音量静音生效
+- [x] 5.6 Play Mode 走查：业务场景内表加载可读到数据、页面壳可开可关、四类全局组件可拉起、三分组可播放且音量静音生效
 - [x] 5.7 记录本批次验证证据（命令、退出码、关键日志），交回传
