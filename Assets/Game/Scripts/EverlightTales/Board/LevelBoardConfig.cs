@@ -38,6 +38,18 @@ namespace Everlight.Tales.Board
 
         public int InitialPublicRepairEnergy { get; }
 
+        /// <summary>现场可借用种类（计入携带上限，去重后进入可用池，P2-007）。</summary>
+        public IReadOnlyList<PartType> BorrowedParts { get; }
+
+        /// <summary>固定元素（地形设施／障碍／任务标记，P2-009）。</summary>
+        public IReadOnlyList<FixedElementConfig> FixedElements { get; }
+
+        /// <summary>关卡一句话目标（关卡信息区，P2-007）。</summary>
+        public string Objective { get; }
+
+        /// <summary>预计耗时格数（关卡信息区，P2-007）。</summary>
+        public int Duration { get; }
+
         public LevelBoardConfig(
             string levelName,
             int sideLength,
@@ -45,7 +57,11 @@ namespace Everlight.Tales.Board
             IReadOnlyList<PartType> carryPool,
             int initialPartCount,
             int initialArmMoves,
-            int initialPublicRepairEnergy = 0)
+            int initialPublicRepairEnergy = 0,
+            IReadOnlyList<PartType> borrowedParts = null,
+            IReadOnlyList<FixedElementConfig> fixedElements = null,
+            string objective = "",
+            int duration = 0)
         {
             LevelName = levelName;
             SideLength = sideLength;
@@ -54,6 +70,10 @@ namespace Everlight.Tales.Board
             InitialPartCount = initialPartCount;
             InitialArmMoves = initialArmMoves;
             InitialPublicRepairEnergy = initialPublicRepairEnergy;
+            BorrowedParts = borrowedParts ?? new PartType[0];
+            FixedElements = fixedElements ?? new FixedElementConfig[0];
+            Objective = objective;
+            Duration = duration;
         }
     }
 
