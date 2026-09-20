@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Audit that the repository is a domain-neutral, sample-free framework."""
 
 from __future__ import annotations
@@ -215,6 +215,12 @@ CONTENT_TARGETS = (
     "Docs/Framework/Development/AI-Team-Collaboration-Initialization.md",
     "ProjectSettings/EditorBuildSettings.asset",
 )
+
+# 项目自身业务场景白名单：允许在 Build Settings 中 enabled 的非框架场景。
+# 框架基线只应包含 Launch；业务场景（如 Home）登记进 Build Settings 属项目内容，不算框架污染。
+PROJECT_BUILD_SCENES = {
+    "Assets/Game/Scene/Home.unity",
+}
 
 
 @dataclass(frozen=True)
@@ -436,6 +442,7 @@ def audit(root: Path) -> list[Finding]:
             path.strip()
             for path in enabled_scenes
             if path.strip() != "Assets/Game/Scene/Launch.unity"
+            and path.strip() not in PROJECT_BUILD_SCENES
         ]
         if unsupported_scenes:
             findings.append(
