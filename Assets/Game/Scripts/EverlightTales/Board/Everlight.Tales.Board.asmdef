@@ -1,0 +1,16 @@
+{
+    "name": "Everlight.Tales.Board",
+    "rootNamespace": "Everlight.Tales.Board",
+    "references": [
+        "Everlight.Tales.Data"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

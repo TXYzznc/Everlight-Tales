@@ -1,0 +1,23 @@
+{
+    "name": "Everlight.Tales.UI",
+    "rootNamespace": "Everlight.Tales.UI",
+    "references": [
+        "GameFramework",
+        "UnityGameFramework.Runtime",
+        "UniTask",
+        "DOTween.Extension",
+        "Everlight.Tales.Data",
+        "Everlight.Tales.Board",
+        "Everlight.Tales.Events",
+        "Everlight.Tales.Meta"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
