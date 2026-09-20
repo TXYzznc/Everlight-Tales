@@ -29,7 +29,7 @@ public class SoundGroupTable : DataRowBase
     }
 
         /// <summary>
-        /// Framework default sound groups
+        /// 声音分组名称
         /// </summary>
         public string Name
         {
@@ -38,7 +38,7 @@ public class SoundGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 声音代理数量，决定同组可同时播放的数量
         /// </summary>
         public int SoundAgentCount
         {
@@ -47,7 +47,7 @@ public class SoundGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 是否避免被同优先级的音频替换
         /// </summary>
         public bool AvoidBeingReplacedBySamePriority
         {
@@ -56,7 +56,7 @@ public class SoundGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 是否静音
         /// </summary>
         public bool Mute
         {
@@ -65,7 +65,7 @@ public class SoundGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 音量，1 为原始音量
         /// </summary>
         public float Volume
         {

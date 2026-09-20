@@ -1,0 +1,4 @@
+#	LevelTable					
+#	ID		Name	Radius	RoundCount	TargetScore
+#	int		string	int	int	int
+#		维修关卡的骨架定义	关卡显示名称	盘面半径档位 n，合法格数 3n(n-1)+1	本关轮数	本关目标分数

@@ -1,7 +1,7 @@
 #	EntityGroup						
 #	ID		Name	ReleaseInterval	Capacity	ExpireTime	Priority
 #	int		string	float	int	float	int
-#			Framework default entity groups				
+#		Framework default entity groups	分组名称	自动释放间隔（秒），0 表示不自动释放	对象池容量，0 表示不限制	对象过期时间（秒），0 表示不过期	优先级，数值越大越晚被释放
 	1		Default	60	60	60	0
 	2		Effect	10	200	30	0
 	3		Persistent	60	0	60	0

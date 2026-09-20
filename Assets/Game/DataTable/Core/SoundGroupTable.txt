@@ -1,6 +1,7 @@
 #	SoundGroup						
 #	ID		Name	SoundAgentCount	AvoidBeingReplacedBySamePriority	Mute	Volume
 #	int		string	int	bool	bool	float
-#			Framework default sound groups				
+#		Framework default sound groups	声音分组名称	声音代理数量，决定同组可同时播放的数量	是否避免被同优先级的音频替换	是否静音	音量，1 为原始音量
 	1		Music	1	False	False	1
 	2		Sound	4	False	False	1
+	3		UISound	2	False	False	1

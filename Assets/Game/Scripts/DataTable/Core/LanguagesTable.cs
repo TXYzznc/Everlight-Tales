@@ -29,7 +29,7 @@ public class LanguagesTable : DataRowBase
     }
 
         /// <summary>
-        /// Framework fallback language
+        /// 语言键，与运行时语言标识一致
         /// </summary>
         public string LanguageKey
         {
@@ -38,7 +38,7 @@ public class LanguagesTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 语言资源名，用于加载语言表
         /// </summary>
         public string AssetName
         {
@@ -47,7 +47,7 @@ public class LanguagesTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 界面显示名称
         /// </summary>
         public string LanguageDisplay
         {
@@ -56,7 +56,7 @@ public class LanguagesTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 语言图标资源名
         /// </summary>
         public string LanguageIcon
         {

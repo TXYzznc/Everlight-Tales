@@ -1,0 +1,5 @@
+#	PartTable				
+#	ID		Name	PartKind	EnergyCost
+#	int		string	int	int
+#		可装配零件的基础定义	零件显示名称	零件大类（占位，取值域待 P0-011 冻结）	驱动该零件消耗的能量
+	1		铜制齿轮	1	2

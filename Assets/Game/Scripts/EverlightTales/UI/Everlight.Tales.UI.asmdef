@@ -4,8 +4,10 @@
     "references": [
         "GameFramework",
         "UnityGameFramework.Runtime",
+        "Builtin.Runtime",
         "UniTask",
         "DOTween.Extension",
+        "Hotfix",
         "Everlight.Tales.Data",
         "Everlight.Tales.Board",
         "Everlight.Tales.Events",

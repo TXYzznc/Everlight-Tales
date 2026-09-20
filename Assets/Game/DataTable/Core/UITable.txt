@@ -1,4 +1,6 @@
-#	UI table
+#	UI table						
 #	Id		SortOrder	UIPrefab	PauseCoveredUI	UIGroupId	EscapeClose
 #	int		int	string	bool	int	bool
-#			Project UI entries are intentionally empty in the framework baseline.
+#		Project UI entries are intentionally empty in the framework baseline.	同分组内的显示排序	界面预制体名称	是否暂停被覆盖的界面	所属界面分组 Id	是否允许返回键关闭
+	1		10	MainPageShell	True	1	True
+	2		10	DialogView	True	2	True

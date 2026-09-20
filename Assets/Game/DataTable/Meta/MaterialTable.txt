@@ -1,0 +1,4 @@
+#	MaterialTable				
+#	ID		Name	MaterialKind	StackLimit
+#	int		string	int	int
+#		材料的基础定义	材料显示名称	材料大类（占位，取值域待 P0-011 冻结）	单格堆叠上限，0 表示不限

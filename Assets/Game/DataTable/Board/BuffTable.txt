@@ -1,0 +1,4 @@
+#	BuffTable				
+#	ID		Name	StackRule	Duration
+#	int		string	int	int
+#		局内 Buff 的骨架定义	Buff 显示名称	叠加规则（占位，取值域待 P0-011 冻结）	持续轮数，0 表示本关常驻

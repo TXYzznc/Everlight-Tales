@@ -29,7 +29,7 @@ public class UITable : DataRowBase
     }
 
         /// <summary>
-        /// Display order relative to group
+        /// 同分组内的显示排序
         /// </summary>
         public int SortOrder
         {
@@ -38,7 +38,7 @@ public class UITable : DataRowBase
         }
 
         /// <summary>
-        /// UI prefab name
+        /// 界面预制体名称
         /// </summary>
         public string UIPrefab
         {
@@ -47,7 +47,7 @@ public class UITable : DataRowBase
         }
 
         /// <summary>
-        /// Hide covered UI in the same group
+        /// 是否暂停被覆盖的界面
         /// </summary>
         public bool PauseCoveredUI
         {
@@ -56,7 +56,7 @@ public class UITable : DataRowBase
         }
 
         /// <summary>
-        /// UI group id
+        /// 所属界面分组 Id
         /// </summary>
         public int UIGroupId
         {
@@ -65,7 +65,7 @@ public class UITable : DataRowBase
         }
 
         /// <summary>
-        /// Allow close by back input
+        /// 是否允许返回键关闭
         /// </summary>
         public bool EscapeClose
         {

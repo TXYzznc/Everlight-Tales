@@ -4,4 +4,6 @@
 #endif
 public enum UIViews : int
 {
+	MainPageShell = 1,
+	DialogView = 2
 }

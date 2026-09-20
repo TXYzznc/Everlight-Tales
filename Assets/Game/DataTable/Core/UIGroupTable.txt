@@ -1,7 +1,7 @@
 #	UIGroup			
 #	ID		Name	Depth
 #	int		string	int
-#			Framework default UI groups	
+#		Framework default UI groups	界面分组名称	分组深度，数值越大越靠前显示
 	1		Default	1
 	2		Dialog	200
 	3		Overlay	500

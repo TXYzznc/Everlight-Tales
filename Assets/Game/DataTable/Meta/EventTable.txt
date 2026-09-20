@@ -1,0 +1,4 @@
+#	EventTable				
+#	ID		Name	EventType	TimeCost
+#	int		string	int	int
+#		事件模板的骨架定义	事件显示名称	事件类型（地图交互／调查／普通维修／怪谈阶段等）	完成后消耗的时间格

@@ -19,6 +19,12 @@ MonoBehaviour:
   - Core/SoundGroupTable
   - Core/UIGroupTable
   - Core/UITable
+  - Board/PartTable
+  - Board/LevelTable
+  - Board/BuffTable
+  - Meta/EventTable
+  - Meta/MaterialTable
+  - Meta/QuestTable
   mConfigs: []
   mLanguages:
   - English

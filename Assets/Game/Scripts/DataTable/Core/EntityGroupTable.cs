@@ -29,7 +29,7 @@ public class EntityGroupTable : DataRowBase
     }
 
         /// <summary>
-        /// Framework default entity groups
+        /// 分组名称
         /// </summary>
         public string Name
         {
@@ -38,7 +38,7 @@ public class EntityGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 自动释放间隔（秒），0 表示不自动释放
         /// </summary>
         public float ReleaseInterval
         {
@@ -47,7 +47,7 @@ public class EntityGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 对象池容量，0 表示不限制
         /// </summary>
         public int Capacity
         {
@@ -56,7 +56,7 @@ public class EntityGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 对象过期时间（秒），0 表示不过期
         /// </summary>
         public float ExpireTime
         {
@@ -65,7 +65,7 @@ public class EntityGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 优先级，数值越大越晚被释放
         /// </summary>
         public int Priority
         {

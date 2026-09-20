@@ -29,7 +29,7 @@ public class UIGroupTable : DataRowBase
     }
 
         /// <summary>
-        /// Framework default UI groups
+        /// 界面分组名称
         /// </summary>
         public string Name
         {
@@ -38,7 +38,7 @@ public class UIGroupTable : DataRowBase
         }
 
         /// <summary>
-        /// 
+        /// 分组深度，数值越大越靠前显示
         /// </summary>
         public int Depth
         {
