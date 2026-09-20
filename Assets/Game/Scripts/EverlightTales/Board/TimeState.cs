@@ -1,14 +1,7 @@
+using Everlight.Tales.Data;
+
 namespace Everlight.Tales.Board
 {
-    /// <summary>一天四时段（P2-011 时间推进）。</summary>
-    public enum TimeOfDay : byte
-    {
-        Morning = 0,
-        Afternoon = 1,
-        Night = 2,
-        DeepNight = 3,
-    }
-
     /// <summary>时间推进结果。</summary>
     public sealed class TimeAdvanceResult
     {
