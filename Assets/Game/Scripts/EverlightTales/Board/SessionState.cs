@@ -12,5 +12,8 @@ namespace Everlight.Tales.Board
 
         /// <summary>累计分数。</summary>
         public int Score { get; set; }
+
+        /// <summary>机械臂剩余搬动次数（P1-010）。跨轮保留、不自动补满，仅搬动成功时递减。</summary>
+        public int ArmMoves { get; set; }
     }
 }
