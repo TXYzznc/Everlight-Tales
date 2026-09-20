@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Everlight.Tales.Board
@@ -57,6 +57,9 @@ namespace Everlight.Tales.Board
 
         /// <summary>当前实体数量。</summary>
         public int EntityCount => _entities.Count;
+
+        /// <summary>全部在盘实体的实时视图（无序）。遍历期间若改动盘面请先快照。</summary>
+        public IEnumerable<BoardEntity> Entities => _entities.Values;
 
         public BoardState(int sideLength)
         {
@@ -135,6 +138,37 @@ namespace Everlight.Tales.Board
             _entities.Add(target, entity);
             entity.Coord = target;
             return MoveResult.Ok;
+        }
+
+        /// <summary>移除一个在盘实体，供回收／开门／销毁等效果使用（D-067 重力接续）。</summary>
+        public bool Remove(BoardEntity entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
+            if (!_byId.TryGetValue(entity.Id, out BoardEntity current) || !ReferenceEquals(current, entity))
+            {
+                return false;
+            }
+
+            _entities.Remove(entity.Coord);
+            _byId.Remove(entity.Id);
+            return true;
+        }
+
+        /// <summary>按坐标移除实体，无则返回 false。</summary>
+        public bool RemoveAt(HexCoord coord)
+        {
+            if (!_entities.TryGetValue(coord, out BoardEntity entity))
+            {
+                return false;
+            }
+
+            _entities.Remove(coord);
+            _byId.Remove(entity.Id);
+            return true;
         }
 
         /// <summary>取指定格的实体，无则返回 null。</summary>
