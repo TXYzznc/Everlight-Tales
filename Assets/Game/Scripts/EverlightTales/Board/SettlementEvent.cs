@@ -1,4 +1,4 @@
-﻿namespace Everlight.Tales.Board
+namespace Everlight.Tales.Board
 {
     /// <summary>
     /// 拍击结算日志的事件类别。日志是本次拍击的「演算结果」，
@@ -29,6 +29,12 @@
 
         /// <summary>盘面稳定，本拍结算结束。</summary>
         Stabilized,
+
+        /// <summary>一次零件触发被结算：触发源→被触发零件，携带分数与公共能量增量。</summary>
+        TriggerResolved,
+
+        /// <summary>一次有效维修被结算：维修对象进度推进，携带分数与公共能量消耗。</summary>
+        RepairApplied,
     }
 
     /// <summary>
@@ -39,7 +45,7 @@
         /// <summary>事件类别。</summary>
         public readonly SettlementEventKind Kind;
 
-        /// <summary>主实体 ID（移动者／被触发的目标等）。</summary>
+        /// <summary>主实体 ID（移动者／触发源等）。</summary>
         public readonly int EntityId;
 
         /// <summary>移动前坐标（未移动时等于 To 或 Zero）。</summary>
@@ -54,13 +60,21 @@
         /// <summary>附加说明。</summary>
         public readonly string Message;
 
+        /// <summary>本条事件产生的分数增量。</summary>
+        public readonly int ScoreDelta;
+
+        /// <summary>本条事件产生的公共维修能量增量（产出为正、消耗为负）。</summary>
+        public readonly int EnergyDelta;
+
         public SettlementEvent(
             SettlementEventKind kind,
             int entityId = 0,
             HexCoord from = default,
             HexCoord to = default,
             int targetId = 0,
-            string message = null)
+            string message = null,
+            int scoreDelta = 0,
+            int energyDelta = 0)
         {
             Kind = kind;
             EntityId = entityId;
@@ -68,12 +82,15 @@
             To = to;
             TargetId = targetId;
             Message = message;
+            ScoreDelta = scoreDelta;
+            EnergyDelta = energyDelta;
         }
 
         public override string ToString()
         {
             string extra = Message == null ? string.Empty : " " + Message;
-            return Kind + " e#" + EntityId + " " + From + "->" + To + " t#" + TargetId + extra;
+            string gain = ScoreDelta == 0 && EnergyDelta == 0 ? string.Empty : " score+" + ScoreDelta + " energy" + (EnergyDelta >= 0 ? "+" : string.Empty) + EnergyDelta;
+            return Kind + " e#" + EntityId + " " + From + "->" + To + " t#" + TargetId + extra + gain;
         }
     }
 }

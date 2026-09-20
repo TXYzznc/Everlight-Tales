@@ -14,6 +14,9 @@ namespace Everlight.Tales.Events
 
         /// <summary>事件语义标签，用于去重与日志。</summary>
         string Kind { get; }
+
+        /// <summary>被触发目标标识，用于「同根同接收件」级去重。</summary>
+        int TargetId { get; }
     }
 
     /// <summary>

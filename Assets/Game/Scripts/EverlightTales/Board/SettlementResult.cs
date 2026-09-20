@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Everlight.Tales.Board
 {
@@ -14,11 +14,27 @@ namespace Everlight.Tales.Board
         /// <summary>是否已稳定（正常结算恒为 true）。</summary>
         public bool Stabilized { get; }
 
-        public SettlementResult(int tapQuotaAfter, IReadOnlyList<SettlementEvent> events, bool stabilized)
+        /// <summary>本拍触发分。</summary>
+        public int TriggerScore { get; }
+
+        /// <summary>本拍效果分（自身效果分 + 维修效果分）。</summary>
+        public int EffectScore { get; }
+
+        /// <summary>本拍总得分。</summary>
+        public int TotalScore => TriggerScore + EffectScore;
+
+        public SettlementResult(
+            int tapQuotaAfter,
+            IReadOnlyList<SettlementEvent> events,
+            bool stabilized,
+            int triggerScore = 0,
+            int effectScore = 0)
         {
             TapQuotaAfter = tapQuotaAfter;
             Events = events;
             Stabilized = stabilized;
+            TriggerScore = triggerScore;
+            EffectScore = effectScore;
         }
     }
 }

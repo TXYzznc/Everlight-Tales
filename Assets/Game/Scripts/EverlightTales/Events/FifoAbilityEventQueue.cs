@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Everlight.Tales.Events
 {
     /// <summary>
-    /// FIFO 能力事件队列的默认实现。先入先出，新触发入队尾、不插队；
-    /// 「同对象同事件只处理一次」＝同一触发源（SourceId）的同一事件类别（Kind）
-    /// 在一次结算内只入队一次（去重），供复现校验。保持纯数据、不引用引擎。
+    /// FIFO 能力事件队列的默认实现。先入先出，新触发入队尾、不插队，顺序可复现。
+    /// 事件由结算日志逐条解析而来，每条触发都是独立事实（含「被推开再落回」这类
+    /// 同源同目标的重发触发），故不按 (SourceId, Kind) 去重——去重会错误合并合法重发。
+    /// 「同根信号在同一接收件只记一次」的信号级去重推迟到声音／控制信号（b13+）按根事件规则实现。
+    /// 保持纯数据、不引用引擎。
     /// </summary>
     public sealed class FifoAbilityEventQueue : IAbilityEventQueue
     {
         private readonly Queue<IBoardEvent> _queue = new Queue<IBoardEvent>();
-        private readonly HashSet<DedupKey> _dedup = new HashSet<DedupKey>();
 
         /// <inheritdoc />
         public int Count => _queue.Count;
@@ -18,13 +19,7 @@ namespace Everlight.Tales.Events
         /// <inheritdoc />
         public void Enqueue(IBoardEvent boardEvent)
         {
-            if (boardEvent == null)
-            {
-                return;
-            }
-
-            var key = new DedupKey(boardEvent.SourceId, boardEvent.Kind);
-            if (_dedup.Add(key))
+            if (boardEvent != null)
             {
                 _queue.Enqueue(boardEvent);
             }
@@ -47,37 +42,6 @@ namespace Everlight.Tales.Events
         public void Clear()
         {
             _queue.Clear();
-            _dedup.Clear();
-        }
-
-        private readonly struct DedupKey : System.IEquatable<DedupKey>
-        {
-            private readonly int _sourceId;
-            private readonly string _kind;
-
-            public DedupKey(int sourceId, string kind)
-            {
-                _sourceId = sourceId;
-                _kind = kind;
-            }
-
-            public bool Equals(DedupKey other)
-            {
-                return _sourceId == other._sourceId && _kind == other._kind;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is DedupKey other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    return (_sourceId * 397) ^ (_kind == null ? 0 : _kind.GetHashCode());
-                }
-            }
         }
     }
 }
