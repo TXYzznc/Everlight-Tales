@@ -17,6 +17,8 @@ namespace Everlight.Tales.UI
         private readonly List<GameObject> _cells = new List<GameObject>();
         private readonly Dictionary<int, GameObject> _entityTiles = new Dictionary<int, GameObject>();
 
+        private RectTransform m_TileRoot;
+
         /// <summary>当前已渲染的格子数。</summary>
         public int CellCount => _cells.Count;
 
@@ -62,7 +64,7 @@ namespace Everlight.Tales.UI
         private GameObject CreateTile(string name, Vector2 position, Color color, float fillRatio)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(transform, false);
+            go.transform.SetParent(TileRoot, false);
             RectTransform rt = (RectTransform)go.transform;
             rt.anchoredPosition = position;
             float size = m_CellSize * fillRatio;
@@ -71,11 +73,38 @@ namespace Everlight.Tales.UI
             return go;
         }
 
+        /// <summary>
+        /// 盘面格子挂在一个专用容器下，避免 <see cref="ClearChildren"/> 误删同层级的 HUD／按钮等兄弟节点。
+        /// </summary>
+        private RectTransform TileRoot
+        {
+            get
+            {
+                if (m_TileRoot == null)
+                {
+                    var root = new GameObject("board_tiles", typeof(RectTransform));
+                    root.transform.SetParent(transform, false);
+                    m_TileRoot = (RectTransform)root.transform;
+                    m_TileRoot.anchorMin = Vector2.zero;
+                    m_TileRoot.anchorMax = Vector2.one;
+                    m_TileRoot.anchoredPosition = Vector2.zero;
+                    m_TileRoot.sizeDelta = Vector2.zero;
+                }
+
+                return m_TileRoot;
+            }
+        }
+
         private void ClearChildren()
         {
-            for (int i = transform.childCount - 1; i >= 0; i--)
+            if (m_TileRoot == null)
             {
-                Destroy(transform.GetChild(i).gameObject);
+                return;
+            }
+
+            for (int i = m_TileRoot.childCount - 1; i >= 0; i--)
+            {
+                Destroy(m_TileRoot.GetChild(i).gameObject);
             }
         }
     }

@@ -17,9 +17,13 @@ namespace Everlight.Tales.UI
 
         public BoardHUD Hud { get; private set; }
 
+        /// <summary>最近一次拍击后的过轮判定（供页面层展示结算结果）。</summary>
+        public RoundPassResult LastRoundResult { get; private set; } = RoundPassResult.Continue;
+
         private Button m_RotateLeft;
         private Button m_RotateRight;
         private Button m_Tap;
+        private Text m_ResultText;
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
         public void Bind(BoardGame game)
@@ -33,6 +37,7 @@ namespace Everlight.Tales.UI
             m_RotateLeft = CreateButton("btn_rotate_left", new Vector2(-220f, 0f), "左旋");
             m_RotateRight = CreateButton("btn_rotate_right", new Vector2(220f, 0f), "右旋");
             m_Tap = CreateButton("btn_tap", new Vector2(0f, -340f), "拍击");
+            m_ResultText = CreateText("txt_result", new Vector2(0f, -430f));
 
             m_RotateLeft.onClick.AddListener(OnRotateLeft);
             m_RotateRight.onClick.AddListener(OnRotateRight);
@@ -59,7 +64,9 @@ namespace Everlight.Tales.UI
         public RoundPassResult Tap()
         {
             RoundPassResult pass = Game.Tap();
+            LastRoundResult = pass;
             Refresh();
+            UpdateResultText();
             return pass;
         }
 
@@ -90,6 +97,27 @@ namespace Everlight.Tales.UI
             Tap();
         }
 
+        private void UpdateResultText()
+        {
+            if (m_ResultText == null)
+            {
+                return;
+            }
+
+            switch (LastRoundResult)
+            {
+                case RoundPassResult.Continue:
+                    m_ResultText.text = string.Empty;
+                    break;
+                case RoundPassResult.Passed:
+                    m_ResultText.text = "本轮通过";
+                    break;
+                case RoundPassResult.Failed:
+                    m_ResultText.text = "本轮失败";
+                    break;
+            }
+        }
+
         private Button CreateButton(string name, Vector2 position, string label)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
@@ -112,6 +140,22 @@ namespace Everlight.Tales.UI
             text.text = label;
 
             return go.GetComponent<Button>();
+        }
+
+        private Text CreateText(string name, Vector2 position)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            go.transform.SetParent(transform, false);
+            RectTransform rt = (RectTransform)go.transform;
+            rt.anchoredPosition = position;
+            rt.sizeDelta = new Vector2(600f, 36f);
+            var text = go.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = 24;
+            text.color = new Color(1f, 0.85f, 0.35f, 1f);
+            text.alignment = TextAnchor.MiddleCenter;
+            text.text = string.Empty;
+            return text;
         }
     }
 }

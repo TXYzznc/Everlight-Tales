@@ -69,6 +69,12 @@ namespace Everlight.Tales.UI
         private void OnTabClicked(int index)
         {
             SelectTab(index);
+
+            if (index == 0)
+            {
+                // 地图页签：进入盘面（b42 教学样张入口；b43 改为城市地图 → 事件 → 盘面链路）。
+                GF.UI.OpenUIForm(UIViews.BoardPage);
+            }
         }
 
         private void SelectTab(int index)
