@@ -34,30 +34,31 @@ namespace Everlight.Tales.UI
             Hud = gameObject.AddComponent<BoardHUD>();
             Hud.Build();
 
-            m_RotateLeft = CreateButton("btn_rotate_left", new Vector2(-220f, 0f), "左旋");
-            m_RotateRight = CreateButton("btn_rotate_right", new Vector2(220f, 0f), "右旋");
-            m_Tap = CreateButton("btn_tap", new Vector2(0f, -340f), "拍击");
-            m_ResultText = CreateText("txt_result", new Vector2(0f, -430f));
+            m_RotateLeft = CreateButton("btn_rotate_left", new Vector2(-180f, -250f), "左旋");
+            m_RotateRight = CreateButton("btn_rotate_right", new Vector2(180f, -250f), "右旋");
+            m_Tap = CreateButton("btn_tap", new Vector2(0f, -250f), "拍击");
+            m_ResultText = CreateText("txt_result", new Vector2(0f, -320f));
 
             m_RotateLeft.onClick.AddListener(OnRotateLeft);
             m_RotateRight.onClick.AddListener(OnRotateRight);
             m_Tap.onClick.AddListener(OnTap);
 
             Refresh();
+            BoardView.SetGravity(Game.Settle.GravityDirection);
         }
 
-        /// <summary>左旋一个相位并刷新（供按钮与验收调用）。</summary>
+        /// <summary>左旋一个相位（只改重力方向与盘面旋转动画，不重建盘面）。</summary>
         public void RotateLeft()
         {
             Game.RotateLeft();
-            Refresh();
+            BoardView.SetGravity(Game.Settle.GravityDirection);
         }
 
-        /// <summary>右旋一个相位并刷新。</summary>
+        /// <summary>右旋一个相位。</summary>
         public void RotateRight()
         {
             Game.RotateRight();
-            Refresh();
+            BoardView.SetGravity(Game.Settle.GravityDirection);
         }
 
         /// <summary>执行一次拍击并刷新，返回过轮判定。</summary>

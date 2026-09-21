@@ -22,5 +22,15 @@ namespace Everlight.Tales.UI
         {
             return Mathf.Sqrt(3f) * size;
         }
+
+        /// <summary>
+        /// 盘面视觉旋转角：把当前重力方向（盘内坐标）转到屏幕正下方所需的 z 旋转角。
+        /// 旋转后重力始终指向屏幕下方，盘面（含格与实体）随之一同旋转，直观呈现「六相定势」旋转。
+        /// </summary>
+        public static float RotationAngleForGravity(HexDirection gravity)
+        {
+            Vector2 dir = AxialToPixel(HexDirections.Offset(gravity), 1f);
+            return Vector2.SignedAngle(dir, Vector2.down);
+        }
     }
 }
