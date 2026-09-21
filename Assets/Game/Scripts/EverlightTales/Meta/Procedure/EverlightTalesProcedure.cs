@@ -35,6 +35,7 @@ namespace Everlight.Tales.Procedure
             Log.Info("Everlight-Tales business startup: layers={0}", ProjectLayers.Count);
 
             InitializeInput();
+            HomePageBootstrap.EnsureSubscribed();
             EnterEntryScene(procedureOwner);
         }
 
