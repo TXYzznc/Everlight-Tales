@@ -28,7 +28,7 @@ namespace Everlight.Tales.Meta
             _settled = true;
             world.Day = day;
             world.Period = period;
-            world.RepairFee += rewardFee;
+            EconomyService.GrantBySettlement(world, rewardFee, "事件结算", day);
 
             return new WorldSettlementResult { WasAlreadyDone = false, Save = WorldSaveService.Capture(world) };
         }

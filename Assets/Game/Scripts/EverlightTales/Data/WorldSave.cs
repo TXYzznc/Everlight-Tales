@@ -49,6 +49,8 @@ namespace Everlight.Tales.Data
         public string HomeState;
         public List<PlaceSave> Places = new List<PlaceSave>();
         public List<PartType> OwnedParts = new List<PartType>();
+        public List<MaterialStack> Materials = new List<MaterialStack>();
+        public List<LedgerEntry> Ledger = new List<LedgerEntry>();
         public List<CaseSave> Cases = new List<CaseSave>();
         public List<TaskSave> Tasks = new List<TaskSave>();
     }

@@ -59,7 +59,7 @@ namespace Everlight.Tales.Meta
             }
 
             task.Kind = TaskStateKind.Rewarded;
-            world.RepairFee += task.Config.RewardFee;
+            EconomyService.GrantByTask(world, task.Config.RewardFee, task.Config.Name, task.LastUpdated);
             return new TaskClaimResult(true, task.Config.RewardFee, task.Config.Blueprints);
         }
     }

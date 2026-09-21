@@ -17,6 +17,8 @@ namespace Everlight.Tales.Meta
         public bool TutorialComplete;
         public string HomeState;
         public List<PartType> OwnedParts;
+        public MaterialBackpack Materials;
+        public List<LedgerEntry> Ledger;
         public MapState Map;
         public List<CaseState> Cases;
         public List<TaskState> Tasks;
@@ -30,6 +32,8 @@ namespace Everlight.Tales.Meta
             TutorialComplete = false;
             HomeState = "";
             OwnedParts = new List<PartType>();
+            Materials = new MaterialBackpack();
+            Ledger = new List<LedgerEntry>();
             Map = new MapState();
             Cases = new List<CaseState>();
             Tasks = new List<TaskState>();

@@ -28,6 +28,16 @@ namespace Everlight.Tales.Meta
 
             save.OwnedParts.AddRange(world.OwnedParts);
 
+            foreach (MaterialStack s in world.Materials.Stacks)
+            {
+                save.Materials.Add(new MaterialStack { MaterialId = s.MaterialId, SourceCase = s.SourceCase, Count = s.Count });
+            }
+
+            foreach (LedgerEntry e in world.Ledger)
+            {
+                save.Ledger.Add(new LedgerEntry { Direction = e.Direction, Channel = e.Channel, Amount = e.Amount, Reason = e.Reason, Tick = e.Tick });
+            }
+
             foreach (CaseState c in world.Cases)
             {
                 save.Cases.Add(new CaseSave
@@ -72,6 +82,16 @@ namespace Everlight.Tales.Meta
             };
 
             world.OwnedParts.AddRange(save.OwnedParts);
+
+            foreach (MaterialStack s in save.Materials)
+            {
+                world.Materials.Add(s.MaterialId, s.Count, s.SourceCase);
+            }
+
+            foreach (LedgerEntry e in save.Ledger)
+            {
+                world.Ledger.Add(new LedgerEntry { Direction = e.Direction, Channel = e.Channel, Amount = e.Amount, Reason = e.Reason, Tick = e.Tick });
+            }
 
             foreach (PlaceConfig config in PlaceCatalog.FirstBatch())
             {
