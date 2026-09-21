@@ -11,9 +11,9 @@
     python tools/generate_placeholder_art.py --preview   # 仅生成拼图预览不写资源
 
 输出：
-    Assets/Art/Placeholder/Board/parts/*.png
-    Assets/Art/Placeholder/Board/others/*.png
-    Assets/Art/Placeholder/UI/*.png
+    Assets/Game/Sprites/Placeholder/Board/parts/*.png
+    Assets/Game/Sprites/Placeholder/Board/others/*.png
+    Assets/Game/Sprites/Placeholder/UI/*.png
 """
 import math
 import os
@@ -22,7 +22,7 @@ import sys
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "Assets", "Art", "Placeholder")
+OUT = os.path.join(ROOT, "Assets", "Game", "Sprites", "Placeholder")
 
 TILE = 256          # 盘面棋子图尺寸
 ICON_SCALE = 0.36   # 图标相对棋子尺寸
