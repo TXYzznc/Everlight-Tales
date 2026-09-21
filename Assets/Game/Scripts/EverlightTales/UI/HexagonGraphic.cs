@@ -158,9 +158,9 @@ namespace Everlight.Tales.UI
             {
                 Vector2 normal = normals[i];
                 // 本 Graphic 顶点 p 相对格子中心；大六边形中心相对格子中心 = _clipCenter，
-                // 故 p 相对大六边形中心 = p + _clipCenter，半平面 normal·(p + _clipCenter) ≤ apothem
-                // 即 normal·p ≤ apothem - normal·_clipCenter。
-                float c = _clipApothem - Vector2.Dot(normal, _clipCenter);
+                // 故 p 相对大六边形中心 = p − _clipCenter，半平面 normal·(p − _clipCenter) ≤ apothem
+                // 即 normal·p ≤ apothem + normal·_clipCenter。
+                float c = _clipApothem + Vector2.Dot(normal, _clipCenter);
                 output = ClipToHalfPlane(output, normal, c);
                 if (output.Length < 3)
                 {
