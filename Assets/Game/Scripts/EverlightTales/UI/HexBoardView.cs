@@ -24,6 +24,8 @@ namespace Everlight.Tales.UI
 
         [SerializeField] private Color m_CellStrokeColor = new Color(0f, 0f, 0f, 0.45f);
 
+        [SerializeField] private Color m_WallColor = new Color(0.30f, 0.22f, 0.22f, 1f);
+
         [SerializeField] private Color m_OutlineColor = new Color(0.35f, 0.78f, 1f, 0.55f);
 
         [SerializeField] private Color m_EdgeGlowColor = new Color(0.35f, 0.78f, 1f, 1f);
@@ -72,7 +74,7 @@ namespace Everlight.Tales.UI
             EnsureRoots();
             ClearTiles();
 
-            foreach (HexCoord cell in HexGrid.Enumerate(board.SideLength))
+            foreach (HexCoord cell in board.EnumerateNormal())
             {
                 _cells.Add(CreateTile(
                     "cell_" + cell.Q + "_" + cell.R,
@@ -80,7 +82,22 @@ namespace Everlight.Tales.UI
                     m_CellSize,
                     m_CellColor,
                     m_CellStrokeColor,
-                    1.2f));
+                    1.2f,
+                    null));
+            }
+
+            // 残缺墙：与正常格同为点顶六边形，但被大六边形轮廓裁切成半格。
+            HexBoardShape shape = board.Shape;
+            foreach (HexCoord cell in board.EnumerateWall())
+            {
+                _cells.Add(CreateTile(
+                    "wall_" + cell.Q + "_" + cell.R,
+                    HexLayout.AxialToPixel(cell, m_CellSize),
+                    m_CellSize,
+                    m_WallColor,
+                    m_CellStrokeColor,
+                    1.2f,
+                    shape));
             }
 
             foreach (BoardEntity entity in board.Entities)
@@ -91,11 +108,12 @@ namespace Everlight.Tales.UI
                     m_CellSize * m_EntityScale,
                     EntityVisuals.GetColor(entity),
                     new Color(0f, 0f, 0f, 0.45f),
-                    0f);
+                    0f,
+                    null);
                 _entityTiles.Add(entity.Id, tile);
             }
 
-            RebuildOutline(board.SideLength);
+            RebuildOutline(board.BoardRadius);
             ApplyRotation();
         }
 
@@ -165,7 +183,7 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private GameObject CreateTile(string name, Vector2 position, float radius, Color color, Color stroke, float strokeWidth)
+        private GameObject CreateTile(string name, Vector2 position, float radius, Color color, Color stroke, float strokeWidth, HexBoardShape clipShape)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer));
             go.transform.SetParent(m_TileRoot, false);
@@ -184,14 +202,20 @@ namespace Everlight.Tales.UI
                 graphic.StrokeColor = stroke;
             }
 
+            if (clipShape != null)
+            {
+                // 大六边形中心在 board_root 原点；格子中心在 board_root 下坐标为 position，
+                // 故大六边形中心相对格子中心 = -position；边心距（像素）= 归一化 apothem × cellSize。
+                graphic.SetClip(-position, (float)clipShape.Apothem * m_CellSize);
+            }
+
             return go;
         }
 
-        private void RebuildOutline(int sideLength)
+        private void RebuildOutline(int boardRadius)
         {
-            int radius = sideLength - 1;
-            // 外接圆穿过最外圈角落格的外侧顶点
-            float outlineRadius = m_CellSize * Mathf.Sqrt(3f) * (radius + 0.5f);
+            // 点顶大六边形轮廓：顶点到中心 = 2 · OuterRadius · CellSize（与参考项目 circumradius 一致）。
+            float outlineRadius = 2f * (boardRadius + 1) * m_CellSize;
 
             if (m_Outline == null)
             {

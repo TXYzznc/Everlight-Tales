@@ -13,7 +13,7 @@ namespace Everlight.Tales.Board
         private readonly LevelBoardConfig _config;
         private readonly LevelConfig _level;
 
-        public int SideLength => _config.SideLength;
+        public int BoardRadius => _config.BoardRadius;
 
         public IReadOnlyList<FixedElementConfig> FixedElements => _config.FixedElements;
 

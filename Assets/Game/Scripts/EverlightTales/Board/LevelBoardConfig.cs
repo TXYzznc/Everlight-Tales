@@ -18,7 +18,7 @@ namespace Everlight.Tales.Board
     }
 
     /// <summary>
-    /// 关卡盘面配置（P1-021）：边长、关键件固定落位、携带池、初盘零件数、
+    /// 关卡盘面配置（P1-021）：可玩区半径、关键件固定落位、携带池、初盘零件数、
     /// 初始机械臂次数与关初公共维修能量。含盘面坐标（HexCoord），故落 Board 层；
     /// 零件种类仍来自 Data 的 PartType。纯配置、不引用引擎。
     /// </summary>
@@ -26,7 +26,7 @@ namespace Everlight.Tales.Board
     {
         public string LevelName { get; }
 
-        public int SideLength { get; }
+        public int BoardRadius { get; }
 
         public IReadOnlyList<KeyPieceConfig> KeyPieces { get; }
 
@@ -52,7 +52,7 @@ namespace Everlight.Tales.Board
 
         public LevelBoardConfig(
             string levelName,
-            int sideLength,
+            int boardRadius,
             IReadOnlyList<KeyPieceConfig> keyPieces,
             IReadOnlyList<PartType> carryPool,
             int initialPartCount,
@@ -64,7 +64,7 @@ namespace Everlight.Tales.Board
             int duration = 0)
         {
             LevelName = levelName;
-            SideLength = sideLength;
+            BoardRadius = boardRadius;
             KeyPieces = keyPieces ?? new KeyPieceConfig[0];
             CarryPool = carryPool ?? new PartType[0];
             InitialPartCount = initialPartCount;
@@ -77,14 +77,14 @@ namespace Everlight.Tales.Board
         }
     }
 
-    /// <summary>教学样张（P1-021）：S0 教学档（边长 5）的示例初盘配置。</summary>
+    /// <summary>教学样张（P1-021）：S0 教学档（boardRadius 5）的示例初盘配置。</summary>
     public static class TutorialLevelConfig
     {
         public static LevelBoardConfig Create()
         {
             return new LevelBoardConfig(
                 levelName: "S0 教学样张",
-                sideLength: 5,
+                boardRadius: 5,
                 keyPieces: new[]
                 {
                     new KeyPieceConfig(PartType.InertiaHammer, new HexCoord(0, 0)),

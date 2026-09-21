@@ -74,7 +74,7 @@ namespace Everlight.Tales.Board
                 throw new ArgumentNullException(nameof(config));
             }
 
-            var board = new BoardState(config.SideLength);
+            var board = new BoardState(config.BoardRadius);
             int nextId = 1;
 
             // 1. 固定元素（地形设施、障碍、任务标记、可移动标记、端点标签）。
@@ -98,7 +98,7 @@ namespace Everlight.Tales.Board
             // 3. 剩余名额从携带池等权有放回抽种类、随机合法空格落位。
             int randomCount = Math.Max(0, config.InitialPartCount - config.KeyPieces.Count);
             var empty = new List<HexCoord>();
-            foreach (HexCoord coord in HexGrid.Enumerate(config.SideLength))
+            foreach (HexCoord coord in board.EnumerateNormal())
             {
                 // 端点标签格（校正格等）不参与随机落位，保持初盘空出。
                 if (!board.IsOccupied(coord) && !board.TryGetEndpointLabel(coord, out _))

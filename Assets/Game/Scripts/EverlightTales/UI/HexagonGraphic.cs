@@ -7,6 +7,8 @@ namespace Everlight.Tales.UI
     /// 点顶六边形 Graphic（可填充 + 可选描边），供盘面格、实体块与盘面外轮廓复用。
     /// 外接圆半径由 <see cref="Circumradius"/> 显式指定（六边形外接盒宽 √3·r、高 2·r），
     /// RectTransform 仅需容纳该外接盒。填充用 <see cref="Graphic.color"/>，描边用 <see cref="StrokeColor"/>。
+    /// 支持「残缺墙」裁剪：<see cref="SetClip"/> 后用大六边形 SDF 的六个半平面裁切顶点，
+    /// 得到被轮廓切掉的半格（uGUI 无 SpriteMask 直接裁 Graphic，改用多边形顶点裁剪等价）。
     /// </summary>
     public sealed class HexagonGraphic : MaskableGraphic
     {
@@ -15,6 +17,12 @@ namespace Everlight.Tales.UI
         [SerializeField] private float m_StrokeWidth = 0f;
 
         [SerializeField] private Color m_StrokeColor = new Color(0f, 0f, 0f, 0.35f);
+
+        private bool _hasClip;
+
+        private Vector2 _clipCenter;
+
+        private float _clipApothem;
 
         /// <summary>外接圆半径（中心到顶点的像素距离）。</summary>
         public float Circumradius
@@ -49,12 +57,38 @@ namespace Everlight.Tales.UI
             }
         }
 
+        /// <summary>
+        /// 设置残缺墙裁剪：以大六边形（点顶，边心距 <paramref name="apothem"/>）裁切本六边形，
+        /// 保留轮廓内部的部分。<paramref name="centerOffset"/> 是大六边形中心相对本 Graphic
+        /// 中心（RectTransform 锚点）的偏移，单位与本 Graphic 本地坐标一致（像素）。
+        /// 仅在填充模式下生效（不绘制描边环）。
+        /// </summary>
+        public void SetClip(Vector2 centerOffset, float apothem)
+        {
+            _clipCenter = centerOffset;
+            _clipApothem = Mathf.Max(0f, apothem);
+            _hasClip = true;
+            SetVerticesDirty();
+        }
+
         protected override void OnPopulateMesh(VertexHelper vh)
         {
             vh.Clear();
 
             float r = Mathf.Max(0f, m_Circumradius);
-            var corners = BuildCorners(r);
+            Vector2[] corners = BuildCorners(r);
+
+            if (_hasClip)
+            {
+                corners = ClipToHex(corners);
+                if (corners.Length < 3)
+                {
+                    return;
+                }
+
+                AddPolygonFilled(vh, corners, color);
+                return;
+            }
 
             if (m_StrokeWidth <= 0f || r <= 0f)
             {
@@ -102,6 +136,86 @@ namespace Everlight.Tales.UI
             }
 
             return corners;
+        }
+
+        /// <summary>用点顶大六边形的六个半平面裁切多边形（Sutherland-Hodgman，多边形为凸）。</summary>
+        private Vector2[] ClipToHex(Vector2[] poly)
+        {
+            // 大六边形（点顶）六条边的外法线，逆时针 0°、60°、120°、180°、240°、300°。
+            // SDF max(|x|, |0.5x+0.866y|, |0.5x-0.866y|) ≤ apothem 的三组对边法线即 0°、±60°。
+            var normals = new Vector2[6]
+            {
+                new Vector2(1f, 0f),
+                new Vector2(0.5f, 0.8660254f),
+                new Vector2(-0.5f, 0.8660254f),
+                new Vector2(-1f, 0f),
+                new Vector2(-0.5f, -0.8660254f),
+                new Vector2(0.5f, -0.8660254f),
+            };
+
+            var output = poly;
+            for (int i = 0; i < normals.Length; i++)
+            {
+                Vector2 normal = normals[i];
+                // 本 Graphic 顶点 p 相对格子中心；大六边形中心相对格子中心 = _clipCenter，
+                // 故 p 相对大六边形中心 = p + _clipCenter，半平面 normal·(p + _clipCenter) ≤ apothem
+                // 即 normal·p ≤ apothem - normal·_clipCenter。
+                float c = _clipApothem - Vector2.Dot(normal, _clipCenter);
+                output = ClipToHalfPlane(output, normal, c);
+                if (output.Length < 3)
+                {
+                    return output;
+                }
+            }
+
+            return output;
+        }
+
+        private static Vector2[] ClipToHalfPlane(Vector2[] poly, Vector2 normal, float c)
+        {
+            int n = poly.Length;
+            if (n == 0)
+            {
+                return poly;
+            }
+
+            var result = new System.Collections.Generic.List<Vector2>(n + 1);
+            for (int i = 0; i < n; i++)
+            {
+                Vector2 current = poly[i];
+                Vector2 next = poly[(i + 1) % n];
+                float dc = Vector2.Dot(normal, current) - c;
+                float dn = Vector2.Dot(normal, next) - c;
+
+                if (dc <= 0f)
+                {
+                    result.Add(current);
+                }
+
+                // 边穿越边界：dc 与 dn 异号（含恰在边界上）
+                if ((dc < 0f && dn > 0f) || (dc > 0f && dn < 0f))
+                {
+                    float t = dc / (dc - dn);
+                    result.Add(Vector2.Lerp(current, next, t));
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        private static void AddPolygonFilled(VertexHelper vh, Vector2[] corners, Color fill)
+        {
+            // 凸多边形：以首顶点为扇心三角化。
+            int start = vh.currentVertCount;
+            for (int i = 0; i < corners.Length; i++)
+            {
+                vh.AddVert(corners[i], fill, Vector2.zero);
+            }
+
+            for (int i = 1; i < corners.Length - 1; i++)
+            {
+                vh.AddTriangle(start, start + i, start + i + 1);
+            }
         }
 
         private static void AddFilled(VertexHelper vh, Vector2[] corners, Color fill)

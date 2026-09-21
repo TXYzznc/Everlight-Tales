@@ -38,7 +38,7 @@ namespace Everlight.Tales.Board
     /// <summary>红舞鞋第一关配置（P2-014，D-051）：固定盘面 + 三轮目标 + 耗时。</summary>
     public sealed class RedShoeLevelConfig
     {
-        public int SideLength;
+        public int BoardRadius;
         public RedShoeConfig RedShoe;
         public IReadOnlyList<RedShoePartPlacement> InitialParts;
         public int InitialArmMoves;
@@ -46,14 +46,14 @@ namespace Everlight.Tales.Board
         public int TimeCost;
 
         public RedShoeLevelConfig(
-            int sideLength,
+            int boardRadius,
             RedShoeConfig redShoe,
             IReadOnlyList<RedShoePartPlacement> initialParts,
             int initialArmMoves,
             IReadOnlyList<RedShoeRoundConfig> rounds,
             int timeCost)
         {
-            SideLength = sideLength;
+            BoardRadius = boardRadius;
             RedShoe = redShoe;
             InitialParts = initialParts ?? System.Array.Empty<RedShoePartPlacement>();
             InitialArmMoves = initialArmMoves;
@@ -127,7 +127,7 @@ namespace Everlight.Tales.Board
     {
         public static RedShoeLevel Build(RedShoeLevelConfig config)
         {
-            var board = new BoardState(config.SideLength);
+            var board = new BoardState(config.BoardRadius);
 
             int id = 1;
             foreach (RedShoePartPlacement placement in config.InitialParts)

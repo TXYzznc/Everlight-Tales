@@ -24,13 +24,13 @@ namespace Everlight.Tales.Board
         }
 
         /// <summary>
-        /// 按种子确定性放置零件：从合法格枚举的确定性顺序中随机挑选不重复落点。
+        /// 按种子确定性放置零件：从正常格枚举的确定性顺序中随机挑选不重复落点。
         /// 零件按 partPool 顺序编号 1..N；盘面满则提前结束。
         /// </summary>
-        public BoardState Build(int sideLength, IReadOnlyList<PartType> partPool)
+        public BoardState Build(int boardRadius, IReadOnlyList<PartType> partPool)
         {
-            var board = new BoardState(sideLength);
-            var cells = new List<HexCoord>(HexGrid.Enumerate(sideLength));
+            var board = new BoardState(boardRadius);
+            var cells = new List<HexCoord>(board.EnumerateNormal());
 
             int id = 1;
             foreach (PartType partType in partPool)

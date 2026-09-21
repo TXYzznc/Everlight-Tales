@@ -31,7 +31,7 @@ namespace Everlight.Tales.Events
         {
             return new LevelBoardConfig(
                 levelName: "EV-N01 卡住的卷帘门",
-                sideLength: 5,
+                boardRadius: 5,
                 keyPieces: new[]
                 {
                     new KeyPieceConfig(PartType.InertiaHammer, new HexCoord(0, 0)), // H 惯性撞锤

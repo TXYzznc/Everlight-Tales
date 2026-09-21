@@ -76,9 +76,9 @@ namespace Everlight.Tales.Events
             return save;
         }
 
-        public static RestoredAttempt Restore(RepairAttemptSave save, int sideLength, LevelConfig levelConfig)
+        public static RestoredAttempt Restore(RepairAttemptSave save, int boardRadius, LevelConfig levelConfig)
         {
-            var board = new BoardState(sideLength);
+            var board = new BoardState(boardRadius);
             foreach (SavedEntity saved in save.Entities)
             {
                 board.Place(FromSaved(saved), saved.Coord);

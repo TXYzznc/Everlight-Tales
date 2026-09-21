@@ -47,7 +47,7 @@ namespace Everlight.Tales.Board
     /// </summary>
     public sealed class BoardState
     {
-        private readonly int _sideLength;
+        private readonly HexBoardShape _shape;
         private readonly Dictionary<HexCoord, BoardEntity> _entities = new Dictionary<HexCoord, BoardEntity>();
         private readonly Dictionary<int, BoardEntity> _byId = new Dictionary<int, BoardEntity>();
         private readonly Dictionary<HexCoord, TerrainKind> _terrain = new Dictionary<HexCoord, TerrainKind>();
@@ -55,8 +55,14 @@ namespace Everlight.Tales.Board
         private readonly List<AnomalyRegion> _anomalyRegions = new List<AnomalyRegion>();
         private readonly Dictionary<int, MoveSource> _lastMoveSource = new Dictionary<int, MoveSource>();
 
-        /// <summary>盘面边长（每边格数）。</summary>
-        public int SideLength => _sideLength;
+        /// <summary>盘面可玩区半径（含外层残缺墙的轮廓半径为 BoardRadius + 1）。</summary>
+        public int BoardRadius => _shape.BoardRadius;
+
+        /// <summary>含外层残缺墙的轮廓半径，等于 BoardRadius + 1。</summary>
+        public int OuterRadius => _shape.OuterRadius;
+
+        /// <summary>盘面形状（正常格／残缺墙三分类），供视觉层与构建器读取。</summary>
+        public HexBoardShape Shape => _shape;
 
         /// <summary>当前实体数量。</summary>
         public int EntityCount => _entities.Count;
@@ -64,15 +70,33 @@ namespace Everlight.Tales.Board
         /// <summary>全部在盘实体的实时视图（无序）。遍历期间若改动盘面请先快照。</summary>
         public IEnumerable<BoardEntity> Entities => _entities.Values;
 
-        public BoardState(int sideLength)
+        public BoardState(int boardRadius)
         {
-            _sideLength = sideLength;
+            _shape = new HexBoardShape(boardRadius);
         }
 
-        /// <summary>判断坐标是否落在盘面内。</summary>
+        /// <summary>判断坐标是否为正常格（可放置、可移动；残缺墙与盘外均返回 false）。</summary>
         public bool IsValid(HexCoord coord)
         {
-            return HexGrid.IsValid(coord, _sideLength);
+            return _shape.IsNormal(coord);
+        }
+
+        /// <summary>判断坐标是否为残缺墙（不可放置、阻挡移动）。</summary>
+        public bool IsWall(HexCoord coord)
+        {
+            return _shape.IsWall(coord);
+        }
+
+        /// <summary>枚举全部正常格（可放置格），确定性顺序。</summary>
+        public IReadOnlyList<HexCoord> EnumerateNormal()
+        {
+            return _shape.EnumerateNormal();
+        }
+
+        /// <summary>枚举全部残缺墙，确定性顺序。</summary>
+        public IReadOnlyList<HexCoord> EnumerateWall()
+        {
+            return _shape.EnumerateWall();
         }
 
         /// <summary>放置一个实体到指定格，遵守「每格单实体」与「ID 唯一」。</summary>

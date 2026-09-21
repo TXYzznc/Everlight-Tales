@@ -3,7 +3,7 @@ using System;
 namespace Everlight.Tales.Board
 {
     /// <summary>
-    /// 蜂窝格的轴向坐标。总格数与合法格判定见 <see cref="HexGrid"/>。
+    /// 蜂窝格的轴向坐标。总格数与合法格判定见 <see cref="HexBoardShape"/>。
     /// 该类型只做值语义与算术，不引用引擎，纹理与屏幕坐标由表现层换算。
     /// </summary>
     [Serializable]
