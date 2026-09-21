@@ -15,20 +15,28 @@ namespace Everlight.Tales.Data
         Rewarded = 2,
     }
 
-    /// <summary>任务模板（P3-001）：持续推进的目标与步骤的外层记录定义。</summary>
+    /// <summary>任务模板（P3-001/P3-010）：持续推进的目标与步骤的外层记录定义。</summary>
     public sealed class TaskConfig
     {
         public string Id;
         public string Name;
         public int RewardFee;
         public IReadOnlyList<string> Blueprints;
+        public bool IsMain;
+        public string Client;
+        public string Description;
+        public int TotalSteps;
 
-        public TaskConfig(string id, string name, int rewardFee, IReadOnlyList<string> blueprints = null)
+        public TaskConfig(string id, string name, int rewardFee, IReadOnlyList<string> blueprints = null, bool isMain = false, string client = "", string description = "", int totalSteps = 1)
         {
             Id = id;
             Name = name;
             RewardFee = rewardFee;
             Blueprints = blueprints ?? System.Array.Empty<string>();
+            IsMain = isMain;
+            Client = client;
+            Description = description;
+            TotalSteps = totalSteps;
         }
     }
 }

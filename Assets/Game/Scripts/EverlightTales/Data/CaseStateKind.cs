@@ -25,20 +25,24 @@ namespace Everlight.Tales.Data
         Revisited = 6,
     }
 
-    /// <summary>怪谈档案／案件模板（P3-001）：一条已触发怪谈的长期故事记录定义。</summary>
+    /// <summary>怪谈档案／案件模板（P3-001/P3-011）：一条已触发怪谈的长期故事记录定义。</summary>
     public sealed class CaseConfig
     {
         public string Id;
         public string Name;
         public string Batch;
         public int TotalStages;
+        public string Source;
+        public string FirstPlace;
 
-        public CaseConfig(string id, string name, string batch, int totalStages)
+        public CaseConfig(string id, string name, string batch, int totalStages, string source = "", string firstPlace = "")
         {
             Id = id;
             Name = name;
             Batch = batch;
             TotalStages = totalStages;
+            Source = source;
+            FirstPlace = firstPlace;
         }
     }
 }
