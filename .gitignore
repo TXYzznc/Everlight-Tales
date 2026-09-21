@@ -155,3 +155,6 @@ Assets/Game/Font/Common/SIMHEI SDF.asset
 # versioned source root for optional packages and must remain deliverable.
 !/Samples~/
 !/Samples~/**
+
+# 占位资源生成预览（可再生成，不入库）
+/tools/_art_preview.png
