@@ -17,6 +17,7 @@ namespace Everlight.Tales.Meta
         public bool TutorialComplete;
         public string HomeState;
         public List<PartType> OwnedParts;
+        public List<PartType> KnownParts;                     // 已现源（教学/委托/怪谈已出现）但未永久解锁的零件
         public MaterialBackpack Materials;
         public List<LedgerEntry> Ledger;
         public List<string> Blueprints;                       // 已取得图样（永久条件，保留不消耗）
@@ -35,6 +36,7 @@ namespace Everlight.Tales.Meta
             TutorialComplete = false;
             HomeState = "";
             OwnedParts = new List<PartType>();
+            KnownParts = new List<PartType>();
             Materials = new MaterialBackpack();
             Ledger = new List<LedgerEntry>();
             Blueprints = new List<string>();

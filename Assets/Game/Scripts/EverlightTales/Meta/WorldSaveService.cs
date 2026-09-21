@@ -27,6 +27,7 @@ namespace Everlight.Tales.Meta
             }
 
             save.OwnedParts.AddRange(world.OwnedParts);
+            save.KnownParts.AddRange(world.KnownParts);
 
             foreach (MaterialStack s in world.Materials.Stacks)
             {
@@ -92,6 +93,7 @@ namespace Everlight.Tales.Meta
             };
 
             world.OwnedParts.AddRange(save.OwnedParts);
+            world.KnownParts.AddRange(save.KnownParts);
 
             foreach (MaterialStack s in save.Materials)
             {

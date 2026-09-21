@@ -56,6 +56,7 @@ namespace Everlight.Tales.Data
         public string HomeState;
         public List<PlaceSave> Places = new List<PlaceSave>();
         public List<PartType> OwnedParts = new List<PartType>();
+        public List<PartType> KnownParts = new List<PartType>();
         public List<MaterialStack> Materials = new List<MaterialStack>();
         public List<LedgerEntry> Ledger = new List<LedgerEntry>();
         public List<string> Blueprints = new List<string>();
