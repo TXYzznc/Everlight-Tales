@@ -21,7 +21,7 @@ namespace Everlight.Tales.Board
     /// </summary>
     public sealed class TimeState
     {
-        public const int CellsPerPeriod = 6;
+        public const int CellsPerPeriod = 4;
 
         public int Day { get; private set; }
 
