@@ -13,6 +13,10 @@ namespace Everlight.Tales.Meta
         public int Day;
         public TimeOfDay Period;
         public int RepairFee;
+        public int BatchNumber;
+        public bool TutorialComplete;
+        public string HomeState;
+        public List<PartType> OwnedParts;
         public MapState Map;
         public List<CaseState> Cases;
         public List<TaskState> Tasks;
@@ -22,6 +26,10 @@ namespace Everlight.Tales.Meta
             Day = day;
             Period = period;
             RepairFee = 0;
+            BatchNumber = 1;
+            TutorialComplete = false;
+            HomeState = "";
+            OwnedParts = new List<PartType>();
             Map = new MapState();
             Cases = new List<CaseState>();
             Tasks = new List<TaskState>();
