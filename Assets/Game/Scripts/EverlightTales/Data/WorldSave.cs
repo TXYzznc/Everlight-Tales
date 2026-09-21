@@ -35,8 +35,15 @@ namespace Everlight.Tales.Data
         public int LastUpdated;
     }
 
+    /// <summary>当前使用形态存档（P4-004 纯 DTO）：宿主零件 → 当前使用形态 ID（空=基础）。</summary>
+    public sealed class CurrentFormSave
+    {
+        public PartType HostPart;
+        public string FormId;
+    }
+
     /// <summary>
-    /// 世界存档（P3-012，D-064 清单）：时间／解锁／批次／任务／案件／零件／维修费／家园／教学。
+    /// 世界存档（P3-012，D-064 清单）：时间／解锁／批次／任务／案件／零件／维修费／家园／教学／形态。
     /// 纯数据零引擎，结算事务完成后写入（与维修尝试存档写入时点不重叠）。
     /// </summary>
     public sealed class WorldSave
@@ -51,6 +58,9 @@ namespace Everlight.Tales.Data
         public List<PartType> OwnedParts = new List<PartType>();
         public List<MaterialStack> Materials = new List<MaterialStack>();
         public List<LedgerEntry> Ledger = new List<LedgerEntry>();
+        public List<string> Blueprints = new List<string>();
+        public List<string> UnlockedForms = new List<string>();
+        public List<CurrentFormSave> CurrentForms = new List<CurrentFormSave>();
         public List<CaseSave> Cases = new List<CaseSave>();
         public List<TaskSave> Tasks = new List<TaskSave>();
     }

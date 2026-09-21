@@ -19,6 +19,9 @@ namespace Everlight.Tales.Meta
         public List<PartType> OwnedParts;
         public MaterialBackpack Materials;
         public List<LedgerEntry> Ledger;
+        public List<string> Blueprints;                       // 已取得图样（永久条件，保留不消耗）
+        public List<string> UnlockedForms;                    // 已永久解锁的形态 ID
+        public Dictionary<PartType, string> CurrentForms;     // 每宿主零件当前使用形态（空=基础形态）
         public MapState Map;
         public List<CaseState> Cases;
         public List<TaskState> Tasks;
@@ -34,6 +37,9 @@ namespace Everlight.Tales.Meta
             OwnedParts = new List<PartType>();
             Materials = new MaterialBackpack();
             Ledger = new List<LedgerEntry>();
+            Blueprints = new List<string>();
+            UnlockedForms = new List<string>();
+            CurrentForms = new Dictionary<PartType, string>();
             Map = new MapState();
             Cases = new List<CaseState>();
             Tasks = new List<TaskState>();

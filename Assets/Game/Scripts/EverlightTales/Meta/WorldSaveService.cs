@@ -38,6 +38,16 @@ namespace Everlight.Tales.Meta
                 save.Ledger.Add(new LedgerEntry { Direction = e.Direction, Channel = e.Channel, Amount = e.Amount, Reason = e.Reason, Tick = e.Tick });
             }
 
+            save.Blueprints.AddRange(world.Blueprints);
+            save.UnlockedForms.AddRange(world.UnlockedForms);
+            foreach (var current in world.CurrentForms)
+            {
+                if (!string.IsNullOrEmpty(current.Value))
+                {
+                    save.CurrentForms.Add(new CurrentFormSave { HostPart = current.Key, FormId = current.Value });
+                }
+            }
+
             foreach (CaseState c in world.Cases)
             {
                 save.Cases.Add(new CaseSave
@@ -91,6 +101,13 @@ namespace Everlight.Tales.Meta
             foreach (LedgerEntry e in save.Ledger)
             {
                 world.Ledger.Add(new LedgerEntry { Direction = e.Direction, Channel = e.Channel, Amount = e.Amount, Reason = e.Reason, Tick = e.Tick });
+            }
+
+            world.Blueprints.AddRange(save.Blueprints);
+            world.UnlockedForms.AddRange(save.UnlockedForms);
+            foreach (CurrentFormSave current in save.CurrentForms)
+            {
+                world.CurrentForms[current.HostPart] = current.FormId;
             }
 
             foreach (PlaceConfig config in PlaceCatalog.FirstBatch())
