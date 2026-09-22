@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -16,6 +16,14 @@ namespace Everlight.Tales.UI
     public sealed class WorldSession
     {
         public const int DemoSeed = 20260922;
+
+        /// <summary>序章字幕步骤（P3-005）：新档首进播放，可跳过。</summary>
+        public static IReadOnlyList<PrologueStepConfig> OpeningSteps { get; } = new[]
+        {
+            new PrologueStepConfig("旁白", "夜雨落在旧城区的铁皮屋顶上。", 2.5f),
+            new PrologueStepConfig("旁白", "你推开「永昼修理铺」的门，灯亮了起来。", 3f),
+            new PrologueStepConfig("红舞鞋", "……那台节拍器，又开始响了。", 2.5f),
+        };
 
         private const string KeyDay = "et.world.day";
         private const string KeyPeriod = "et.world.period";
@@ -50,6 +58,15 @@ namespace Everlight.Tales.UI
 
         /// <summary>最近一次事件奖励（失败/撤退为 null）。</summary>
         public EventReward LastReward { get; private set; }
+
+        /// <summary>新档序章是否已播放完成（避免每次进主页都重播）。</summary>
+        public bool OpeningDone { get; set; }
+
+        /// <summary>是否有待展示的结算结果（结算事务完成后置位，主页壳读取后清除）。</summary>
+        public bool HasPendingSettlement { get; set; }
+
+        /// <summary>四选一奖励累计的机械臂次数（下次开始事件时注入 SessionState）。</summary>
+        public int PendingArmMoves { get; private set; }
 
         private List<SupplyInstance> _supply = new List<SupplyInstance>();
 
@@ -123,6 +140,14 @@ namespace Everlight.Tales.UI
 
             CurrentBoardConfig = boardConfig;
             CurrentEvent = RepairEventShell.Begin(eventConfig, board);
+
+            // 注入四选一累计的机械臂次数奖励（跨事件保留，注入后清零）。
+            if (PendingArmMoves > 0)
+            {
+                CurrentEvent.Level.Session.ArmMoves += PendingArmMoves;
+                PendingArmMoves = 0;
+            }
+
             return CurrentEvent;
         }
 
@@ -150,6 +175,7 @@ namespace Everlight.Tales.UI
             worldSettle.Settle(World, Time.Day, Time.Period, reward != null ? reward.RepairFee : 0);
 
             LastReward = reward;
+            HasPendingSettlement = true;
             Save();
             RefreshSupply();
             return reward;
@@ -211,6 +237,84 @@ namespace Everlight.Tales.UI
             s.RefreshSupply();
             Current = s;
             return s;
+        }
+
+        /// <summary>抽四选一奖励（Buff / 零件补给 / 机械臂次数）。</summary>
+        public IReadOnlyList<RewardOption> DrawRewardChoice()
+        {
+            return RewardChoiceService.Draw(Rng, BuildRewardPool(), HeldBuffs, 4);
+        }
+
+        /// <summary>应用一个四选一奖励（Buff 入本关持有集、零件入世界、机械臂累计到下次事件）。</summary>
+        public void ApplyReward(RewardOption option)
+        {
+            if (option == null)
+            {
+                return;
+            }
+
+            switch (option.Kind)
+            {
+                case RewardKind.Buff:
+                    if (option.BuffConfig != null)
+                    {
+                        HeldBuffs.Add(option.BuffConfig);
+                    }
+
+                    break;
+
+                case RewardKind.Part:
+                    PartType type = PartTypeFromId(option.Id);
+                    if (type != PartType.None && !World.OwnedParts.Contains(type))
+                    {
+                        World.OwnedParts.Add(type);
+                    }
+
+                    break;
+
+                case RewardKind.ArmMove:
+                    PendingArmMoves++;
+                    break;
+            }
+
+            Save();
+        }
+
+        private IReadOnlyList<RewardOption> BuildRewardPool()
+        {
+            var pool = new List<RewardOption>();
+
+            foreach (BuffConfig buff in BuffCatalog.All)
+            {
+                pool.Add(new RewardOption(RewardKind.Buff, buff.Id, "Buff·" + buff.Name, buff));
+            }
+
+            foreach (PartCodexConfig part in PartCodexCatalog.All())
+            {
+                // 无能力零件（新占位值）与已拥有零件不进补给池。
+                if (PartCatalog.Get(part.Type) == null || World.OwnedParts.Contains(part.Type))
+                {
+                    continue;
+                }
+
+                pool.Add(new RewardOption(RewardKind.Part, part.Id, "零件·" + part.Name, null));
+            }
+
+            pool.Add(new RewardOption(RewardKind.ArmMove, "arm", "机械臂+1", null));
+            return pool;
+        }
+
+        private static PartType PartTypeFromId(string id)
+        {
+            foreach (PartCodexConfig part in PartCodexCatalog.All())
+            {
+                if (part.Id == id)
+                {
+                    return part.Type;
+                }
+            }
+
+            return PartType.None;
         }
 
         private void RegisterMap()

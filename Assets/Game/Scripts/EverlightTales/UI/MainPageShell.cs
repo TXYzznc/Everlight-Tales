@@ -36,6 +36,10 @@ namespace Everlight.Tales.UI
 
         private RectTransform m_Content;
 
+        private OpeningOverlay m_Opening;
+
+        private SettlementOverlay m_Settlement;
+
         protected override void OnInit(object userData)
         {
             base.OnInit(userData);
@@ -67,6 +71,63 @@ namespace Everlight.Tales.UI
             BuildMapPanel();
 
             SelectTab(0);
+        }
+
+        private void Update()
+        {
+            WorldSession session = WorldSession.Current;
+            if (session == null)
+            {
+                return;
+            }
+
+            // 序章：新档且未播完 → 显示覆盖层。
+            if (session.IsNewGame && !session.OpeningDone && m_Opening == null)
+            {
+                ShowOpening();
+            }
+
+            // 结算：有待展示的结算结果且未显示 → 显示覆盖层。
+            if (session.HasPendingSettlement && m_Settlement == null)
+            {
+                ShowSettlement();
+            }
+        }
+
+        private void ShowOpening()
+        {
+            var go = new GameObject("opening_overlay", typeof(RectTransform));
+            go.transform.SetParent(transform, false);
+            var overlay = go.AddComponent<OpeningOverlay>();
+            overlay.Play(WorldSession.OpeningSteps, () =>
+            {
+                WorldSession.Current.OpeningDone = true;
+                // 序章播完即落盘，后续进入走「继续」跳过序章。
+                WorldSession.Current.Save();
+                m_Opening = null;
+            });
+            m_Opening = overlay;
+        }
+
+        private void ShowSettlement()
+        {
+            WorldSession session = WorldSession.Current;
+            if (session == null)
+            {
+                return;
+            }
+
+            session.HasPendingSettlement = false;
+
+            var go = new GameObject("settlement_overlay", typeof(RectTransform));
+            go.transform.SetParent(transform, false);
+            var overlay = go.AddComponent<SettlementOverlay>();
+            overlay.Show(session, () =>
+            {
+                m_Settlement = null;
+                BuildMapPanel();
+            });
+            m_Settlement = overlay;
         }
 
         private void OnBackClicked()
