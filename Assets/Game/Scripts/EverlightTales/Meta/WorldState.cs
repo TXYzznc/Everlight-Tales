@@ -16,6 +16,7 @@ namespace Everlight.Tales.Meta
         public int BatchNumber;
         public bool TutorialComplete;
         public int SuccessfulJobs;                            // 成功可重复普通维修/临时处置计数（档案重放/试机不计，P4-013）
+        public int TutorialStage;                             // S0 三段教学已通过段数（0=未开始，3=全部通过，P5-001）
         public string HomeState;
         public List<PartType> OwnedParts;
         public List<PartType> KnownParts;                     // 已现源（教学/委托/怪谈已出现）但未永久解锁的零件

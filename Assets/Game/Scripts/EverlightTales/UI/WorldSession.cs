@@ -39,6 +39,7 @@ namespace Everlight.Tales.UI
         private const string KeyTasks = "et.world.tasks";
         private const string KeyDisplay = "et.world.display";
         private const string KeyJobs = "et.world.jobs";
+        private const string KeyTutorialStage = "et.world.tutorialStage";
 
         /// <summary>
         /// 四条改装支线任务模板（P4-013）：F 类四形态的图样任务，任务页领奖发 T-G01~T-G04 图样。
@@ -62,6 +63,9 @@ namespace Everlight.Tales.UI
         public RandomService Rng { get; private set; }
 
         public RedShoeIntroService Intro { get; private set; }
+
+        /// <summary>新档开场流程（P5-004）：回城接管→师父引导→教学衔接。</summary>
+        public OpeningService Opening { get; private set; }
 
         public BuffSet HeldBuffs { get; private set; }
 
@@ -106,6 +110,7 @@ namespace Everlight.Tales.UI
                 Time = new TimeState(1, TimeOfDay.Morning, TimeState.CellsPerPeriod),
                 Rng = new RandomService(seed),
                 Intro = new RedShoeIntroService(),
+                Opening = new OpeningService(),
                 HeldBuffs = new BuffSet(),
                 IsNewGame = true,
             };
@@ -181,6 +186,7 @@ namespace Everlight.Tales.UI
 
             PlayerPrefs.SetString(KeyDisplay, string.Join(";", displays));
             PlayerPrefs.SetInt(KeyJobs, World.SuccessfulJobs);
+            PlayerPrefs.SetInt(KeyTutorialStage, World.TutorialStage);
             PlayerPrefs.Save();
         }
 
@@ -419,6 +425,40 @@ namespace Everlight.Tales.UI
             return null;
         }
 
+        /// <summary>通过某段 S0 教学（P5-001/P5-003）：解锁对应零件 + 推进进度 + 写档。</summary>
+        public bool CompleteTutorialStage(int stageIndex)
+        {
+            bool ok = TutorialService.CompleteStage(World, stageIndex);
+            if (ok)
+            {
+                Save();
+            }
+
+            return ok;
+        }
+
+        /// <summary>新档开场推进一步（P5-004）：回城接管→师父引导→教学衔接。</summary>
+        public void AdvanceOpening()
+        {
+            if (Opening == null)
+            {
+                return;
+            }
+
+            if (Opening.Stage == OpeningStage.None)
+            {
+                Opening.ReturnToShop();
+            }
+            else if (Opening.Stage == OpeningStage.ReturnedToShop)
+            {
+                Opening.ReceiveMasterGuidance();
+            }
+            else if (Opening.Stage == OpeningStage.MasterGuidance)
+            {
+                Opening.StartTutorial();
+            }
+        }
+
         private static TrialConfig FindTrialForTask(TaskConfig task)
         {
             if (task.Blueprints == null || task.Blueprints.Count == 0)
@@ -463,6 +503,7 @@ namespace Everlight.Tales.UI
                 Time = new TimeState(day, period, TimeState.CellsPerPeriod),
                 Rng = new RandomService(seed),
                 Intro = new RedShoeIntroService(),
+                Opening = new OpeningService(),
                 HeldBuffs = new BuffSet(),
                 IsNewGame = false,
             };
@@ -513,6 +554,7 @@ namespace Everlight.Tales.UI
 
             RestoreTasks(s.World);
             s.World.SuccessfulJobs = PlayerPrefs.GetInt(KeyJobs, 0);
+            s.World.TutorialStage = PlayerPrefs.GetInt(KeyTutorialStage, 0);
 
             foreach (string item in PlayerPrefs.GetString(KeyDisplay, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
