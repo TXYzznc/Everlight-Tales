@@ -71,6 +71,38 @@ namespace Everlight.Tales.Board
                     outcome = RivetPliers(context, target);
                     break;
 
+                case PartType.SpringLauncher:
+                    outcome = SpringLauncher(context, target, sourceId, kind == TriggerKinds.Collision, incoming, config);
+                    break;
+
+                case PartType.SplitMold:
+                    outcome = SplitMold(context, target, sourceId, kind == TriggerKinds.Collision, config);
+                    break;
+
+                case PartType.MaterialFurnace:
+                    outcome = MaterialFurnace(context, target, sourceId, kind == TriggerKinds.Collision, config);
+                    break;
+
+                case PartType.SwapFork:
+                    outcome = SwapFork(context, target, config);
+                    break;
+
+                case PartType.VortexRotor:
+                    outcome = VortexRotor(context, target, config);
+                    break;
+
+                case PartType.EnergyFlywheel:
+                    outcome = EnergyFlywheel(context, target, config);
+                    break;
+
+                case PartType.MagneticTractor:
+                    outcome = MagneticTractor(context, target, config);
+                    break;
+
+                case PartType.RelayBattery:
+                    outcome = RelayBattery(context, target, config);
+                    break;
+
                 default:
                     outcome = default;
                     break;
@@ -238,6 +270,413 @@ namespace Everlight.Tales.Board
 
             context.Queue.Enqueue(new RepairEffect(target.PartType, node.Id));
             return default; // 维修效果分由 RepairEffect 记入。
+        }
+
+        /// <summary>弹射簧（P-005）：反向逐格推进最多 PushDistance 格，遇障停在首碰撞处并发碰撞。</summary>
+        private static Outcome SpringLauncher(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, HexDirection incoming, PartConfig config)
+        {
+            if (!hasIncoming)
+            {
+                return default; // 纯冲击不触发弹射。
+            }
+
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost;
+
+            if (!context.Board.TryGetEntity(sourceId, out BoardEntity source) || !source.IsMovable)
+            {
+                return default;
+            }
+
+            int distance = config.PushDistance;
+            int effectPerCell = config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType);
+            int moved = 0;
+            for (int step = 0; step < distance; step++)
+            {
+                HexCoord destination = source.Coord.Neighbor(HexDirections.Opposite(incoming));
+                if (!context.Board.IsValid(destination))
+                {
+                    break;
+                }
+
+                if (context.Board.IsOccupied(destination))
+                {
+                    BoardEntity blocker = context.Board.EntityAt(destination);
+                    if (blocker != null && blocker.Kind == EntityKind.Part && blocker.PartType != PartType.None)
+                    {
+                        context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Collision, source.Id, blocker.Id, HexDirections.Opposite(incoming)));
+                    }
+
+                    break;
+                }
+
+                context.Board.Move(source, destination, MoveSource.Push);
+                moved++;
+            }
+
+            return moved > 0 ? new Outcome(moved * effectPerCell, 0) : default;
+        }
+
+        /// <summary>分裂铸模（P-006）：复制来撞可复制普通件到六邻格首个空位，副本不可再作源。</summary>
+        private static Outcome SplitMold(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, PartConfig config)
+        {
+            if (!hasIncoming)
+            {
+                return default;
+            }
+
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            if (!context.Board.TryGetEntity(sourceId, out BoardEntity source) || source.Kind != EntityKind.Part)
+            {
+                return default;
+            }
+
+            if (source.PartType == PartType.None || source.IsCopy)
+            {
+                return default; // 惰性件或复制体不能作源。
+            }
+
+            if (source.PartType == PartType.SplitMold)
+            {
+                return default; // 不复制铸模自身（防铸模链式复制）。
+            }
+
+            HexCoord spawn = default;
+            bool found = false;
+            for (int i = 0; i < HexDirections.Count; i++)
+            {
+                HexCoord candidate = target.Coord.Neighbor(HexDirections.All[i]);
+                if (context.Board.IsValid(candidate) && !context.Board.IsOccupied(candidate))
+                {
+                    spawn = candidate;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                return default; // 无空位：不复制、不消耗。
+            }
+
+            target.Energy -= config.EffectCost;
+
+            int newId = context.Board.AllocateEntityId();
+            BoardEntity copy = BoardEntity.Part(newId, source.PartType);
+            copy.SetEnergy(source.Energy); // 副本充能=源当前充能。
+            copy.SetCopy();
+            context.Board.Place(copy, spawn);
+
+            return new Outcome(config.EffectScorePerTarget, 0);
+        }
+
+        /// <summary>吞料炉（P-008）：吞入（移除）来撞可回收普通件，得 12+剩余能量×2 分并产 2 公共能量。</summary>
+        private static Outcome MaterialFurnace(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, PartConfig config)
+        {
+            if (!hasIncoming)
+            {
+                return default;
+            }
+
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            if (!context.Board.TryGetEntity(sourceId, out BoardEntity source) || source.Kind != EntityKind.Part)
+            {
+                return default;
+            }
+
+            if (source.PartType == PartType.None || source.PartType == PartType.MaterialFurnace || source.PartType == PartType.StorageStomach)
+            {
+                return default; // 惰性件／另一吞料炉／胃袋不可吞。
+            }
+
+            target.Energy -= config.EffectCost;
+
+            int remainingEnergy = source.Energy;
+            context.Board.Remove(source);
+
+            int score = config.EffectScorePerTarget + remainingEnergy * config.EffectScorePerEnergy;
+            int energy = config.PublicEnergyPerEffect + context.Bonuses.PublicEnergyBonus(target.PartType);
+            return new Outcome(score, energy);
+        }
+
+        /// <summary>交换拨叉（P-009）：原子交换 D0/D3 邻格两个可移动普通实体，一空则移动另一件。</summary>
+        private static Outcome SwapFork(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost; // 失败也消耗。
+
+            HexCoord c0 = target.Coord.Neighbor(HexDirection.D0);
+            HexCoord c3 = target.Coord.Neighbor(HexDirection.D3);
+            if (!context.Board.IsValid(c0) || !context.Board.IsValid(c3))
+            {
+                return default;
+            }
+
+            BoardEntity e0 = context.Board.EntityAt(c0);
+            BoardEntity e3 = context.Board.EntityAt(c3);
+
+            if (IsSwapBlocked(e0) || IsSwapBlocked(e3))
+            {
+                return default;
+            }
+
+            if (e0 != null && e3 != null)
+            {
+                context.Board.Remove(e0);
+                context.Board.Remove(e3);
+                context.Board.Place(e0, c3);
+                context.Board.Place(e3, c0);
+                return new Outcome(2 * config.EffectScorePerTarget, 0);
+            }
+
+            if (e0 != null)
+            {
+                context.Board.Move(e0, c3, MoveSource.Push);
+                return new Outcome(config.EffectScorePerTarget, 0);
+            }
+
+            if (e3 != null)
+            {
+                context.Board.Move(e3, c0, MoveSource.Push);
+                return new Outcome(config.EffectScorePerTarget, 0);
+            }
+
+            return default; // 两空不操作。
+        }
+
+        private static bool IsSwapBlocked(BoardEntity e)
+        {
+            return e != null && (e.IsLocked || e.Kind == EntityKind.TaskMarker || e.IsFixed);
+        }
+
+        /// <summary>旋涡转子（P-010）：六邻格 D0→D1→…→D5→D0 旋移一位，环上有固定/任务对象则整体取消。</summary>
+        private static Outcome VortexRotor(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            var ring = new BoardEntity[HexDirections.Count];
+            for (int i = 0; i < HexDirections.Count; i++)
+            {
+                HexCoord c = target.Coord.Neighbor(HexDirections.All[i]);
+                if (!context.Board.IsValid(c))
+                {
+                    return default; // 邻格越界：取消（不耗能）。
+                }
+
+                ring[i] = context.Board.EntityAt(c);
+                if (ring[i] != null && (ring[i].IsFixed || ring[i].Kind == EntityKind.TaskMarker))
+                {
+                    return default; // 环上有固定物/任务标记：整体取消。
+                }
+            }
+
+            target.Energy -= config.EffectCost;
+
+            for (int i = 0; i < HexDirections.Count; i++)
+            {
+                if (ring[i] != null)
+                {
+                    context.Board.Remove(ring[i]);
+                }
+            }
+
+            int moved = 0;
+            for (int i = 0; i < HexDirections.Count; i++)
+            {
+                if (ring[i] != null)
+                {
+                    HexCoord dest = target.Coord.Neighbor(HexDirections.All[(i + 1) % HexDirections.Count]);
+                    context.Board.Place(ring[i], dest);
+                    moved++;
+                }
+            }
+
+            return moved > 0 ? new Outcome(moved * config.EffectScorePerTarget, 0) : default;
+        }
+
+        /// <summary>蓄能飞轮（P-011）：受击蓄量+1，达阈值后清蓄并六向射线（最远 RayRange 格）。</summary>
+        private static Outcome EnergyFlywheel(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost;
+            target.AddCharge(1);
+
+            if (target.Charge < config.ChargeThreshold)
+            {
+                return default; // 未达阈值：只蓄。
+            }
+
+            target.ResetCharge();
+
+            var hitTargets = new List<BoardEntity>();
+            for (int i = 0; i < HexDirections.Count; i++)
+            {
+                HexDirection dir = HexDirections.All[i];
+                for (int dist = 1; dist <= config.RayRange; dist++)
+                {
+                    HexCoord coord = target.Coord;
+                    for (int s = 0; s < dist; s++)
+                    {
+                        coord = coord.Neighbor(dir);
+                    }
+
+                    if (!context.Board.IsValid(coord))
+                    {
+                        break;
+                    }
+
+                    BoardEntity occupant = context.Board.EntityAt(coord);
+                    if (occupant == null)
+                    {
+                        continue; // 空格：继续延伸。
+                    }
+
+                    if (occupant.Kind == EntityKind.Part && occupant.PartType != PartType.None)
+                    {
+                        hitTargets.Add(occupant);
+                    }
+
+                    break; // 实体或设施终止射线。
+                }
+            }
+
+            for (int i = 0; i < hitTargets.Count; i++)
+            {
+                context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Shock, target.Id, hitTargets[i].Id));
+            }
+
+            int effectPerTarget = config.EffectScorePerTarget + context.Bonuses.EffectUnitBonus(target.PartType);
+            return new Outcome(hitTargets.Count * effectPerTarget, 0);
+        }
+
+        /// <summary>磁吸牵引器（P-019）：D0 射线最远 RayRange 找首个可磁吸实体，朝自身拉近最多 PushDistance 格。</summary>
+        private static Outcome MagneticTractor(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost; // 无目标仍消耗。
+
+            BoardEntity found = null;
+            for (int dist = 1; dist <= config.RayRange; dist++)
+            {
+                HexCoord coord = target.Coord;
+                for (int s = 0; s < dist; s++)
+                {
+                    coord = coord.Neighbor(HexDirection.D0);
+                }
+
+                if (!context.Board.IsValid(coord))
+                {
+                    break;
+                }
+
+                if (context.Board.IsWall(coord))
+                {
+                    break; // 墙体阻断搜索。
+                }
+
+                BoardEntity occupant = context.Board.EntityAt(coord);
+                if (occupant != null)
+                {
+                    found = occupant;
+                    break;
+                }
+            }
+
+            if (found == null || found.Kind != EntityKind.Part || !found.IsMovable)
+            {
+                return default;
+            }
+
+            int moved = 0;
+            for (int step = 0; step < config.PushDistance; step++)
+            {
+                HexCoord destination = found.Coord.Neighbor(HexDirections.Opposite(HexDirection.D0));
+                if (destination == target.Coord)
+                {
+                    break; // 不拉进自身格。
+                }
+
+                if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
+                {
+                    break;
+                }
+
+                context.Board.Move(found, destination, MoveSource.Push);
+                moved++;
+            }
+
+            return moved > 0 ? new Outcome(moved * config.EffectScorePerCell, 0) : default;
+        }
+
+        /// <summary>接力电池（P-020）：六邻格按顺序补零件能量，实际转出多少扣多少，电量归零移除本体。</summary>
+        private static Outcome RelayBattery(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            int transferred = 0;
+            for (int i = 0; i < HexDirections.Count; i++)
+            {
+                BoardEntity occupant = context.Board.EntityAt(target.Coord.Neighbor(HexDirections.All[i]));
+                if (occupant == null || occupant.Kind != EntityKind.Part)
+                {
+                    continue;
+                }
+
+                if (occupant.PartType == PartType.None || occupant.PartType == PartType.RelayBattery)
+                {
+                    continue; // 惰性件／电池本身不补。
+                }
+
+                PartConfig oc = PartCatalog.Get(occupant.PartType);
+                if (oc == null)
+                {
+                    continue;
+                }
+
+                while (target.Energy > 0 && occupant.Energy < occupant.EnergyCapacity)
+                {
+                    occupant.SetEnergy(occupant.Energy + 1);
+                    target.Energy -= 1;
+                    transferred++;
+                }
+
+                if (target.Energy <= 0)
+                {
+                    break;
+                }
+            }
+
+            if (target.Energy <= 0)
+            {
+                context.Board.Remove(target); // 电量归零移除本体。
+            }
+
+            return transferred > 0 ? new Outcome(transferred * config.EffectScorePerCell, 0) : default;
         }
     }
 }

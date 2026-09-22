@@ -76,6 +76,30 @@ namespace Everlight.Tales.Board
         /// <summary>任务标记的特殊目标配置（Kind==TaskMarker）。</summary>
         public GoalConfig Goal { get; private set; }
 
+        /// <summary>蓄量（P-011 蓄能飞轮，跨拍保留）。</summary>
+        public int Charge { get; private set; }
+
+        /// <summary>是否铸模复制体（P-006：复制体不能再作铸模源）。</summary>
+        public bool IsCopy { get; private set; }
+
+        /// <summary>增加蓄量（飞轮受击蓄能）。</summary>
+        public void AddCharge(int delta)
+        {
+            Charge += delta;
+        }
+
+        /// <summary>清空蓄量（飞轮满蓄释放）。</summary>
+        public void ResetCharge()
+        {
+            Charge = 0;
+        }
+
+        /// <summary>标记为铸模复制体。</summary>
+        public void SetCopy()
+        {
+            IsCopy = true;
+        }
+
         public BoardEntity(
             int id,
             EntityKind kind,

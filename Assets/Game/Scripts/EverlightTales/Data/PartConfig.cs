@@ -39,6 +39,18 @@ namespace Everlight.Tales.Data
         /// <summary>起爆后移除本体（线圈）。</summary>
         public bool RemovesSelf { get; }
 
+        /// <summary>移除前剩余零件能量每点的额外效果分（吞料炉）。</summary>
+        public int EffectScorePerEnergy { get; }
+
+        /// <summary>单次能力直接推进的格数上限（弹射簧 2／磁吸拉距 2）。</summary>
+        public int PushDistance { get; }
+
+        /// <summary>射线搜索／延伸距离（飞轮释放 2／磁吸搜索 3）。</summary>
+        public int RayRange { get; }
+
+        /// <summary>蓄量释放阈值（飞轮 3）。</summary>
+        public int ChargeThreshold { get; }
+
         public PartConfig(
             PartType type,
             int triggerScore,
@@ -49,7 +61,11 @@ namespace Everlight.Tales.Data
             int publicEnergyPerEffect = 0,
             int bonusScoreFromNth = 0,
             int bonusNth = 0,
-            bool removesSelf = false)
+            bool removesSelf = false,
+            int effectScorePerEnergy = 0,
+            int pushDistance = 1,
+            int rayRange = 0,
+            int chargeThreshold = 0)
         {
             Type = type;
             TriggerScore = triggerScore;
@@ -61,6 +77,10 @@ namespace Everlight.Tales.Data
             BonusScoreFromNth = bonusScoreFromNth;
             BonusNth = bonusNth;
             RemovesSelf = removesSelf;
+            EffectScorePerEnergy = effectScorePerEnergy;
+            PushDistance = pushDistance;
+            RayRange = rayRange;
+            ChargeThreshold = chargeThreshold;
         }
     }
 
@@ -107,6 +127,69 @@ namespace Everlight.Tales.Data
                 triggerScore: 4,
                 energyCapacity: 0,
                 effectCost: 0),
+
+            [PartType.SpringLauncher] = new PartConfig(
+                type: PartType.SpringLauncher,
+                triggerScore: 4,
+                energyCapacity: 3,
+                effectCost: 1,
+                effectScorePerCell: 5,
+                pushDistance: 2),
+
+            [PartType.SplitMold] = new PartConfig(
+                type: PartType.SplitMold,
+                triggerScore: 4,
+                energyCapacity: 1,
+                effectCost: 1,
+                effectScorePerTarget: 18),
+
+            [PartType.MaterialFurnace] = new PartConfig(
+                type: PartType.MaterialFurnace,
+                triggerScore: 4,
+                energyCapacity: 3,
+                effectCost: 1,
+                effectScorePerTarget: 12,
+                publicEnergyPerEffect: 2,
+                effectScorePerEnergy: 2),
+
+            [PartType.SwapFork] = new PartConfig(
+                type: PartType.SwapFork,
+                triggerScore: 4,
+                energyCapacity: 2,
+                effectCost: 1,
+                effectScorePerTarget: 6),
+
+            [PartType.VortexRotor] = new PartConfig(
+                type: PartType.VortexRotor,
+                triggerScore: 4,
+                energyCapacity: 2,
+                effectCost: 1,
+                effectScorePerTarget: 4),
+
+            [PartType.EnergyFlywheel] = new PartConfig(
+                type: PartType.EnergyFlywheel,
+                triggerScore: 4,
+                energyCapacity: 6,
+                effectCost: 1,
+                effectScorePerTarget: 6,
+                rayRange: 2,
+                chargeThreshold: 3),
+
+            [PartType.MagneticTractor] = new PartConfig(
+                type: PartType.MagneticTractor,
+                triggerScore: 4,
+                energyCapacity: 3,
+                effectCost: 1,
+                effectScorePerCell: 5,
+                rayRange: 3,
+                pushDistance: 2),
+
+            [PartType.RelayBattery] = new PartConfig(
+                type: PartType.RelayBattery,
+                triggerScore: 4,
+                energyCapacity: 2,
+                effectCost: 0,
+                effectScorePerCell: 8),
         };
 
         /// <summary>取零件配置；无能力零件返回 null。</summary>

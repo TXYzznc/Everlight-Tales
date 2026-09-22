@@ -230,6 +230,21 @@ namespace Everlight.Tales.Board
             return _byId.TryGetValue(id, out entity);
         }
 
+        /// <summary>分配一个新的唯一实体 ID（现有最大 ID + 1，供铸模复制等运行时生成）。</summary>
+        public int AllocateEntityId()
+        {
+            int max = 0;
+            foreach (BoardEntity e in _byId.Values)
+            {
+                if (e.Id > max)
+                {
+                    max = e.Id;
+                }
+            }
+
+            return max + 1;
+        }
+
         /// <summary>判断指定格是否被实体占用。</summary>
         public bool IsOccupied(HexCoord coord)
         {
