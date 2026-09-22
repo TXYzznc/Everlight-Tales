@@ -32,6 +32,10 @@ namespace Everlight.Tales.UI
 
         private int m_CurrentTab = -1;
 
+        private MapPanel m_MapPanel;
+
+        private RectTransform m_Content;
+
         protected override void OnInit(object userData)
         {
             base.OnInit(userData);
@@ -57,6 +61,11 @@ namespace Everlight.Tales.UI
                 m_SafeArea.Apply();
             }
 
+            // 初始化世界会话（新档/继续），再装配地图页签。
+            WorldSession.LoadOrNew(WorldSession.DemoSeed);
+            m_Content = FindContent();
+            BuildMapPanel();
+
             SelectTab(0);
         }
 
@@ -72,9 +81,58 @@ namespace Everlight.Tales.UI
 
             if (index == 0)
             {
-                // 地图页签：进入盘面（b42 教学样张入口；b43 改为城市地图 → 事件 → 盘面链路）。
-                GF.UI.OpenUIForm(UIViews.BoardPage);
+                // 地图页签：刷新城市地图 → 事件 → 盘面链路（b43）。
+                BuildMapPanel();
             }
+        }
+
+        private RectTransform FindContent()
+        {
+            Transform found = FindDescendant(transform, "Content");
+            return found != null ? (RectTransform)found : null;
+        }
+
+        private static Transform FindDescendant(Transform root, string name)
+        {
+            if (root.name == name)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform hit = FindDescendant(root.GetChild(i), name);
+                if (hit != null)
+                {
+                    return hit;
+                }
+            }
+
+            return null;
+        }
+
+        private void BuildMapPanel()
+        {
+            if (m_Content == null)
+            {
+                return;
+            }
+
+            if (m_MapPanel == null)
+            {
+                var go = new GameObject("map_panel", typeof(RectTransform));
+                go.transform.SetParent(m_Content, false);
+                var rt = (RectTransform)go.transform;
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = Vector2.zero;
+                rt.sizeDelta = Vector2.zero;
+                m_MapPanel = go.AddComponent<MapPanel>();
+                m_MapPanel.Build();
+            }
+
+            m_MapPanel.Refresh();
         }
 
         private void SelectTab(int index)
