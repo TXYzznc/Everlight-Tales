@@ -38,18 +38,19 @@ namespace Everlight.Tales.UI
         private const string KeyCurrentForms = "et.world.currentForms";
         private const string KeyTasks = "et.world.tasks";
         private const string KeyDisplay = "et.world.display";
+        private const string KeyJobs = "et.world.jobs";
 
         /// <summary>
-        /// 四条改装支线任务模板（P4-013 接线处）：F 类四形态的图样任务，
-        /// 任务页领奖发 T-G01~T-G04 图样。总步数 1、初始即进行中（Accepted），
-        /// 步骤推进来源由 b30 委托/怪谈接线，本批只接「已存在 + 领奖」链路。
+        /// 四条改装支线任务模板（P4-013）：F 类四形态的图样任务，任务页领奖发 T-G01~T-G04 图样。
+        /// 投放门槛（D-061）：T-G01=L-01 已完成 + 0 次成功普通维修；T-G02/T-G03=L-01 已完成 + 1 次；
+        /// T-G04=L-01 已完成 + 2 次。门槛满足才播种（RefreshModTasks），试机成功推进、领奖发图样。
         /// </summary>
         public static IReadOnlyList<TaskConfig> ModTaskConfigs { get; } = new[]
         {
-            new TaskConfig("TASK-MOD-001", "改装·贯通撞锤", 40, new[] { "T-G01" }, false, "周衡", "为惯性撞锤打造贯通形态：力从另一头出来。", 1),
-            new TaskConfig("TASK-MOD-002", "改装·横推撞锤", 40, new[] { "T-G02" }, false, "周衡", "为惯性撞锤打造横推形态：一边输入，两边接应。", 1),
-            new TaskConfig("TASK-MOD-003", "改装·轴向线圈", 40, new[] { "T-G03" }, false, "周衡", "为爆破线圈打造轴向形态：隔着空隙传过去。", 1),
-            new TaskConfig("TASK-MOD-004", "改装·定时线圈", 40, new[] { "T-G04" }, false, "周衡", "为爆破线圈打造定时形态：把这一拍留到下一拍。", 1),
+            new TaskConfig("TASK-MOD-001", "改装·贯通撞锤", 40, new[] { "T-G01" }, false, "周衡", "为惯性撞锤打造贯通形态：力从另一头出来。", 1, "L-01", 0),
+            new TaskConfig("TASK-MOD-002", "改装·横推撞锤", 40, new[] { "T-G02" }, false, "周衡", "为惯性撞锤打造横推形态：一边输入，两边接应。", 1, "L-01", 1),
+            new TaskConfig("TASK-MOD-003", "改装·轴向线圈", 40, new[] { "T-G03" }, false, "周衡", "为爆破线圈打造轴向形态：隔着空隙传过去。", 1, "L-01", 1),
+            new TaskConfig("TASK-MOD-004", "改装·定时线圈", 40, new[] { "T-G04" }, false, "周衡", "为爆破线圈打造定时形态：把这一拍留到下一拍。", 1, "L-01", 2),
         };
 
         public static WorldSession Current { get; private set; }
@@ -116,7 +117,7 @@ namespace Everlight.Tales.UI
                 PartType.BlastCoil,
                 PartType.ReversalGear,
             });
-            SeedModTasks(s.World);
+            RefreshModTasks(s.World);
             s.RefreshSupply();
             Current = s;
             return s;
@@ -179,6 +180,7 @@ namespace Everlight.Tales.UI
             }
 
             PlayerPrefs.SetString(KeyDisplay, string.Join(";", displays));
+            PlayerPrefs.SetInt(KeyJobs, World.SuccessfulJobs);
             PlayerPrefs.Save();
         }
 
@@ -242,12 +244,12 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            // 成长闭环演示接线：成功完成一次维修事件，推进「改装·贯通撞锤」支线一步
-            // （1 步任务 → 可领奖），贯通「事件 → 领图样 → 加工台解锁形态」闭环。
-            // 其余三条改装支线的步骤推进来源由 b30 委托/怪谈接线。
+            // 成功普通维修/临时处置实例累计（P4-013 门槛来源；档案重放/试机不计入）。
+            // 计数后刷新改装支线播种：满足 L-01 已完成 + 计数门槛的支线才出现。
             if (success)
             {
-                AdvanceModTask("TASK-MOD-001");
+                World.SuccessfulJobs++;
+                RefreshModTasks(World);
 
                 // 陈列物（P4-009）：普通维修成功结算后留下「修好物件」只读回顾，按 Id 去重。
                 AddDisplayItem("EV-N01", "卷帘门（已修复）", DisplayKind.RepairCompletion, "EV-N01");
@@ -359,6 +361,7 @@ namespace Everlight.Tales.UI
                 }
 
                 WalkToResolved(existing);
+                RefreshModTasks(World);
                 return existing;
             }
 
@@ -380,6 +383,7 @@ namespace Everlight.Tales.UI
 
             WalkToResolved(created);
             World.Cases.Add(created);
+            RefreshModTasks(World);
             return created;
         }
 
@@ -508,6 +512,7 @@ namespace Everlight.Tales.UI
             }
 
             RestoreTasks(s.World);
+            s.World.SuccessfulJobs = PlayerPrefs.GetInt(KeyJobs, 0);
 
             foreach (string item in PlayerPrefs.GetString(KeyDisplay, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -518,8 +523,8 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            // 旧档（b43 仅存 6 键）升级后补齐四条改装支线。
-            SeedModTasks(s.World);
+            // 门槛满足但尚未播种的改装支线补种（旧档升级路径）。
+            RefreshModTasks(s.World);
 
             s.RefreshSupply();
             Current = s;
@@ -659,12 +664,15 @@ namespace Everlight.Tales.UI
             World.DisplayItems.Add(new DisplayItem(id, name, kind, source, Time.Day));
         }
 
-        /// <summary>补齐四条改装支线任务（按 Id 判重，缺则加入）。</summary>
-        private static void SeedModTasks(WorldState world)
+        /// <summary>
+        /// 按投放门槛补齐改装支线任务（P4-013）：只播种满足「前置案件已解决 + 成功计数达标」
+        /// 且尚未加入的支线，按 Id 判重。门槛不满足的支线不出现（直到后续刷新）。
+        /// </summary>
+        private static void RefreshModTasks(WorldState world)
         {
             foreach (TaskConfig config in ModTaskConfigs)
             {
-                if (!HasTask(world, config.Id))
+                if (!HasTask(world, config.Id) && ModTaskGateService.IsAvailable(config, world))
                 {
                     world.Tasks.Add(new TaskState(config));
                 }

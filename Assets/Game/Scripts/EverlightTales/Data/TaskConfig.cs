@@ -27,7 +27,12 @@ namespace Everlight.Tales.Data
         public string Description;
         public int TotalSteps;
 
-        public TaskConfig(string id, string name, int rewardFee, IReadOnlyList<string> blueprints = null, bool isMain = false, string client = "", string description = "", int totalSteps = 1)
+        // 投放门槛（P4-013）：前置案件已解决（空=无）+ 成功普通维修/处置最低次数。
+        public string RequiredCaseDone;
+        public int RequiredSuccessCount;
+
+        public TaskConfig(string id, string name, int rewardFee, IReadOnlyList<string> blueprints = null, bool isMain = false, string client = "", string description = "", int totalSteps = 1,
+            string requiredCaseDone = "", int requiredSuccessCount = 0)
         {
             Id = id;
             Name = name;
@@ -37,6 +42,8 @@ namespace Everlight.Tales.Data
             Client = client;
             Description = description;
             TotalSteps = totalSteps;
+            RequiredCaseDone = requiredCaseDone ?? "";
+            RequiredSuccessCount = requiredSuccessCount;
         }
     }
 }
