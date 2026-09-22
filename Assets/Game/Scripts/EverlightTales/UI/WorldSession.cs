@@ -115,13 +115,8 @@ namespace Everlight.Tales.UI
                 IsNewGame = true,
             };
             s.RegisterMap();
-            s.World.OwnedParts.AddRange(new[]
-            {
-                PartType.InertiaHammer,
-                PartType.MeteringRatchet,
-                PartType.BlastCoil,
-                PartType.ReversalGear,
-            });
+            // S0 新档不预置零件：P-001~P-003 由三段教学逐步解锁（P5-003），
+            // P-004 换向齿轮等由 S1 红鞋首案现场引入。
             RefreshModTasks(s.World);
             s.RefreshSupply();
             Current = s;
@@ -459,6 +454,20 @@ namespace Everlight.Tales.UI
             }
         }
 
+        /// <summary>回归/演示入口（P5-011）：一键完成新档开场 + S0 三段教学（解锁 P-001~P-003）。</summary>
+        public void CompleteOpeningAndTutorial()
+        {
+            while (Opening != null && Opening.Stage != OpeningStage.TutorialReady)
+            {
+                AdvanceOpening();
+            }
+
+            for (int i = 0; i < TutorialService.StageCount; i++)
+            {
+                CompleteTutorialStage(i);
+            }
+        }
+
         private static TrialConfig FindTrialForTask(TaskConfig task)
         {
             if (task.Blueprints == null || task.Blueprints.Count == 0)
@@ -512,17 +521,6 @@ namespace Everlight.Tales.UI
 
             ParseParts(PlayerPrefs.GetString(KeyOwned, ""), s.World.OwnedParts);
             ParseParts(PlayerPrefs.GetString(KeyKnown, ""), s.World.KnownParts);
-
-            if (s.World.OwnedParts.Count == 0)
-            {
-                s.World.OwnedParts.AddRange(new[]
-                {
-                    PartType.InertiaHammer,
-                    PartType.MeteringRatchet,
-                    PartType.BlastCoil,
-                    PartType.ReversalGear,
-                });
-            }
 
             foreach (string item in PlayerPrefs.GetString(KeyMaterials, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
