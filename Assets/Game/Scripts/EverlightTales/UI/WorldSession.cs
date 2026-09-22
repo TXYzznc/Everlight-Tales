@@ -73,6 +73,9 @@ namespace Everlight.Tales.UI
         /// <summary>当前盘面事件的盘面配置。</summary>
         public LevelBoardConfig CurrentBoardConfig { get; private set; }
 
+        /// <summary>当前试机事件（T-G01~04，借用样机）。</summary>
+        public TrialInstance CurrentTrial { get; private set; }
+
         /// <summary>最近一次结算事务结果。</summary>
         public SettlementTransactionResult LastSettlement { get; private set; }
 
@@ -261,6 +264,178 @@ namespace Everlight.Tales.UI
         public bool IsRollerDoorGatePushedIn()
         {
             return CurrentEvent != null && RollerDoorEvent.IsGatePushedIn(CurrentEvent.Board);
+        }
+
+        /// <summary>开始一次试机（P4-012）：按改装支线图样定位试机关卡，借用样机、进入准备完成态。</summary>
+        public TrialInstance StartTrial(string taskId)
+        {
+            TaskConfig task = FindModTaskConfig(taskId);
+            if (task == null)
+            {
+                return null;
+            }
+
+            TrialConfig trial = FindTrialForTask(task);
+            if (trial == null)
+            {
+                return null;
+            }
+
+            LevelBoardConfig boardConfig = TrialEvent.CreateBoardConfig(trial);
+
+            var keyParts = new List<PartType>();
+            foreach (KeyPieceConfig key in boardConfig.KeyPieces)
+            {
+                keyParts.Add(key.PartType);
+            }
+
+            CarrySelection carry = new CarrySelection(World.OwnedParts, boardConfig.BorrowedParts, keyParts);
+            BoardState board = InitialBoardBuilder.Build(boardConfig, carry.SelectedParts(), Rng);
+
+            CurrentTrial = TrialEventShell.Begin(trial, board);
+            return CurrentTrial;
+        }
+
+        /// <summary>结算试机：成功推进对应改装支线（不发直接奖励、不解锁永久形态）。</summary>
+        public bool SettleTrial(bool success)
+        {
+            if (CurrentTrial == null)
+            {
+                return false;
+            }
+
+            bool succeeded = TrialEventShell.Resolve(CurrentTrial, success ? EventResultKind.Success : EventResultKind.Failure);
+            if (succeeded)
+            {
+                string taskId = FindTaskForTrial(CurrentTrial.Config.Id);
+                if (taskId != null)
+                {
+                    AdvanceModTask(taskId);
+                }
+            }
+
+            Save();
+            return succeeded;
+        }
+
+        /// <summary>试机标记是否已由普通推移送入端点格。</summary>
+        public bool IsTrialSpecialGoalMet()
+        {
+            return CurrentTrial != null && TrialEvent.IsSpecialGoalMet(CurrentTrial.Board);
+        }
+
+        /// <summary>回访交付（P4-011）：已解决→待回访→已回访，一次性发图样/材料/维修费。</summary>
+        public RevisitResult RevisitCase(string caseId)
+        {
+            CaseState state = FindCase(caseId);
+            if (state == null)
+            {
+                return RevisitResult.NotAvailable;
+            }
+
+            if (state.Kind == CaseStateKind.Resolved)
+            {
+                RevisitService.OpenRevisit(state);
+            }
+
+            RevisitResult result = RevisitService.Deliver(state, World, Time.Day);
+            if (result.Success)
+            {
+                Save();
+            }
+
+            return result;
+        }
+
+        /// <summary>演示入口：确保红舞鞋 L-01 已解决（待回访）并配置回访奖励（D-085）。</summary>
+        public CaseState EnsureRedShoeResolved()
+        {
+            CaseState existing = FindCase("L-01");
+            if (existing != null)
+            {
+                if (existing.Kind == CaseStateKind.Resolved || existing.Kind == CaseStateKind.AwaitingRevisit || existing.Kind == CaseStateKind.Revisited)
+                {
+                    return existing;
+                }
+
+                WalkToResolved(existing);
+                return existing;
+            }
+
+            CaseState created = Intro.Confirm();
+            if (created == null)
+            {
+                return null;
+            }
+
+            created.Config.RevisitBlueprints = new[] { "L-01" };
+            created.Config.RevisitMaterials = new FormMaterialCost[]
+            {
+                new FormMaterialCost("MT-002", 2),
+                new FormMaterialCost("MT-004", 2),
+                new FormMaterialCost("MT-005", 1),
+                new FormMaterialCost("MT-006", 1, "L-01"),
+            };
+            created.Config.RevisitFee = 120;
+
+            WalkToResolved(created);
+            World.Cases.Add(created);
+            return created;
+        }
+
+        /// <summary>把一条未结案案件沿状态机推进到已解决（调查中→待维修→维修中→已解决）。</summary>
+        private static void WalkToResolved(CaseState state)
+        {
+            if (state.Kind == CaseStateKind.Investigating)
+            {
+                CaseStateMachine.ConfirmAnomaly(state);
+            }
+
+            if (state.Kind == CaseStateKind.AwaitingRepair)
+            {
+                CaseStateMachine.StartRepair(state);
+            }
+
+            if (state.Kind == CaseStateKind.Repairing)
+            {
+                CaseStateMachine.ResolveSuccess(state, true);
+            }
+        }
+
+        private CaseState FindCase(string caseId)
+        {
+            foreach (CaseState state in World.Cases)
+            {
+                if (state.Config.Id == caseId)
+                {
+                    return state;
+                }
+            }
+
+            return null;
+        }
+
+        private static TrialConfig FindTrialForTask(TaskConfig task)
+        {
+            if (task.Blueprints == null || task.Blueprints.Count == 0)
+            {
+                return null;
+            }
+
+            return TrialCatalog.Get(task.Blueprints[0]);
+        }
+
+        private static string FindTaskForTrial(string trialId)
+        {
+            foreach (TaskConfig config in ModTaskConfigs)
+            {
+                if (config.Blueprints != null && config.Blueprints.Count > 0 && config.Blueprints[0] == trialId)
+                {
+                    return config.Id;
+                }
+            }
+
+            return null;
         }
 
         private static bool HasSave()

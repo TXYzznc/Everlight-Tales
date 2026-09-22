@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Everlight.Tales.Data
 {
     /// <summary>案件状态机状态（P3-001，D-068 总图）：一条已触发怪谈从调查到回访的长期状态。</summary>
@@ -35,7 +37,13 @@ namespace Everlight.Tales.Data
         public string Source;
         public string FirstPlace;
 
-        public CaseConfig(string id, string name, string batch, int totalStages, string source = "", string firstPlace = "")
+        // 回访奖励（P4-011，D-085）：待回访 → 已回访 一次性交付。
+        public IReadOnlyList<string> RevisitBlueprints;
+        public IReadOnlyList<FormMaterialCost> RevisitMaterials;
+        public int RevisitFee;
+
+        public CaseConfig(string id, string name, string batch, int totalStages, string source = "", string firstPlace = "",
+            IReadOnlyList<string> revisitBlueprints = null, IReadOnlyList<FormMaterialCost> revisitMaterials = null, int revisitFee = 0)
         {
             Id = id;
             Name = name;
@@ -43,6 +51,9 @@ namespace Everlight.Tales.Data
             TotalStages = totalStages;
             Source = source;
             FirstPlace = firstPlace;
+            RevisitBlueprints = revisitBlueprints ?? System.Array.Empty<string>();
+            RevisitMaterials = revisitMaterials ?? System.Array.Empty<FormMaterialCost>();
+            RevisitFee = revisitFee;
         }
     }
 }
