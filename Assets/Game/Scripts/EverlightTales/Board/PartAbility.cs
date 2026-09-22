@@ -103,6 +103,22 @@ namespace Everlight.Tales.Board
                     outcome = RelayBattery(context, target, config);
                     break;
 
+                case PartType.StorageStomach:
+                    outcome = StorageStomach(context, target, sourceId, kind == TriggerKinds.Collision, config);
+                    break;
+
+                case PartType.LightingPrism:
+                    outcome = LightingPrism(context, target, config);
+                    break;
+
+                case PartType.DrainImpeller:
+                    outcome = DrainImpeller(context, target, config);
+                    break;
+
+                case PartType.CalibrationProbe:
+                    outcome = CalibrationProbe(context, target, config);
+                    break;
+
                 default:
                     outcome = default;
                     break;
@@ -677,6 +693,138 @@ namespace Everlight.Tales.Board
             }
 
             return transferred > 0 ? new Outcome(transferred * config.EffectScorePerCell, 0) : default;
+        }
+
+        /// <summary>储料胃袋（P-007）：收纳模式吞入来撞件，释放模式受击吐出到 D0 出口。</summary>
+        private static Outcome StorageStomach(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            if (!target.ReleaseMode)
+            {
+                // 收纳模式：碰撞时吞入来撞普通件。
+                if (!hasIncoming)
+                {
+                    return default;
+                }
+
+                if (!context.Board.TryGetEntity(sourceId, out BoardEntity source) || source.Kind != EntityKind.Part)
+                {
+                    return default;
+                }
+
+                if (source.PartType == PartType.None || source.PartType == PartType.StorageStomach)
+                {
+                    return default; // 惰性件／另一胃袋不可收纳。
+                }
+
+                if (target.Stored.Count >= 2)
+                {
+                    return default; // 内部已满：按普通阻挡，不收纳。
+                }
+
+                target.Energy -= config.EffectCost;
+                context.Board.Remove(source);
+                target.Store(source);
+                return new Outcome(config.EffectScorePerTarget, 0); // 收纳 6 分。
+            }
+
+            // 释放模式：受击释放最早收纳者到 D0 出口。
+            if (target.Stored.Count == 0)
+            {
+                return default; // 无内部物。
+            }
+
+            HexCoord exit = target.Coord.Neighbor(HexDirection.D0);
+            if (!context.Board.IsValid(exit) || context.Board.IsOccupied(exit))
+            {
+                return default; // 无空格：保留内部物，释放状态保留。
+            }
+
+            BoardEntity stored = target.TakeStored();
+            target.Energy -= config.EffectCost;
+            context.Board.Place(stored, exit);
+            target.ReleaseMode = false; // 释放成功后回到收纳状态。
+            return new Outcome(config.SecondaryEffectScore, 0); // 释放 10 分。
+        }
+
+        /// <summary>照明棱镜（P-013）：照明自身六邻格，每照明实体 2 分，每揭一层伪装 6 分。</summary>
+        private static Outcome LightingPrism(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost;
+
+            int lit = 0;
+            int disguised = 0;
+            for (int i = 0; i < HexDirections.Count; i++)
+            {
+                BoardEntity neighbor = context.Board.EntityAt(target.Coord.Neighbor(HexDirections.All[i]));
+                if (neighbor == null)
+                {
+                    continue;
+                }
+
+                if (neighbor.Kind == EntityKind.Part && neighbor.PartType != PartType.None)
+                {
+                    lit++; // 每照明一个不同实体。
+                }
+
+                if (neighbor.RemoveDisguiseLayer())
+                {
+                    disguised++; // 揭一层伪装。
+                }
+            }
+
+            int score = lit * config.EffectScorePerTarget + disguised * config.SecondaryEffectScore;
+            return score > 0 ? new Outcome(score, 0) : default;
+        }
+
+        /// <summary>排水叶轮（P-016）：从 D0 邻格水负荷容器排掉最多 2 单位，每单位 8 分 + 1 公共能量。</summary>
+        private static Outcome DrainImpeller(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            BoardEntity container = context.Board.EntityAt(target.Coord.Neighbor(HexDirection.D0));
+            if (container == null || container.WaterLoad <= 0)
+            {
+                return default; // 无水：不扣充能。
+            }
+
+            target.Energy -= config.EffectCost;
+            int drained = container.DrainWater(2);
+
+            int score = drained * config.EffectScorePerTarget;
+            int energy = drained * config.PublicEnergyPerEffect;
+            return new Outcome(score, energy);
+        }
+
+        /// <summary>校准探针（P-018）：向 D0 邻格发校准事件，仅对声明接受校准的节点生效得 8 分。</summary>
+        private static Outcome CalibrationProbe(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost; // 无效目标该次充能也已使用。
+
+            BoardEntity node = context.Board.EntityAt(target.Coord.Neighbor(HexDirection.D0));
+            if (node == null || !node.AcceptsCalibration)
+            {
+                return default;
+            }
+
+            return new Outcome(config.EffectScorePerTarget, 0);
         }
     }
 }

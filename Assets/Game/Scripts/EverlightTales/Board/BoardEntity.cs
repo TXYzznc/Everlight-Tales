@@ -100,6 +100,84 @@ namespace Everlight.Tales.Board
             IsCopy = true;
         }
 
+        /// <summary>胃袋内部存储（P-007，收纳跨拍保留，仅存本局盘面实体引用）。</summary>
+        private System.Collections.Generic.List<BoardEntity> _stored = new System.Collections.Generic.List<BoardEntity>();
+
+        /// <summary>胃袋是否处于释放模式（false=收纳，true=释放；准备阶段切换）。</summary>
+        public bool ReleaseMode { get; set; }
+
+        /// <summary>胃袋已收纳实体（只读）。</summary>
+        public System.Collections.Generic.IReadOnlyList<BoardEntity> Stored => _stored;
+
+        /// <summary>胃袋收纳一个实体（清空其盘面事件，仅移出盘面不销毁）。</summary>
+        public void Store(BoardEntity entity)
+        {
+            if (entity != null)
+            {
+                _stored.Add(entity);
+            }
+        }
+
+        /// <summary>胃袋取出最早收纳者（FIFO）。</summary>
+        public BoardEntity TakeStored()
+        {
+            if (_stored.Count == 0)
+            {
+                return null;
+            }
+
+            BoardEntity first = _stored[0];
+            _stored.RemoveAt(0);
+            return first;
+        }
+
+        /// <summary>伪装层层数（P-013 照明揭层目标，0=无伪装）。</summary>
+        public int DisguiseLayers { get; private set; }
+
+        /// <summary>设定伪装层层数。</summary>
+        public void SetDisguiseLayers(int layers)
+        {
+            DisguiseLayers = layers < 0 ? 0 : layers;
+        }
+
+        /// <summary>揭去一层伪装，返回是否确有伪装可揭。</summary>
+        public bool RemoveDisguiseLayer()
+        {
+            if (DisguiseLayers <= 0)
+            {
+                return false;
+            }
+
+            DisguiseLayers--;
+            return true;
+        }
+
+        /// <summary>水负荷（P-016 排水叶轮处理目标，带水负荷标签的容器）。</summary>
+        public int WaterLoad { get; private set; }
+
+        /// <summary>增加水负荷。</summary>
+        public void AddWater(int units)
+        {
+            WaterLoad += units;
+        }
+
+        /// <summary>排掉最多 maxUnits 单位水，返回实际排掉量。</summary>
+        public int DrainWater(int maxUnits)
+        {
+            int drained = WaterLoad < maxUnits ? WaterLoad : maxUnits;
+            WaterLoad -= drained;
+            return drained;
+        }
+
+        /// <summary>是否接受校准（P-018 校准探针目标节点标记）。</summary>
+        public bool AcceptsCalibration { get; private set; }
+
+        /// <summary>标记为接受校准的节点。</summary>
+        public void SetAcceptsCalibration()
+        {
+            AcceptsCalibration = true;
+        }
+
         public BoardEntity(
             int id,
             EntityKind kind,

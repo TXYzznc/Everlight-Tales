@@ -51,6 +51,9 @@ namespace Everlight.Tales.Data
         /// <summary>蓄量释放阈值（飞轮 3）。</summary>
         public int ChargeThreshold { get; }
 
+        /// <summary>次生效果分（胃袋释放 10／照明棱镜揭伪装 6）。</summary>
+        public int SecondaryEffectScore { get; }
+
         public PartConfig(
             PartType type,
             int triggerScore,
@@ -65,7 +68,8 @@ namespace Everlight.Tales.Data
             int effectScorePerEnergy = 0,
             int pushDistance = 1,
             int rayRange = 0,
-            int chargeThreshold = 0)
+            int chargeThreshold = 0,
+            int secondaryEffectScore = 0)
         {
             Type = type;
             TriggerScore = triggerScore;
@@ -81,6 +85,7 @@ namespace Everlight.Tales.Data
             PushDistance = pushDistance;
             RayRange = rayRange;
             ChargeThreshold = chargeThreshold;
+            SecondaryEffectScore = secondaryEffectScore;
         }
     }
 
@@ -190,6 +195,37 @@ namespace Everlight.Tales.Data
                 energyCapacity: 2,
                 effectCost: 0,
                 effectScorePerCell: 8),
+
+            [PartType.StorageStomach] = new PartConfig(
+                type: PartType.StorageStomach,
+                triggerScore: 4,
+                energyCapacity: 4,
+                effectCost: 1,
+                effectScorePerTarget: 6,
+                secondaryEffectScore: 10),
+
+            [PartType.LightingPrism] = new PartConfig(
+                type: PartType.LightingPrism,
+                triggerScore: 4,
+                energyCapacity: 3,
+                effectCost: 1,
+                effectScorePerTarget: 2,
+                secondaryEffectScore: 6),
+
+            [PartType.DrainImpeller] = new PartConfig(
+                type: PartType.DrainImpeller,
+                triggerScore: 4,
+                energyCapacity: 4,
+                effectCost: 1,
+                effectScorePerTarget: 8,
+                publicEnergyPerEffect: 1),
+
+            [PartType.CalibrationProbe] = new PartConfig(
+                type: PartType.CalibrationProbe,
+                triggerScore: 6,
+                energyCapacity: 3,
+                effectCost: 1,
+                effectScorePerTarget: 8),
         };
 
         /// <summary>取零件配置；无能力零件返回 null。</summary>
