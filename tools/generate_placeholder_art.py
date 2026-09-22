@@ -195,6 +195,195 @@ def icon_wrench(d, cx, cy, s):
     d.arc([cx - s * 0.7, cy - s * 1.1, cx + s * 0.1, cy - s * 0.3], 200, 360, fill=(0, 0, 0, 120), width=1)
 
 
+def icon_mold(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.rectangle([cx - s * 0.85, cy - s * 0.6, cx - s * 0.15, cy + s * 0.6], outline=c, width=3)
+    d.rectangle([cx + s * 0.15, cy - s * 0.6, cx + s * 0.85, cy + s * 0.6], outline=c, width=3)
+
+
+def icon_stomach(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.ellipse([cx - s * 0.7, cy - s * 0.5, cx + s * 0.7, cy + s * 0.7], outline=c, width=3)
+    d.arc([cx - s * 0.3, cy - s * 0.55, cx + s * 0.3, cy + s * 0.1], 180, 360, fill=c, width=3)
+
+
+def icon_furnace(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.rectangle([cx - s * 0.6, cy - s * 0.2, cx + s * 0.6, cy + s * 0.7], outline=c, width=3)
+    d.polygon([(cx - s * 0.4, cy - s * 0.2), (cx, cy - s * 0.8), (cx + s * 0.4, cy - s * 0.2)], outline=c, width=2)
+
+
+def icon_fork(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx, cy + s * 0.8, cx, cy - s * 0.2], c, 3)
+    _stroke(d, [cx, cy - s * 0.2, cx - s * 0.6, cy - s * 0.8], c, 3)
+    _stroke(d, [cx, cy - s * 0.2, cx + s * 0.6, cy - s * 0.8], c, 3)
+
+
+def icon_rotor(d, cx, cy, s):
+    c = (250, 250, 252)
+    for i in range(3):
+        a = math.radians(i * 120 - 90)
+        x = cx + math.cos(a) * s * 0.7
+        y = cy + math.sin(a) * s * 0.7
+        _stroke(d, [cx, cy, x, y], c, 4)
+    d.ellipse([cx - s * 0.15, cy - s * 0.15, cx + s * 0.15, cy + s * 0.15], fill=c)
+
+
+def icon_flywheel(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.ellipse([cx - s * 0.7, cy - s * 0.7, cx + s * 0.7, cy + s * 0.7], outline=c, width=3)
+    d.ellipse([cx - s * 0.25, cy - s * 0.25, cx + s * 0.25, cy + s * 0.25], fill=c)
+    for i in range(6):
+        a = math.radians(i * 60)
+        x1, y1 = cx + math.cos(a) * s * 0.25, cy + math.sin(a) * s * 0.25
+        x2, y2 = cx + math.cos(a) * s * 0.7, cy + math.sin(a) * s * 0.7
+        d.line([x1, y1, x2, y2], fill=c, width=2)
+
+
+def icon_bridge(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.arc([cx - s * 0.8, cy - s * 0.7, cx + s * 0.8, cy + s * 0.7], 0, 180, fill=c, width=3)
+    d.line([cx - s * 0.7, cy + s * 0.5, cx + s * 0.7, cy + s * 0.5], fill=c, width=2)
+
+
+def icon_prism(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.polygon([(cx, cy - s * 0.75), (cx - s * 0.7, cy + s * 0.6), (cx + s * 0.7, cy + s * 0.6)], outline=c, width=3)
+
+
+def icon_tuningfork(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx, cy + s * 0.75, cx, cy - s * 0.4], c, 4)
+    d.arc([cx - s * 0.5, cy - s * 0.9, cx + s * 0.5, cy + s * 0.1], 0, 180, fill=c, width=3)
+
+
+def icon_impeller(d, cx, cy, s):
+    c = (250, 250, 252)
+    for i in range(4):
+        a = math.radians(i * 90 - 90)
+        x = cx + math.cos(a) * s * 0.7
+        y = cy + math.sin(a) * s * 0.7
+        _stroke(d, [cx, cy, x, y], c, 3)
+    d.ellipse([cx - s * 0.2, cy - s * 0.2, cx + s * 0.2, cy + s * 0.2], fill=c)
+
+
+def icon_bladder(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.ellipse([cx - s * 0.6, cy - s * 0.6, cx + s * 0.6, cy + s * 0.6], outline=c, width=3)
+    _stroke(d, [cx, cy - s * 0.6, cx, cy - s * 0.9], c, 3)
+
+
+def icon_probe(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx, cy + s * 0.8, cx, cy - s * 0.8], c, 4)
+    for i in range(3):
+        y = cy - s * 0.4 + i * s * 0.3
+        d.line([cx, y, cx + s * 0.4, y], fill=c, width=2)
+    d.polygon([(cx, cy - s * 0.8), (cx - s * 0.15, cy - s * 0.5), (cx + s * 0.15, cy - s * 0.5)], fill=c)
+
+
+def icon_magnet(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.arc([cx - s * 0.6, cy - s * 0.7, cx + s * 0.6, cy + s * 0.3], 180, 360, fill=c, width=4)
+    d.rectangle([cx - s * 0.6, cy - s * 0.2, cx - s * 0.3, cy + s * 0.6], fill=c)
+    d.rectangle([cx + s * 0.3, cy - s * 0.2, cx + s * 0.6, cy + s * 0.6], fill=c)
+
+
+def icon_battery(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.rectangle([cx - s * 0.6, cy - s * 0.6, cx + s * 0.6, cy + s * 0.6], outline=c, width=3)
+    d.rectangle([cx - s * 0.3, cy - s * 0.6, cx + s * 0.3, cy + s * 0.6], outline=c, width=2)
+    d.rectangle([cx - s * 0.2, cy - s * 0.85, cx + s * 0.2, cy - s * 0.6], fill=c)
+
+
+def icon_partition(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.rectangle([cx - s * 0.7, cy - s * 0.6, cx + s * 0.7, cy + s * 0.6], outline=c, width=3)
+    d.line([cx - s * 0.3, cy - s * 0.5, cx - s * 0.1, cy, cx - s * 0.3, cy + s * 0.5], fill=c, width=2)
+
+
+def icon_gate(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.rectangle([cx - s * 0.6, cy - s * 0.7, cx + s * 0.6, cy + s * 0.7], outline=c, width=3)
+    d.line([cx, cy - s * 0.7, cx, cy + s * 0.7], fill=c, width=2)
+
+
+def icon_rail(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx - s * 0.8, cy, cx + s * 0.5, cy], c, 3)
+    d.polygon([(cx + s * 0.5, cy - s * 0.35), (cx + s * 0.85, cy), (cx + s * 0.5, cy + s * 0.35)], fill=c)
+
+
+def icon_seat(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.arc([cx - s * 0.6, cy - s * 0.7, cx + s * 0.6, cy + s * 0.7], 0, 180, fill=c, width=4)
+    d.line([cx - s * 0.6, cy, cx + s * 0.6, cy], fill=c, width=2)
+
+
+def icon_shutter(d, cx, cy, s):
+    c = (250, 250, 252)
+    for i in range(4):
+        y = cy - s * 0.6 + i * s * 0.4
+        d.line([cx - s * 0.7, y, cx + s * 0.7, y], fill=c, width=2)
+
+
+def icon_seal(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx - s * 0.6, cy - s * 0.6, cx + s * 0.6, cy + s * 0.6], c, 4)
+    _stroke(d, [cx - s * 0.6, cy + s * 0.6, cx + s * 0.6, cy - s * 0.6], c, 4)
+
+
+def icon_pillar(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.rectangle([cx - s * 0.3, cy - s * 0.6, cx + s * 0.3, cy + s * 0.4], outline=c, width=3)
+    d.line([cx - s * 0.5, cy + s * 0.6, cx + s * 0.5, cy + s * 0.6], fill=c, width=3)
+
+
+def icon_deflection(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx - s * 0.6, cy + s * 0.5, cx + s * 0.2, cy - s * 0.2], c, 3)
+    d.polygon([(cx + s * 0.2, cy - s * 0.6), (cx + s * 0.5, cy - s * 0.2), (cx + s * 0.1, cy - s * 0.05)], fill=c)
+
+
+def icon_rift(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx - s * 0.5, cy - s * 0.6, cx, cy, cx - s * 0.4, cy + s * 0.6], c, 3)
+
+
+def icon_reserved(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.arc([cx - s * 0.4, cy - s * 0.7, cx + s * 0.4, cy + s * 0.1], 0, 180, fill=c, width=3)
+    _stroke(d, [cx, cy + s * 0.15, cx, cy + s * 0.4], c, 3)
+    d.ellipse([cx - s * 0.07, cy + s * 0.55, cx + s * 0.07, cy + s * 0.7], fill=c)
+
+
+def icon_silence(d, cx, cy, s):
+    c = (250, 250, 252)
+    d.ellipse([cx - s * 0.6, cy - s * 0.6, cx + s * 0.6, cy + s * 0.6], outline=c, width=3)
+    _stroke(d, [cx - s * 0.45, cy - s * 0.45, cx + s * 0.45, cy + s * 0.45], c, 3)
+
+
+def icon_settlerail(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx, cy - s * 0.7, cx, cy + s * 0.3], c, 4)
+    d.polygon([(cx, cy + s * 0.7), (cx - s * 0.4, cy + s * 0.15), (cx + s * 0.4, cy + s * 0.15)], fill=c)
+
+
+def icon_overload(d, cx, cy, s):
+    c = (250, 250, 252)
+    for rr in (s * 0.7, s * 0.45, s * 0.2):
+        d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], outline=c, width=3)
+
+
+def icon_posttap(d, cx, cy, s):
+    c = (250, 250, 252)
+    _stroke(d, [cx - s * 0.7, cy - s * 0.3, cx + s * 0.7, cy - s * 0.3], c, 3)
+    _stroke(d, [cx - s * 0.7, cy + s * 0.3, cx + s * 0.7, cy + s * 0.3], c, 3)
+    d.polygon([(cx - s * 0.7, cy - s * 0.3), (cx - s * 0.3, cy - s * 0.55), (cx - s * 0.3, cy - s * 0.05)], fill=c)
+    d.polygon([(cx + s * 0.7, cy + s * 0.3), (cx + s * 0.3, cy + s * 0.55), (cx + s * 0.3, cy + s * 0.05)], fill=c)
+
+
 ICONS = {
     "hammer": icon_hammer,
     "gear": icon_gear,
@@ -206,6 +395,34 @@ ICONS = {
     "spiral": icon_spiral,
     "flag": icon_flag,
     "wrench": icon_wrench,
+    "mold": icon_mold,
+    "stomach": icon_stomach,
+    "furnace": icon_furnace,
+    "fork": icon_fork,
+    "rotor": icon_rotor,
+    "flywheel": icon_flywheel,
+    "bridge": icon_bridge,
+    "prism": icon_prism,
+    "tuningfork": icon_tuningfork,
+    "impeller": icon_impeller,
+    "bladder": icon_bladder,
+    "probe": icon_probe,
+    "magnet": icon_magnet,
+    "battery": icon_battery,
+    "partition": icon_partition,
+    "gate": icon_gate,
+    "rail": icon_rail,
+    "seat": icon_seat,
+    "shutter": icon_shutter,
+    "seal": icon_seal,
+    "pillar": icon_pillar,
+    "deflection": icon_deflection,
+    "rift": icon_rift,
+    "reserved": icon_reserved,
+    "silence": icon_silence,
+    "settlerail": icon_settlerail,
+    "overload": icon_overload,
+    "posttap": icon_posttap,
 }
 
 
@@ -258,14 +475,74 @@ def parts():
         ("p003_coil", "coil", "#E28888", "#B04646", "#6E2626"),
         ("p004_gear", "gear", "#86C48A", "#4C9852", "#285C2C"),
         ("p005_spring", "spring", "#74C8B2", "#3C9078", "#1E5848"),
+        ("p006_mold", "mold", "#C8B08A", "#9A7A50", "#5C4626"),
+        ("p007_stomach", "stomach", "#E8B8C8", "#B07090", "#6E3454"),
+        ("p008_furnace", "furnace", "#E0A060", "#B06030", "#6E3020"),
+        ("p009_fork", "fork", "#A8C8E8", "#6080B0", "#30486E"),
+        ("p010_rotor", "rotor", "#90D0C8", "#489088", "#205854"),
+        ("p011_flywheel", "flywheel", "#C0A0E0", "#8050B0", "#482860"),
+        ("p012_bridge", "bridge", "#D0C088", "#988048", "#585026"),
+        ("p013_prism", "prism", "#88D8E8", "#4890B0", "#205464"),
         ("p014_pliers", "pliers", "#B088D8", "#7C54A6", "#483066"),
+        ("p015_tuningfork", "tuningfork", "#E8D088", "#B09848", "#6E5826"),
+        ("p016_impeller", "impeller", "#88C8B8", "#489080", "#205850"),
+        ("p017_bladder", "bladder", "#E8A0C0", "#B05880", "#6E2848"),
+        ("p018_probe", "probe", "#B8C8E8", "#7080B0", "#384868"),
+        ("p019_magnet", "magnet", "#D89088", "#A05048", "#682820"),
+        ("p020_battery", "battery", "#A8E0A0", "#58A858", "#286028"),
+    ]
+
+
+def forms():
+    # 15 个怪谈形态：统一紫色系 + 宿主零件图标（同宿主形态暂共享图标，正式美术替换）。
+    purple = [
+        ("m001_escort", "magnet", "#C8A0E8", "#8850B0", "#502868"),
+        ("m002_sleeve", "probe", "#C8A0E8", "#8850B0", "#502868"),
+        ("m003_mirror", "prism", "#C8A0E8", "#8850B0", "#502868"),
+        ("m004_dream", "stomach", "#C8A0E8", "#8850B0", "#502868"),
+        ("m005_pump", "impeller", "#C8A0E8", "#8850B0", "#502868"),
+        ("m006_frame", "bladder", "#C8A0E8", "#8850B0", "#502868"),
+        ("m007_whistle", "tuningfork", "#C8A0E8", "#8850B0", "#502868"),
+        ("m008_shadow", "hammer", "#C8A0E8", "#8850B0", "#502868"),
+        ("m009_lure", "tuningfork", "#C8A0E8", "#8850B0", "#502868"),
+        ("m010_echo", "tuningfork", "#C8A0E8", "#8850B0", "#502868"),
+        ("m011_beacon", "probe", "#C8A0E8", "#8850B0", "#502868"),
+        ("m012_redirect", "gear", "#C8A0E8", "#8850B0", "#502868"),
+        ("m013_identity", "prism", "#C8A0E8", "#8850B0", "#502868"),
+        ("m014_clamp", "pliers", "#C8A0E8", "#8850B0", "#502868"),
+        ("m015_reuse", "tuningfork", "#C8A0E8", "#8850B0", "#502868"),
+    ]
+    return purple
+
+
+def obstacles():
+    return [
+        ("o001_wall", "wall", "#7A7E88", "#464A54", "#282B32"),
+        ("o002_partition", "partition", "#9A8E7A", "#605848", "#38302A"),
+        ("o003_gate", "gate", "#8894A4", "#525E6C", "#303A46"),
+        ("o004_rail", "rail", "#94A8A0", "#5C7068", "#34423C"),
+        ("o005_seat", "seat", "#A8A4B0", "#6C6878", "#3C3A44"),
+        ("o006_shutter", "shutter", "#8E9AA6", "#56626E", "#303842"),
+        ("o007_seal", "seal", "#C09860", "#886040", "#503824"),
+        ("o008_pillar", "pillar", "#9E94A8", "#665C74", "#3A3444"),
+    ]
+
+
+def anomalies():
+    return [
+        ("a001_deflection", "deflection", "#C088D0", "#884E9E", "#522E5E"),
+        ("a002_rift", "rift", "#B890C8", "#805090", "#4A2E5E"),
+        ("a003_reserved", "reserved", "#C0A0C8", "#886090", "#503856"),
+        ("a004_silence", "silence", "#C8A0B8", "#906078", "#563846"),
+        ("a005_settlerail", "settlerail", "#A890C8", "#705098", "#402E5E"),
+        ("a006_overload", "overload", "#C898D0", "#9058A0", "#563260"),
+        ("a007_reserved", "reserved", "#C0A0C8", "#886090", "#503856"),
+        ("a008_posttap", "posttap", "#C088C0", "#905090", "#563058"),
     ]
 
 
 def others():
     return [
-        ("obstacle_wall", "wall", "#7A7E88", "#464A54", "#282B32"),
-        ("anomaly", "spiral", "#C088D0", "#884E9E", "#522E5E"),
         ("marker_task", "flag", "#E4C464", "#B8942E", "#6E581A", True),
         ("marker_repair", "wrench", "#9A86CC", "#6652A0", "#3C305E"),
     ]
@@ -284,32 +561,49 @@ def ui_items():
 
 # ---------------------------------------------------------------- 生成
 
+def collect():
+    """收集全部占位资源（相对目录 + 名称, 图片），不写盘。"""
+    result = []
+
+    def add(directory, rows):
+        for name, icon, top, bottom, outline, *rest in rows:
+            dark = bool(rest and rest[0])
+            img = hex_piece(TILE, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline), icon, icon_dark=dark)
+            result.append((os.path.join(directory, name + ".png"), img))
+
+    add("parts", parts())
+    add("forms", forms())
+    add("obstacles", obstacles())
+    add("anomalies", anomalies())
+    add("others", others())
+    for name, size, radius, top, bottom, outline in ui_items():
+        img = ui_rounded(size, radius, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline))
+        result.append((os.path.join("UI", name + ".png"), img))
+    return result
+
+
 def build_all():
     os.makedirs(os.path.join(OUT, "Board", "parts"), exist_ok=True)
+    os.makedirs(os.path.join(OUT, "Board", "forms"), exist_ok=True)
+    os.makedirs(os.path.join(OUT, "Board", "obstacles"), exist_ok=True)
+    os.makedirs(os.path.join(OUT, "Board", "anomalies"), exist_ok=True)
     os.makedirs(os.path.join(OUT, "Board", "others"), exist_ok=True)
     os.makedirs(os.path.join(OUT, "UI"), exist_ok=True)
 
+    # 清理旧命名占位（obstacle_wall/anomaly 已拆分到 obstacles/anomalies 目录）。
+    for legacy in ("obstacle_wall", "anomaly"):
+        lp = os.path.join(OUT, "Board", "others", legacy + ".png")
+        if os.path.exists(lp):
+            os.remove(lp)
+
     generated = []
-
-    for name, icon, top, bottom, outline in parts():
-        img = hex_piece(TILE, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline), icon)
-        p = os.path.join(OUT, "Board", "parts", name + ".png")
+    for rel, img in collect():
+        if rel.startswith("UI" + os.sep):
+            p = os.path.join(OUT, rel)
+        else:
+            p = os.path.join(OUT, "Board", rel)
         img.save(p)
         generated.append((p, img))
-
-    for name, icon, top, bottom, outline, *rest in others():
-        dark = bool(rest and rest[0])
-        img = hex_piece(TILE, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline), icon, icon_dark=dark)
-        p = os.path.join(OUT, "Board", "others", name + ".png")
-        img.save(p)
-        generated.append((p, img))
-
-    for name, size, radius, top, bottom, outline in ui_items():
-        img = ui_rounded(size, radius, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline))
-        p = os.path.join(OUT, "UI", name + ".png")
-        img.save(p)
-        generated.append((p, img))
-
     return generated
 
 
@@ -336,13 +630,8 @@ def main():
     if preview_only:
         # 仅预览：生成到内存，不出资源
         generated = []
-        for name, icon, top, bottom, outline in parts():
-            generated.append((name, hex_piece(TILE, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline), icon)))
-        for name, icon, top, bottom, outline, *rest in others():
-            dark = bool(rest and rest[0])
-            generated.append((name, hex_piece(TILE, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline), icon, dark)))
-        for name, size, radius, top, bottom, outline in ui_items():
-            generated.append((name, ui_rounded(size, radius, hex2rgb(top), hex2rgb(bottom), hex2rgb(outline))))
+        for rel, img in collect():
+            generated.append((rel, img))
         out = os.path.join(ROOT, "tools", "_art_preview.png")
         make_contact_sheet(generated, out)
         print("preview ->", out)
