@@ -26,6 +26,7 @@ namespace Everlight.Tales.Meta
         public MapState Map;
         public List<CaseState> Cases;
         public List<TaskState> Tasks;
+        public List<DisplayItem> DisplayItems;               // 陈列物（修好物件/回礼/修复展成果/怪谈纪念物，b28）
 
         public WorldState(int day = 1, TimeOfDay period = TimeOfDay.Morning)
         {
@@ -45,6 +46,7 @@ namespace Everlight.Tales.Meta
             Map = new MapState();
             Cases = new List<CaseState>();
             Tasks = new List<TaskState>();
+            DisplayItems = new List<DisplayItem>();
         }
     }
 }

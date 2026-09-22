@@ -37,6 +37,7 @@ namespace Everlight.Tales.UI
         private const string KeyForms = "et.world.forms";
         private const string KeyCurrentForms = "et.world.currentForms";
         private const string KeyTasks = "et.world.tasks";
+        private const string KeyDisplay = "et.world.display";
 
         /// <summary>
         /// 四条改装支线任务模板（P4-013 接线处）：F 类四形态的图样任务，
@@ -167,6 +168,14 @@ namespace Everlight.Tales.UI
             }
 
             PlayerPrefs.SetString(KeyTasks, string.Join(";", tasks));
+
+            var displays = new List<string>();
+            foreach (DisplayItem item in World.DisplayItems)
+            {
+                displays.Add(item.Id + ":" + item.Name + ":" + (int)item.Kind + ":" + item.Source + ":" + item.ObtainedDay);
+            }
+
+            PlayerPrefs.SetString(KeyDisplay, string.Join(";", displays));
             PlayerPrefs.Save();
         }
 
@@ -236,6 +245,9 @@ namespace Everlight.Tales.UI
             if (success)
             {
                 AdvanceModTask("TASK-MOD-001");
+
+                // 陈列物（P4-009）：普通维修成功结算后留下「修好物件」只读回顾，按 Id 去重。
+                AddDisplayItem("EV-N01", "卷帘门（已修复）", DisplayKind.RepairCompletion, "EV-N01");
             }
 
             LastReward = reward;
@@ -321,6 +333,15 @@ namespace Everlight.Tales.UI
             }
 
             RestoreTasks(s.World);
+
+            foreach (string item in PlayerPrefs.GetString(KeyDisplay, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = item.Split(':');
+                if (parts.Length >= 5 && int.TryParse(parts[2], out int kind) && int.TryParse(parts[4], out int obtainedDay))
+                {
+                    s.World.DisplayItems.Add(new DisplayItem(parts[0], parts[1], (DisplayKind)kind, parts[3], obtainedDay));
+                }
+            }
 
             // 旧档（b43 仅存 6 键）升级后补齐四条改装支线。
             SeedModTasks(s.World);
@@ -447,6 +468,20 @@ namespace Everlight.Tales.UI
                     break;
                 }
             }
+        }
+
+        /// <summary>追加陈列物（按 Id 去重，重复完成同一事件只记一条）。</summary>
+        private void AddDisplayItem(string id, string name, DisplayKind kind, string source)
+        {
+            foreach (DisplayItem item in World.DisplayItems)
+            {
+                if (item.Id == id)
+                {
+                    return;
+                }
+            }
+
+            World.DisplayItems.Add(new DisplayItem(id, name, kind, source, Time.Day));
         }
 
         /// <summary>补齐四条改装支线任务（按 Id 判重，缺则加入）。</summary>

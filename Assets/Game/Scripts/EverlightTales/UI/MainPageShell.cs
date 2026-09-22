@@ -36,9 +36,7 @@ namespace Everlight.Tales.UI
 
         private JournalPanel m_Journal;
 
-        private CodexPanel m_Codex;
-
-        private WorkbenchPanel m_Workbench;
+        private HomePanel m_Home;
 
         private RectTransform m_Content;
 
@@ -173,7 +171,7 @@ namespace Everlight.Tales.UI
             return null;
         }
 
-        /// <summary>切换页签：构建/刷新目标面板并整体显隐（地图 0 / 任务 1 / 图鉴 2 / 工作台 3）。</summary>
+        /// <summary>切换页签：构建/刷新目标面板并整体显隐（地图 0 / 任务 1 / 家园 2 / 工作台 3）。</summary>
         private void ShowTab(int index)
         {
             if (m_Content == null)
@@ -185,8 +183,8 @@ namespace Everlight.Tales.UI
             {
                 case 0: BuildMapPanel(); break;
                 case 1: BuildJournal(); break;
-                case 2: BuildCodex(); break;
-                case 3: BuildWorkbench(); break;
+                case 2: BuildHome(); m_Home.ShowZone(2); break;   // 家园 → 收藏区（原图鉴用途）
+                case 3: BuildHome(); m_Home.ShowZone(1); break;   // 工作台 → 加工区快捷入口
             }
 
             if (m_MapPanel != null)
@@ -199,14 +197,9 @@ namespace Everlight.Tales.UI
                 m_Journal.gameObject.SetActive(index == 1);
             }
 
-            if (m_Codex != null)
+            if (m_Home != null)
             {
-                m_Codex.gameObject.SetActive(index == 2);
-            }
-
-            if (m_Workbench != null)
-            {
-                m_Workbench.gameObject.SetActive(index == 3);
+                m_Home.gameObject.SetActive(index == 2 || index == 3);
             }
         }
 
@@ -232,26 +225,15 @@ namespace Everlight.Tales.UI
             m_Journal.Refresh();
         }
 
-        private void BuildCodex()
+        private void BuildHome()
         {
-            if (m_Codex == null)
+            if (m_Home == null)
             {
-                m_Codex = CreatePanelGo("codex_panel").AddComponent<CodexPanel>();
-                m_Codex.Build();
+                m_Home = CreatePanelGo("home_panel").AddComponent<HomePanel>();
+                m_Home.Build();
             }
 
-            m_Codex.Refresh();
-        }
-
-        private void BuildWorkbench()
-        {
-            if (m_Workbench == null)
-            {
-                m_Workbench = CreatePanelGo("workbench_panel").AddComponent<WorkbenchPanel>();
-                m_Workbench.Build();
-            }
-
-            m_Workbench.Refresh();
+            m_Home.Refresh();
         }
 
         private GameObject CreatePanelGo(string name)
