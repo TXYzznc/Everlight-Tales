@@ -17,6 +17,9 @@ namespace Everlight.Tales.UI
 
         public BoardHUD Hud { get; private set; }
 
+        /// <summary>拍击冲击特效总入口（震动／连击脉冲／得分弹窗／旋转预览）。</summary>
+        public BoardImpactFX ImpactFx { get; private set; }
+
         /// <summary>最近一次拍击后的过轮判定（供页面层展示结算结果）。</summary>
         public RoundPassResult LastRoundResult { get; private set; } = RoundPassResult.Continue;
 
@@ -34,6 +37,14 @@ namespace Everlight.Tales.UI
             Hud = gameObject.AddComponent<BoardHUD>();
             Hud.Build();
 
+            // 先 Refresh 创建 board_root / board_tiles 并算出 OutlineRadius，
+            // 再装配特效（ScreenShake 需 board_root、ComboPulse 需 OutlineRadius、Preview 需 board_root）。
+            Refresh();
+
+            ImpactFx = gameObject.AddComponent<BoardImpactFX>();
+            ImpactFx.Setup(BoardView, game.Board.BoardRadius);
+            ImpactFx.SetGame(game);
+
             m_RotateLeft = CreateButton("btn_rotate_left", new Vector2(-180f, -250f), "左旋");
             m_RotateRight = CreateButton("btn_rotate_right", new Vector2(180f, -250f), "右旋");
             m_Tap = CreateButton("btn_tap", new Vector2(0f, -250f), "拍击");
@@ -43,7 +54,6 @@ namespace Everlight.Tales.UI
             m_RotateRight.onClick.AddListener(OnRotateRight);
             m_Tap.onClick.AddListener(OnTap);
 
-            Refresh();
             BoardView.SetGravity(Game.Settle.GravityDirection);
         }
 
@@ -52,6 +62,7 @@ namespace Everlight.Tales.UI
         {
             Game.RotateLeft();
             BoardView.SetGravity(Game.Settle.GravityDirection);
+            ImpactFx.RefreshPreview();
         }
 
         /// <summary>右旋一个相位。</summary>
@@ -59,6 +70,7 @@ namespace Everlight.Tales.UI
         {
             Game.RotateRight();
             BoardView.SetGravity(Game.Settle.GravityDirection);
+            ImpactFx.RefreshPreview();
         }
 
         /// <summary>执行一次拍击并刷新，返回过轮判定。</summary>
@@ -66,6 +78,8 @@ namespace Everlight.Tales.UI
         {
             RoundPassResult pass = Game.Tap();
             LastRoundResult = pass;
+            ImpactFx.PlayTapImpact(Game.LastSettlement, Game.Board);
+            ImpactFx.ClearPreview();
             Refresh();
             UpdateResultText();
             return pass;

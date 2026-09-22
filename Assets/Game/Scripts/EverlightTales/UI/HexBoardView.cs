@@ -64,6 +64,29 @@ namespace Everlight.Tales.UI
         /// <summary>当前视觉旋转角（度），供外部读取调试。</summary>
         public float VisualAngle => _visualAngle;
 
+        /// <summary>盘面根节点（含格／实体／轮廓／边缘流光），供特效层挂接与震动。</summary>
+        public RectTransform BoardRoot => m_BoardRoot;
+
+        /// <summary>格子像素尺寸（外接圆半径）。</summary>
+        public float CellSize => m_CellSize;
+
+        /// <summary>实体块缩放（相对格子尺寸），供预览 ghost 对齐。</summary>
+        public float EntityScale => m_EntityScale;
+
+        /// <summary>大六边形轮廓半径（像素）= 2 · (boardRadius + 1) · CellSize。</summary>
+        public float OutlineRadius { get; private set; }
+
+        /// <summary>把盘面根本地坐标换算到本视图（页面）本地坐标，抵消盘面旋转后文字仍正向。</summary>
+        public Vector2 BoardToLocal(Vector2 boardLocal)
+        {
+            if (m_BoardRoot == null)
+            {
+                return boardLocal;
+            }
+
+            return (Vector2)(m_BoardRoot.localRotation * new Vector3(boardLocal.x, boardLocal.y, 0f));
+        }
+
         public void Refresh(BoardState board)
         {
             if (board == null)
@@ -216,6 +239,7 @@ namespace Everlight.Tales.UI
         {
             // 点顶大六边形轮廓：顶点到中心 = 2 · OuterRadius · CellSize（与参考项目 circumradius 一致）。
             float outlineRadius = 2f * (boardRadius + 1) * m_CellSize;
+            OutlineRadius = outlineRadius;
 
             if (m_Outline == null)
             {

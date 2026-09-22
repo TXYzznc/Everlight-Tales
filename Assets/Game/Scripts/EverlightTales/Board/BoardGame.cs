@@ -17,6 +17,9 @@ namespace Everlight.Tales.Board
 
         public TapSettlement TapTransaction { get; } = new TapSettlement();
 
+        /// <summary>最近一次拍击的结算结果（供表现层读取事件日志驱动特效）。</summary>
+        public SettlementResult LastSettlement { get; private set; }
+
         public BoardGame(BoardState board, SettleState settle, SessionState session, LevelState level)
         {
             Board = board;
@@ -57,6 +60,7 @@ namespace Everlight.Tales.Board
                 Settle,
                 new TapContext(Level.Round.TapQuotaRemaining),
                 Session);
+            LastSettlement = result;
             return Level.ResolveAfterTap(result.TapQuotaAfter);
         }
     }
