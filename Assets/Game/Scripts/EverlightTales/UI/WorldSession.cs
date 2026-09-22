@@ -31,6 +31,25 @@ namespace Everlight.Tales.UI
         private const string KeyBatch = "et.world.batch";
         private const string KeyTutorial = "et.world.tutorial";
         private const string KeyOwned = "et.world.owned";
+        private const string KeyKnown = "et.world.known";
+        private const string KeyMaterials = "et.world.materials";
+        private const string KeyBlueprints = "et.world.blueprints";
+        private const string KeyForms = "et.world.forms";
+        private const string KeyCurrentForms = "et.world.currentForms";
+        private const string KeyTasks = "et.world.tasks";
+
+        /// <summary>
+        /// 四条改装支线任务模板（P4-013 接线处）：F 类四形态的图样任务，
+        /// 任务页领奖发 T-G01~T-G04 图样。总步数 1、初始即进行中（Accepted），
+        /// 步骤推进来源由 b30 委托/怪谈接线，本批只接「已存在 + 领奖」链路。
+        /// </summary>
+        public static IReadOnlyList<TaskConfig> ModTaskConfigs { get; } = new[]
+        {
+            new TaskConfig("TASK-MOD-001", "改装·贯通撞锤", 40, new[] { "T-G01" }, false, "周衡", "为惯性撞锤打造贯通形态：力从另一头出来。", 1),
+            new TaskConfig("TASK-MOD-002", "改装·横推撞锤", 40, new[] { "T-G02" }, false, "周衡", "为惯性撞锤打造横推形态：一边输入，两边接应。", 1),
+            new TaskConfig("TASK-MOD-003", "改装·轴向线圈", 40, new[] { "T-G03" }, false, "周衡", "为爆破线圈打造轴向形态：隔着空隙传过去。", 1),
+            new TaskConfig("TASK-MOD-004", "改装·定时线圈", 40, new[] { "T-G04" }, false, "周衡", "为爆破线圈打造定时形态：把这一拍留到下一拍。", 1),
+        };
 
         public static WorldSession Current { get; private set; }
 
@@ -93,6 +112,7 @@ namespace Everlight.Tales.UI
                 PartType.BlastCoil,
                 PartType.ReversalGear,
             });
+            SeedModTasks(s.World);
             s.RefreshSupply();
             Current = s;
             return s;
@@ -104,7 +124,10 @@ namespace Everlight.Tales.UI
             return HasSave() ? Restore(seed) : NewGame(seed);
         }
 
-        /// <summary>把当前世界状态写 PlayerPrefs（最简持久化；完整 DTO 往返在 b22/b24 已验证）。</summary>
+        /// <summary>
+        /// 把当前世界状态写 PlayerPrefs。b44 由最简 6 键扩展到成长闭环状态
+        /// （已知零件/材料/图样/已解锁形态/当前形态/改装支线任务），仍走 PlayerPrefs。
+        /// </summary>
         public void Save()
         {
             PlayerPrefs.SetInt(KeyDay, World.Day);
@@ -113,13 +136,37 @@ namespace Everlight.Tales.UI
             PlayerPrefs.SetInt(KeyBatch, World.BatchNumber);
             PlayerPrefs.SetInt(KeyTutorial, World.TutorialComplete ? 1 : 0);
 
-            var owned = new List<string>();
-            foreach (PartType part in World.OwnedParts)
+            PlayerPrefs.SetString(KeyOwned, JoinParts(World.OwnedParts));
+            PlayerPrefs.SetString(KeyKnown, JoinParts(World.KnownParts));
+
+            var materials = new List<string>();
+            foreach (MaterialStack stack in World.Materials.Stacks)
             {
-                owned.Add(((int)part).ToString());
+                materials.Add(stack.MaterialId + ":" + stack.Count + ":" + (stack.SourceCase ?? ""));
             }
 
-            PlayerPrefs.SetString(KeyOwned, string.Join(",", owned));
+            PlayerPrefs.SetString(KeyMaterials, string.Join(";", materials));
+            PlayerPrefs.SetString(KeyBlueprints, string.Join(",", World.Blueprints));
+            PlayerPrefs.SetString(KeyForms, string.Join(",", World.UnlockedForms));
+
+            var currentForms = new List<string>();
+            foreach (var pair in World.CurrentForms)
+            {
+                if (!string.IsNullOrEmpty(pair.Value))
+                {
+                    currentForms.Add(((int)pair.Key) + ":" + pair.Value);
+                }
+            }
+
+            PlayerPrefs.SetString(KeyCurrentForms, string.Join(";", currentForms));
+
+            var tasks = new List<string>();
+            foreach (TaskState task in World.Tasks)
+            {
+                tasks.Add(task.Config.Id + ":" + (int)task.Kind + ":" + task.CurrentStep);
+            }
+
+            PlayerPrefs.SetString(KeyTasks, string.Join(";", tasks));
             PlayerPrefs.Save();
         }
 
@@ -174,6 +221,23 @@ namespace Everlight.Tales.UI
             var worldSettle = new WorldSettlementService();
             worldSettle.Settle(World, Time.Day, Time.Period, reward != null ? reward.RepairFee : 0);
 
+            // 成功时发放材料奖励（如卷帘门 MT-002 精密齿轮 ×1）。
+            if (reward != null && reward.Materials != null)
+            {
+                foreach (string materialId in reward.Materials)
+                {
+                    World.Materials.Add(materialId, 1);
+                }
+            }
+
+            // 成长闭环演示接线：成功完成一次维修事件，推进「改装·贯通撞锤」支线一步
+            // （1 步任务 → 可领奖），贯通「事件 → 领图样 → 加工台解锁形态」闭环。
+            // 其余三条改装支线的步骤推进来源由 b30 委托/怪谈接线。
+            if (success)
+            {
+                AdvanceModTask("TASK-MOD-001");
+            }
+
             LastReward = reward;
             HasPendingSettlement = true;
             Save();
@@ -214,14 +278,8 @@ namespace Everlight.Tales.UI
 
             s.RegisterMap();
 
-            string owned = PlayerPrefs.GetString(KeyOwned, "");
-            foreach (string part in owned.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                if (int.TryParse(part, out int value) && value != 0)
-                {
-                    s.World.OwnedParts.Add((PartType)value);
-                }
-            }
+            ParseParts(PlayerPrefs.GetString(KeyOwned, ""), s.World.OwnedParts);
+            ParseParts(PlayerPrefs.GetString(KeyKnown, ""), s.World.KnownParts);
 
             if (s.World.OwnedParts.Count == 0)
             {
@@ -233,6 +291,39 @@ namespace Everlight.Tales.UI
                     PartType.ReversalGear,
                 });
             }
+
+            foreach (string item in PlayerPrefs.GetString(KeyMaterials, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = item.Split(':');
+                if (parts.Length >= 2 && int.TryParse(parts[1], out int count))
+                {
+                    s.World.Materials.Add(parts[0], count, parts.Length >= 3 ? parts[2] : "");
+                }
+            }
+
+            foreach (string id in PlayerPrefs.GetString(KeyBlueprints, "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                s.World.Blueprints.Add(id);
+            }
+
+            foreach (string id in PlayerPrefs.GetString(KeyForms, "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                s.World.UnlockedForms.Add(id);
+            }
+
+            foreach (string item in PlayerPrefs.GetString(KeyCurrentForms, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = item.Split(':');
+                if (parts.Length >= 2 && int.TryParse(parts[0], out int host) && host != 0)
+                {
+                    s.World.CurrentForms[(PartType)host] = parts[1];
+                }
+            }
+
+            RestoreTasks(s.World);
+
+            // 旧档（b43 仅存 6 键）升级后补齐四条改装支线。
+            SeedModTasks(s.World);
 
             s.RefreshSupply();
             Current = s;
@@ -343,6 +434,104 @@ namespace Everlight.Tales.UI
         {
             bool night = TimePeriod.IsNight(World.Period);
             _supply = SupplyService.Refresh(SupplyCatalog.FirstBatch(), night, 1, Rng);
+        }
+
+        /// <summary>推进指定改装支线任务一步（仅进行中任务）。</summary>
+        private void AdvanceModTask(string id)
+        {
+            foreach (TaskState task in World.Tasks)
+            {
+                if (task.Config.Id == id)
+                {
+                    TaskService.Advance(task, Time.Day);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>补齐四条改装支线任务（按 Id 判重，缺则加入）。</summary>
+        private static void SeedModTasks(WorldState world)
+        {
+            foreach (TaskConfig config in ModTaskConfigs)
+            {
+                if (!HasTask(world, config.Id))
+                {
+                    world.Tasks.Add(new TaskState(config));
+                }
+            }
+        }
+
+        /// <summary>从存档恢复改装支线任务（用完整配置，保留图样列表；旧档无 key 则跳过）。</summary>
+        private static void RestoreTasks(WorldState world)
+        {
+            foreach (string item in PlayerPrefs.GetString(KeyTasks, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] parts = item.Split(':');
+                if (parts.Length < 3)
+                {
+                    continue;
+                }
+
+                TaskConfig config = FindModTaskConfig(parts[0]);
+                if (config == null || !int.TryParse(parts[1], out int kind) || !int.TryParse(parts[2], out int step))
+                {
+                    continue;
+                }
+
+                world.Tasks.Add(new TaskState(config)
+                {
+                    Kind = (TaskStateKind)kind,
+                    CurrentStep = step,
+                });
+            }
+        }
+
+        private static TaskConfig FindModTaskConfig(string id)
+        {
+            foreach (TaskConfig config in ModTaskConfigs)
+            {
+                if (config.Id == id)
+                {
+                    return config;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool HasTask(WorldState world, string id)
+        {
+            foreach (TaskState task in world.Tasks)
+            {
+                if (task.Config.Id == id)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string JoinParts(IEnumerable<PartType> parts)
+        {
+            var ids = new List<string>();
+            foreach (PartType part in parts)
+            {
+                ids.Add(((int)part).ToString());
+            }
+
+            return string.Join(",", ids);
+        }
+
+        private static void ParseParts(string raw, List<PartType> target)
+        {
+            foreach (string part in raw.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(part, out int value) && value != 0)
+                {
+                    target.Add((PartType)value);
+                }
+            }
         }
     }
 }

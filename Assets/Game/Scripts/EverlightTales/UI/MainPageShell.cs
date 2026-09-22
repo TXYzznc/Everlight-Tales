@@ -34,6 +34,12 @@ namespace Everlight.Tales.UI
 
         private MapPanel m_MapPanel;
 
+        private JournalPanel m_Journal;
+
+        private CodexPanel m_Codex;
+
+        private WorkbenchPanel m_Workbench;
+
         private RectTransform m_Content;
 
         private OpeningOverlay m_Opening;
@@ -68,9 +74,9 @@ namespace Everlight.Tales.UI
             // 初始化世界会话（新档/继续），再装配地图页签。
             WorldSession.LoadOrNew(WorldSession.DemoSeed);
             m_Content = FindContent();
-            BuildMapPanel();
 
             SelectTab(0);
+            ShowTab(0);
         }
 
         private void Update()
@@ -139,12 +145,7 @@ namespace Everlight.Tales.UI
         private void OnTabClicked(int index)
         {
             SelectTab(index);
-
-            if (index == 0)
-            {
-                // 地图页签：刷新城市地图 → 事件 → 盘面链路（b43）。
-                BuildMapPanel();
-            }
+            ShowTab(index);
         }
 
         private RectTransform FindContent()
@@ -172,28 +173,98 @@ namespace Everlight.Tales.UI
             return null;
         }
 
-        private void BuildMapPanel()
+        /// <summary>切换页签：构建/刷新目标面板并整体显隐（地图 0 / 任务 1 / 图鉴 2 / 工作台 3）。</summary>
+        private void ShowTab(int index)
         {
             if (m_Content == null)
             {
                 return;
             }
 
+            switch (index)
+            {
+                case 0: BuildMapPanel(); break;
+                case 1: BuildJournal(); break;
+                case 2: BuildCodex(); break;
+                case 3: BuildWorkbench(); break;
+            }
+
+            if (m_MapPanel != null)
+            {
+                m_MapPanel.gameObject.SetActive(index == 0);
+            }
+
+            if (m_Journal != null)
+            {
+                m_Journal.gameObject.SetActive(index == 1);
+            }
+
+            if (m_Codex != null)
+            {
+                m_Codex.gameObject.SetActive(index == 2);
+            }
+
+            if (m_Workbench != null)
+            {
+                m_Workbench.gameObject.SetActive(index == 3);
+            }
+        }
+
+        private void BuildMapPanel()
+        {
             if (m_MapPanel == null)
             {
-                var go = new GameObject("map_panel", typeof(RectTransform));
-                go.transform.SetParent(m_Content, false);
-                var rt = (RectTransform)go.transform;
-                rt.anchorMin = Vector2.zero;
-                rt.anchorMax = Vector2.one;
-                rt.pivot = new Vector2(0.5f, 0.5f);
-                rt.anchoredPosition = Vector2.zero;
-                rt.sizeDelta = Vector2.zero;
-                m_MapPanel = go.AddComponent<MapPanel>();
+                m_MapPanel = CreatePanelGo("map_panel").AddComponent<MapPanel>();
                 m_MapPanel.Build();
             }
 
             m_MapPanel.Refresh();
+        }
+
+        private void BuildJournal()
+        {
+            if (m_Journal == null)
+            {
+                m_Journal = CreatePanelGo("journal_panel").AddComponent<JournalPanel>();
+                m_Journal.Build();
+            }
+
+            m_Journal.Refresh();
+        }
+
+        private void BuildCodex()
+        {
+            if (m_Codex == null)
+            {
+                m_Codex = CreatePanelGo("codex_panel").AddComponent<CodexPanel>();
+                m_Codex.Build();
+            }
+
+            m_Codex.Refresh();
+        }
+
+        private void BuildWorkbench()
+        {
+            if (m_Workbench == null)
+            {
+                m_Workbench = CreatePanelGo("workbench_panel").AddComponent<WorkbenchPanel>();
+                m_Workbench.Build();
+            }
+
+            m_Workbench.Refresh();
+        }
+
+        private GameObject CreatePanelGo(string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(m_Content, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = Vector2.zero;
+            return go;
         }
 
         private void SelectTab(int index)
