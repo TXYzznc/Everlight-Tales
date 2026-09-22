@@ -119,6 +119,18 @@ namespace Everlight.Tales.Board
                     outcome = CalibrationProbe(context, target, config);
                     break;
 
+                case PartType.ConductiveBridge:
+                    outcome = ConductiveBridge(context, target, config);
+                    break;
+
+                case PartType.TuningFork:
+                    outcome = TuningFork(context, target, config);
+                    break;
+
+                case PartType.BufferBladder:
+                    outcome = BufferBladder(context, target, config);
+                    break;
+
                 default:
                     outcome = default;
                     break;
@@ -825,6 +837,117 @@ namespace Everlight.Tales.Board
             }
 
             return new Outcome(config.EffectScorePerTarget, 0);
+        }
+
+        /// <summary>导电桥（P-012）：受击沿 D3 端口转发脉冲到桥或声音端点，转发一次得 8 分（本拍去重防环路）。</summary>
+        private static Outcome ConductiveBridge(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            // 本拍已转发过则不重复转发（简化环路去重；完整按根信号去重待信号系统批）。
+            if (context.Tap.EffectCounts.ContainsKey(target.Id))
+            {
+                return default;
+            }
+
+            HexCoord next = target.Coord.Neighbor(HexDirection.D3);
+            BoardEntity peer = context.Board.EntityAt(next);
+            if (peer == null)
+            {
+                return default; // 无可发送邻端：不消耗、不记为已转发。
+            }
+
+            if (peer.Kind == EntityKind.Part && peer.PartType == PartType.ConductiveBridge)
+            {
+                target.Energy -= config.EffectCost;
+                context.Tap.BumpEffectCount(target.Id);
+                context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Shock, target.Id, peer.Id));
+                return new Outcome(config.EffectScorePerTarget, 0);
+            }
+
+            if (peer.SoundEndpoint != null)
+            {
+                target.Energy -= config.EffectCost;
+                context.Tap.BumpEffectCount(target.Id);
+                return new Outcome(config.EffectScorePerTarget, 0);
+            }
+
+            return default;
+        }
+
+        /// <summary>叩击音叉（P-015）：受击产生根声音，沿 D0 端口传播，端点接收得 4 分。</summary>
+        private static Outcome TuningFork(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost;
+
+            HexCoord next = target.Coord.Neighbor(HexDirection.D0);
+            BoardEntity peer = context.Board.EntityAt(next);
+            if (peer == null)
+            {
+                return default;
+            }
+
+            if (peer.SoundEndpoint != null)
+            {
+                return new Outcome(config.EffectScorePerTarget, 0); // 端点接收 4 分。
+            }
+
+            if (peer.Kind == EntityKind.Part && peer.PartType == PartType.ConductiveBridge)
+            {
+                context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Shock, target.Id, peer.Id));
+                return default; // 桥转发得分由桥记。
+            }
+
+            return default;
+        }
+
+        /// <summary>缓冲囊（P-017）：接收模式被动吸负荷（0 费），排放模式主动交负荷到处置端（1 费，8 分/单位）。</summary>
+        private static Outcome BufferBladder(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            HexCoord d0 = target.Coord.Neighbor(HexDirection.D0);
+            BoardEntity peer = context.Board.EntityAt(d0);
+
+            if (!target.DischargeMode)
+            {
+                // 接收模式：从 D0 邻格负荷源吸收（被动，0 费）。
+                if (peer == null || peer.LoadAmount <= 0)
+                {
+                    return default;
+                }
+
+                if (target.LoadAmount >= 3)
+                {
+                    return default; // 已满：剩余交回原负荷端（简化：本次不吸收）。
+                }
+
+                peer.DrainLoad(1);
+                target.AddLoad(1);
+                return default; // 容纳不另发效果分。
+            }
+
+            // 排放模式：主动交出负荷（1 费）。
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            if (target.LoadAmount <= 0 || peer == null || !peer.AcceptsLoad)
+            {
+                return default; // 无兼容处置端：保持储存，不销毁负荷。
+            }
+
+            target.Energy -= config.EffectCost;
+            int delivered = target.DrainLoad(1);
+            peer.AddLoad(delivered); // 处置端接收（转移保持负荷守恒）。
+            return new Outcome(delivered * config.EffectScorePerTarget, 0);
         }
     }
 }

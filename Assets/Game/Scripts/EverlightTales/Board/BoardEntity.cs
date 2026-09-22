@@ -178,6 +178,44 @@ namespace Everlight.Tales.Board
             AcceptsCalibration = true;
         }
 
+        /// <summary>设备负荷量（P-017 缓冲囊，容量 3）。</summary>
+        public int LoadAmount { get; private set; }
+
+        /// <summary>增加设备负荷。</summary>
+        public void AddLoad(int units)
+        {
+            LoadAmount += units;
+        }
+
+        /// <summary>移走最多 maxUnits 单位负荷，返回实际移走量。</summary>
+        public int DrainLoad(int maxUnits)
+        {
+            int drained = LoadAmount < maxUnits ? LoadAmount : maxUnits;
+            LoadAmount -= drained;
+            return drained;
+        }
+
+        /// <summary>是否兼容负荷处置端（P-017 排放目标）。</summary>
+        public bool AcceptsLoad { get; private set; }
+
+        /// <summary>标记为兼容负荷处置端。</summary>
+        public void SetAcceptsLoad()
+        {
+            AcceptsLoad = true;
+        }
+
+        /// <summary>缓冲囊是否处于排放模式（false=接收，true=排放；准备阶段切换）。</summary>
+        public bool DischargeMode { get; set; }
+
+        /// <summary>声音端点标记（P-015，null=非端点；非空即该端点的标识）。</summary>
+        public string SoundEndpoint { get; private set; }
+
+        /// <summary>标记为声音现场端点。</summary>
+        public void SetSoundEndpoint(string id)
+        {
+            SoundEndpoint = id;
+        }
+
         public BoardEntity(
             int id,
             EntityKind kind,

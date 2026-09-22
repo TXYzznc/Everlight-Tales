@@ -226,6 +226,27 @@ namespace Everlight.Tales.Data
                 energyCapacity: 3,
                 effectCost: 1,
                 effectScorePerTarget: 8),
+
+            [PartType.ConductiveBridge] = new PartConfig(
+                type: PartType.ConductiveBridge,
+                triggerScore: 4,
+                energyCapacity: 4,
+                effectCost: 1,
+                effectScorePerTarget: 8),
+
+            [PartType.TuningFork] = new PartConfig(
+                type: PartType.TuningFork,
+                triggerScore: 6,
+                energyCapacity: 4,
+                effectCost: 1,
+                effectScorePerTarget: 4),
+
+            [PartType.BufferBladder] = new PartConfig(
+                type: PartType.BufferBladder,
+                triggerScore: 4,
+                energyCapacity: 4,
+                effectCost: 1,
+                effectScorePerTarget: 8),
         };
 
         /// <summary>取零件配置；无能力零件返回 null。</summary>

@@ -3,8 +3,7 @@ namespace Everlight.Tales.Data
     /// <summary>
     /// 零件种类（P4-007 补齐 20 种通用零件 P-001~P-020）。
     /// 非零件实体（固定设施／任务标记／维修对象）与惰性普通零件用 None。
-    /// 已实现（PartCatalog/PartAbility）：P-001~P-011、P-013、P-014、P-016、P-018~P-020；
-    /// 仍为图鉴占位（默认惰性）：P-012、P-015、P-017（待下一批接入）。
+    /// 20 种通用零件全部已实现（PartCatalog/PartAbility）：P-001~P-020。
     /// </summary>
     public enum PartType : byte
     {
