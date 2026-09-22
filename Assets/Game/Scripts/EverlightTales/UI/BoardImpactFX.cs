@@ -1,4 +1,4 @@
-﻿using Everlight.Tales.Board;
+using Everlight.Tales.Board;
 using UnityEngine;
 
 namespace Everlight.Tales.UI
@@ -17,6 +17,10 @@ namespace Everlight.Tales.UI
         private RotationPreviewRenderer m_Preview;
 
         private ScorePopup m_ScorePopup;
+
+        private ShockwaveRingEffect m_Shockwave;
+
+        private ButtonParticlesEffect m_ButtonParticles;
 
         private HexBoardView m_BoardView;
 
@@ -40,14 +44,33 @@ namespace Everlight.Tales.UI
             m_Preview.Setup(boardView.BoardRoot, boardView.CellSize, boardView.EntityScale);
 
             m_ScorePopup = gameObject.AddComponent<ScorePopup>();
+
+            m_Shockwave = gameObject.AddComponent<ShockwaveRingEffect>();
+            m_Shockwave.Setup(boardView.BoardRoot, boardView.OutlineRadius);
+
+            m_ButtonParticles = gameObject.AddComponent<ButtonParticlesEffect>();
         }
 
-        /// <summary>拍击结算后触发冲击反馈：震动 + 连击脉冲 + 各得分事件弹窗。</summary>
-        public void PlayTapImpact(SettlementResult result, BoardState board)
+        /// <summary>
+        /// 拍击结算后触发冲击反馈：冲击波 + 按钮粒子（每次拍击）+
+        /// 震动 + 连击脉冲 + 各得分事件弹窗（有得分时）。
+        /// </summary>
+        public void PlayTapImpact(SettlementResult result, BoardState board, RectTransform tapButton)
         {
             if (result == null)
             {
                 return;
+            }
+
+            // 冲击波与按钮粒子：每次拍击都触发（物理冲击感，与是否得分无关）。
+            if (m_Shockwave != null)
+            {
+                m_Shockwave.Play(Vector2.zero);
+            }
+
+            if (m_ButtonParticles != null && tapButton != null)
+            {
+                m_ButtonParticles.Burst(tapButton.anchoredPosition);
             }
 
             if (result.TotalScore > 0)

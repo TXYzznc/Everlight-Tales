@@ -78,7 +78,7 @@ namespace Everlight.Tales.UI
         {
             RoundPassResult pass = Game.Tap();
             LastRoundResult = pass;
-            ImpactFx.PlayTapImpact(Game.LastSettlement, Game.Board);
+            ImpactFx.PlayTapImpact(Game.LastSettlement, Game.Board, (RectTransform)m_Tap.transform);
             ImpactFx.ClearPreview();
             Refresh();
             UpdateResultText();

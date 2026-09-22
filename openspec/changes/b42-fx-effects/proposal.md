@@ -11,6 +11,8 @@
 2. **连击脉冲**：连续得分时棋盘轮廓向内嵌套的三层六边环脉冲（参考 `BoardHexPulseEffect` 的 LineRenderer → 本项目 `HexagonGraphic` 描边环）。
 3. **旋转预览**：旋转后显示将移动棋子的落点 ghost 与被撞棋子的橙色 hit ring（参考 `RotationPreviewRenderer`）。
 4. **得分弹窗**：得分事件位置弹出「+N」上飘淡出（参考 `ShowScorePop` 的 TMP → 本项目 uGUI Text + DOTween）。
+5. **拍击冲击波**：每次拍击从盘面中心扩散的瞬态冲击波（参考 `ShockwaveRingEffect` 的 LineRenderer 圆环 + 粒子 → 本项目 `HexagonGraphic` 描边六边环 + 填充六边火花）。
+6. **按钮粒子**：拍击按钮按下时向外飞散的暖色小六边火花（参考 `SmackButtonParticlesEffect` 的 ParticleSystem → 本项目 `HexagonGraphic` 填充块 + DOTween）。
 
 ## 前置
 
@@ -36,12 +38,10 @@
 - **色差/径向模糊（`ChromaticAberrationEffect`/`RadialBlurEffect`）本期跳过**：Overlay Canvas 不经过相机
   后处理（`OnRenderImage` 对 Overlay UI 无效），留待 UI 改 ScreenSpaceCamera 或 URP Volume 方案时再评估。
 - **手绘数字（`NumText` sprite tags）本期跳过**：依赖美术数字贴图，用普通 Text 数字，正式美术到位后替换。
-- **冲击波环/按钮粒子（`ShockwaveRingEffect`/`SmackButtonParticlesEffect`）本期跳过**：依赖 ParticleSystem +
-  世界空间，uGUI 下收益/成本比低，留后续批次。
+- **冲击波环/按钮粒子已落地**：参考依赖 ParticleSystem + 世界空间，本项目改用 `HexagonGraphic` 填充块/描边环
+  + DOTween 位移/缩放/淡出，无 ParticleSystem 依赖。
 
 ## 非目标（Non-Goals）
 
 - 色差、径向模糊等相机后处理。
-- 手绘数字字体、棋子运动拉伸 shader。
-- 冲击波圆环、按钮粒子爆发。
-- 运动拉伸 shader（`NumText` 之外的美术/T​​A 类特效）。
+- 手绘数字字体、棋子运动拉伸 shader（`NumText` 之外的美术/TA 类特效）。

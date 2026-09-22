@@ -16,6 +16,8 @@ BoardPage（装配）
 └── BoardImpactFX（新增，拍击冲击总入口）
     ├── ScreenShakeEffect（震 board_root）
     ├── BoardHexPulseEffect（三层六边环，挂 board_root 下）
+    ├── ShockwaveRingEffect（冲击波，挂 board_root 下）
+    ├── ButtonParticlesEffect（按钮粒子，挂页面根）
     └── ScorePopup（得分弹窗，挂页面根，文字不随盘面旋转）
 ```
 
@@ -50,10 +52,23 @@ BoardPage（装配）
   创建 `Text`「+N」黄色加粗，`DOAnchorPosY` 上飘 + `CanvasGroup.DOFade` 淡出，结束销毁。
 - 坐标换算由 `HexBoardView.BoardToLocal(boardLocal)` 提供（旋转后文字仍正向）。
 
-### 5. BoardImpactFX（总入口 / Facade）
+### 5. ShockwaveRingEffect（拍击冲击波）
+
+- 挂 board_root 下（随盘面旋转），`Setup(boardRoot, outerRadius)` 注入轮廓半径。
+- `Play(boardLocalPos)`：以盘面中心为原点扩散，二层描边六边环（主环暖白 + 回环暖橙，
+  延迟 0/0.05s）+ 若干填充六边火花向外飞散；缩放扩张 + CanvasGroup 淡出，结束销毁瞬态 host。
+- 每次拍击都触发（与是否得分无关），代表「物理冲击感」。
+
+### 6. ButtonParticlesEffect（按钮粒子爆发）
+
+- 挂页面根（不随盘面旋转），`Burst(pageLocalPosition)` 在按钮位置向外飞散暖色小六边火花，
+  DOTween 位移 + 缩放 + 淡出，结束销毁。
+
+### 7. BoardImpactFX（总入口 / Facade）
 
 - `Setup(boardView, boardRadius)` 装配以上组件与注入依赖。
-- `PlayTapImpact(settlementResult, board)`：统计 `TotalScore`；`TotalScore>0` 时
+- `PlayTapImpact(settlementResult, board, tapButton)`：每次拍击先触发 `shockwave.Play(盘面中心)`
+  与 `buttonParticles.Burst(按钮位置)`；再统计 `TotalScore`：`TotalScore>0` 时
   `screenShake.Shake()` + `comboPulse.Pulse(++combo)`，否则 `combo=0`；遍历 `Events` 中
   `ScoreDelta>0` 的事件，在其 `To`（或 target 坐标）弹得分弹窗。
 - `RefreshPreview()`：调 `RotationPreviewRenderer.Refresh(...)`。
