@@ -7,13 +7,17 @@ Shader "EverlightTales/UI/CardPaper"
 
         _CardColor ("Card Paper Color", Color) = (0.95, 0.92, 0.84, 1)
         _CardWidth ("Card Width (px)", Range(0, 40)) = 10
+        _ContentScale ("Content Scale", Range(0.5, 1.0)) = 0.95
         _PaperGrain ("Paper Grain", Range(0, 0.3)) = 0.08
         _PaperScale ("Paper Grain Scale", Range(1, 512)) = 96
+        [NoScaleOffset] _PaperTex ("Paper Noise Texture", 2D) = "black" {}
+        [Toggle(_USEPAPERTEX)] _UsePaperTex ("Use Paper Texture", Float) = 0
 
         _ShadowColor ("Shadow Color", Color) = (0.04, 0.05, 0.08, 0.45)
         _ShadowOffsetX ("Shadow Offset X (px)", Float) = 5
         _ShadowOffsetY ("Shadow Offset Y (px)", Float) = -5
         _ShadowSoft ("Shadow Soft (px)", Float) = 4
+        _AlphaThreshold ("Alpha Threshold (ignore edge noise)", Range(0, 0.5)) = 0.24
 
         _StencilComp ("Stencil Comparison", Float) = 8
         _Stencil ("Stencil ID", Float) = 0
@@ -66,6 +70,7 @@ Shader "EverlightTales/UI/CardPaper"
 
             #pragma multi_compile __ UNITY_UI_CLIP_RECT
             #pragma multi_compile __ UNITY_UI_ALPHACLIP
+            #pragma multi_compile _ _USEPAPERTEX
 
             struct appdata_t
             {
@@ -92,12 +97,16 @@ Shader "EverlightTales/UI/CardPaper"
 
             fixed4 _CardColor;
             float _CardWidth;
+            float _ContentScale;
             float _PaperGrain;
             float _PaperScale;
+            sampler2D _PaperTex;
+            float4 _PaperTex_TexelSize;
             fixed4 _ShadowColor;
             float _ShadowOffsetX;
             float _ShadowOffsetY;
             float _ShadowSoft;
+            float _AlphaThreshold;
 
             v2f vert(appdata_t v)
             {
@@ -136,21 +145,32 @@ Shader "EverlightTales/UI/CardPaper"
                 half2 uv = IN.texcoord;
                 half2 texel = _MainTex_TexelSize.xy;
 
-                // 内容（预乘 alpha，与 UI/Default 一致）
-                fixed4 contentCol = (tex2D(_MainTex, uv) + _TextureSampleAdd) * IN.color;
-                half contentA = contentCol.a;
+                // 内容 UV 内缩：美术 PNG 内容包围盒常占满纹理（边缘留白≈0），
+                // 卡纸外扩/投影会采样到 UV 边界外被 clamp 截断成矩形方框。
+                // _ContentScale 让内容围绕中心缩小，给外扩留出空间（1.0=不缩，越小内容越小、外扩空间越大）。
+                half2 contentUV = (uv - 0.5) / _ContentScale + 0.5;
+
+                // 内容：手动预乘。美术 PNG 是非预乘 alpha（半透明边缘 RGB 满强度），
+                // 若按 UI/Default 直接乘顶点色，alpha≈0 的边缘像素会把满强度颜色泄漏到卡纸/投影。
+                fixed4 texCol = tex2D(_MainTex, contentUV) + _TextureSampleAdd;
+                half contentA = texCol.a * IN.color.a;
+                half3 contentRGB = texCol.rgb * texCol.a * IN.color.rgb;
 
                 // 卡纸外扩
-                half cardA = Dilate(uv, _CardWidth);
-                half cardMask = smoothstep(0.0, max(_CardWidth * texel.x, 0.0001), cardA);
+                half cardA = Dilate(contentUV, _CardWidth);
+                half cardMask = smoothstep(_AlphaThreshold, _AlphaThreshold + max(_CardWidth * texel.x, 0.0001), cardA);
 
                 // 投影：向偏移方向取外扩（软投影）
                 half2 shadowOffset = half2(_ShadowOffsetX * texel.x, _ShadowOffsetY * texel.y);
-                half shadowA = Dilate(uv - shadowOffset, _CardWidth);
-                half shadowMask = smoothstep(0.0, max(_ShadowSoft * texel.x, 0.0001), shadowA);
+                half shadowA = Dilate(contentUV - shadowOffset, _CardWidth);
+                half shadowMask = smoothstep(_AlphaThreshold, _AlphaThreshold + max(_ShadowSoft * texel.x, 0.0001), shadowA);
 
-                // 卡纸颜色：米白 + 纸纹颗粒
-                half grain = PaperNoise(uv * _PaperScale);
+                // 卡纸颜色：米白 + 纸纹颗粒（有噪声图用噪声图，否则用程序化 hash）
+                #ifdef _USEPAPERTEX
+                    half grain = tex2D(_PaperTex, uv * _PaperScale).r;
+                #else
+                    half grain = PaperNoise(uv * _PaperScale);
+                #endif
                 half3 cardCol = _CardColor.rgb * (1.0 - grain * _PaperGrain);
 
                 // 从底到顶预乘合成：投影 → 卡纸 → 内容
@@ -160,7 +180,7 @@ Shader "EverlightTales/UI/CardPaper"
                 rgb = cardCol * cardMask + rgb * (1.0 - cardMask);
                 a = cardMask + a * (1.0 - cardMask);
 
-                rgb = contentCol.rgb + rgb * (1.0 - contentA);
+                rgb = contentRGB + rgb * (1.0 - contentA);
                 a = contentA + a * (1.0 - contentA);
 
                 fixed4 col = fixed4(rgb, a);
@@ -178,4 +198,5 @@ Shader "EverlightTales/UI/CardPaper"
             ENDCG
         }
     }
+    CustomEditor "Everlight.Tales.UI.EditorTools.CardPaperGUI"
 }
