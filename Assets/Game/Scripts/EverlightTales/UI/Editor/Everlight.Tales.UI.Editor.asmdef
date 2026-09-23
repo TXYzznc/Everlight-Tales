@@ -1,0 +1,18 @@
+{
+    "name": "Everlight.Tales.UI.Editor",
+    "rootNamespace": "Everlight.Tales.UI.EditorTools",
+    "references": [
+        "Everlight.Tales.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
