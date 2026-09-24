@@ -25,15 +25,13 @@ namespace Everlight.Tales.UI
 
         private RectTransform m_EventListRoot;
 
-        private Button m_StartButton;
-
         private Button m_WaitButton;
+
+        private TextMeshProUGUI m_TrackLabel;
 
         private string m_SelectedPlaceId;
 
         private readonly List<PlaceEventEntry> m_CurrentEntries = new List<PlaceEventEntry>();
-
-        private PlaceEventEntry m_SelectedEntry;
 
         /// <summary>地点详情面板里的一张事件卡（P1 地图信息层视图模型）。</summary>
         private sealed class PlaceEventEntry
@@ -44,6 +42,8 @@ namespace Everlight.Tales.UI
 
             public string TimeLabel;
 
+            public string Detail;
+
             public System.Action OnStart;
         }
 
@@ -51,6 +51,7 @@ namespace Everlight.Tales.UI
         public void Build()
         {
             BuildTimeBar();
+            BuildTrackCard();
             BuildMapView();
             BuildPlacePanel();
         }
@@ -87,6 +88,33 @@ namespace Everlight.Tales.UI
 
             m_SelectedPlaceId = null;
             UpdatePlacePanel();
+            UpdateTrackLabel(session);
+        }
+
+        private void BuildTrackCard()
+        {
+            m_TrackLabel = MakeText(transform, "track_card", new Vector2(0f, -150f), new Vector2(920f, 36f), 20, TextAlignmentOptions.Center);
+            m_TrackLabel.color = new Color(0.88f, 0.66f, 0.35f, 1f);
+        }
+
+        private void UpdateTrackLabel(WorldSession session)
+        {
+            if (m_TrackLabel == null)
+            {
+                return;
+            }
+
+            string suggestion = null;
+            foreach (PlaceState place in session.World.Map.Places)
+            {
+                if (place.HasActionable)
+                {
+                    suggestion = "建议去向：" + place.Config.Name;
+                    break;
+                }
+            }
+
+            m_TrackLabel.text = suggestion ?? "暂无待办 · 可等待到下一时段";
         }
 
         private void BuildTimeBar()
@@ -176,9 +204,6 @@ namespace Everlight.Tales.UI
             m_EventListRoot.anchoredPosition = new Vector2(0f, 30f);
             m_EventListRoot.sizeDelta = new Vector2(-40f, 120f);
 
-            m_StartButton = MakeButton(go.transform, "btn_start_event", new Vector2(0f, -90f), new Vector2(360f, 56f), "开始事件");
-            m_StartButton.onClick.AddListener(OnStartEvent);
-
             m_WaitButton = MakeButton(go.transform, "btn_wait", new Vector2(0f, -152f), new Vector2(360f, 52f), "等待到下一时段");
             m_WaitButton.onClick.AddListener(OnWaitNextPeriod);
         }
@@ -218,7 +243,6 @@ namespace Everlight.Tales.UI
             {
                 m_PlaceLabel.text = "点击地图节点查看地点";
                 m_PlaceDesc.text = string.Empty;
-                m_StartButton.gameObject.SetActive(false);
                 m_WaitButton.gameObject.SetActive(true);
                 return;
             }
@@ -232,13 +256,13 @@ namespace Everlight.Tales.UI
             m_PlaceLabel.text = place.Config.Name + "（" + PlaceStatusText(place.Status) + "）";
             m_PlaceDesc.text = place.Config.Description;
 
-            m_SelectedEntry = null;
             if (m_SelectedPlaceId == "home")
             {
-                AddEventEntry("卡住的卷帘门", "维修", "1 格", StartRollerDoor);
+                AddEventEntry("卡住的卷帘门", "维修", "1 格",
+                    "说明：长明修理铺的卷帘门卡住了，需要用撞锤把门轴推移进轨道。\n前置：无\n奖励：40 维修费 + 精密齿轮 ×1",
+                    StartRollerDoor);
             }
 
-            UpdateStartButton();
             m_WaitButton.gameObject.SetActive(true);
         }
 
@@ -250,16 +274,6 @@ namespace Everlight.Tales.UI
                 case PlaceNodeStatus.KnownLocked: return "已知未开放";
                 default: return "未发现";
             }
-        }
-
-        private void OnStartEvent()
-        {
-            if (m_SelectedEntry == null || m_SelectedEntry.OnStart == null)
-            {
-                return;
-            }
-
-            m_SelectedEntry.OnStart();
         }
 
         private void StartRollerDoor()
@@ -282,30 +296,27 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            session.WaitToNextPeriod();
-            Refresh();
+            string desc = BuildWaitDescription(session);
+            GlobalUI.Confirm("等待到下一时段", desc, () =>
+            {
+                session.WaitToNextPeriod();
+                Refresh();
+            }, null);
+        }
+
+        private static string BuildWaitDescription(WorldSession session)
+        {
+            TimeOfDay from = session.Time.Period;
+            TimeOfDay to = from == TimeOfDay.DeepNight ? TimeOfDay.Morning : (TimeOfDay)((int)from + 1);
+            string note = TimePeriod.IsDaylight(from) != TimePeriod.IsDaylight(to)
+                ? "\n（跨昼夜：未处理的普通事件将退出，重新生成新一批）"
+                : string.Empty;
+            return "第 " + session.Time.Day + " 天 · " + TimePeriod.DisplayName(from) + " → " + TimePeriod.DisplayName(to) + note;
         }
 
         private void OnEventClicked(PlaceEventEntry entry)
         {
-            m_SelectedEntry = entry;
-            UpdateStartButton();
-        }
-
-        private void UpdateStartButton()
-        {
-            if (m_SelectedEntry == null)
-            {
-                m_StartButton.gameObject.SetActive(false);
-                return;
-            }
-
-            m_StartButton.gameObject.SetActive(true);
-            TextMeshProUGUI label = m_StartButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null)
-            {
-                label.text = "开始：" + m_SelectedEntry.Name;
-            }
+            GlobalUI.Confirm(entry.Name, entry.Detail, () => entry.OnStart?.Invoke(), null);
         }
 
         private void ClearEventList()
@@ -322,13 +333,14 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private void AddEventEntry(string name, string typeLabel, string timeLabel, System.Action onStart)
+        private void AddEventEntry(string name, string typeLabel, string timeLabel, string detail, System.Action onStart)
         {
             var entry = new PlaceEventEntry
             {
                 Name = name,
                 TypeLabel = typeLabel,
                 TimeLabel = timeLabel,
+                Detail = detail,
                 OnStart = onStart,
             };
             m_CurrentEntries.Add(entry);
