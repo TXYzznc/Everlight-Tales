@@ -7,3 +7,4 @@
 	3		20	BoardPage	True	1	True
 	4		20	PreparationPage	True	1	True
 	5		30	SettlementPage	True	1	True
+	6		50	Settings	True	1	True

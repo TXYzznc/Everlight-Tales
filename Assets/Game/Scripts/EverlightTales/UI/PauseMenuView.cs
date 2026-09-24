@@ -31,6 +31,7 @@ namespace Everlight.Tales.UI
         public void OpenSettings()
         {
             LastAction = PauseAction.Settings;
+            GF.UI.OpenUIForm(UIViews.Settings);
         }
 
         public void ShowRules()

@@ -8,5 +8,6 @@ public enum UIViews : int
 	DialogView = 2,
 	BoardPage = 3,
 	PreparationPage = 4,
-	SettlementPage = 5
+	SettlementPage = 5,
+	Settings = 6
 }
