@@ -7,5 +7,6 @@ public enum UIViews : int
 	MainPageShell = 1,
 	DialogView = 2,
 	BoardPage = 3,
-	PreparationPage = 4
+	PreparationPage = 4,
+	SettlementPage = 5
 }

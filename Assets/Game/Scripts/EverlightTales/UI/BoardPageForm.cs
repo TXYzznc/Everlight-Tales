@@ -90,10 +90,13 @@ namespace Everlight.Tales.UI
             {
                 bool specialGoalMet = RollerDoorEvent.IsGatePushedIn(session.CurrentEvent.Board);
                 EventResultKind outcome = RepairEventShell.EvaluateOutcome(session.CurrentEvent, specialGoalMet);
-                session.SettleEvent(outcome == EventResultKind.Success);
+                session.SettleEvent(outcome == EventResultKind.Success
+                    ? SettlementOutcomeKind.Success
+                    : SettlementOutcomeKind.Failure);
             }
 
             OnClickClose();
+            GF.UI.OpenUIForm(UIViews.SettlementPage);
         }
     }
 }

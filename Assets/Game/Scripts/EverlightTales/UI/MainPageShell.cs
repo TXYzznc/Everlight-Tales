@@ -42,8 +42,6 @@ namespace Everlight.Tales.UI
 
         private OpeningOverlay m_Opening;
 
-        private SettlementOverlay m_Settlement;
-
         protected override void OnInit(object userData)
         {
             base.OnInit(userData);
@@ -90,12 +88,6 @@ namespace Everlight.Tales.UI
             {
                 ShowOpening();
             }
-
-            // 结算：有待展示的结算结果且未显示 → 显示覆盖层。
-            if (session.HasPendingSettlement && m_Settlement == null)
-            {
-                ShowSettlement();
-            }
         }
 
         private void ShowOpening()
@@ -111,27 +103,6 @@ namespace Everlight.Tales.UI
                 m_Opening = null;
             });
             m_Opening = overlay;
-        }
-
-        private void ShowSettlement()
-        {
-            WorldSession session = WorldSession.Current;
-            if (session == null)
-            {
-                return;
-            }
-
-            session.HasPendingSettlement = false;
-
-            var go = new GameObject("settlement_overlay", typeof(RectTransform));
-            go.transform.SetParent(transform, false);
-            var overlay = go.AddComponent<SettlementOverlay>();
-            overlay.Show(session, () =>
-            {
-                m_Settlement = null;
-                BuildMapPanel();
-            });
-            m_Settlement = overlay;
         }
 
         private void OnBackClicked()

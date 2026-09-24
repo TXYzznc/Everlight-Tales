@@ -96,9 +96,6 @@ namespace Everlight.Tales.UI
         /// <summary>新档序章是否已播放完成（避免每次进主页都重播）。</summary>
         public bool OpeningDone { get; set; }
 
-        /// <summary>是否有待展示的结算结果（结算事务完成后置位，主页壳读取后清除）。</summary>
-        public bool HasPendingSettlement { get; set; }
-
         /// <summary>四选一奖励累计的机械臂次数（下次开始事件时注入 SessionState）。</summary>
         public int PendingArmMoves { get; private set; }
 
@@ -249,21 +246,33 @@ namespace Everlight.Tales.UI
         /// 结算当前事件：终局判定（由调用方传 success）→ 结算事务推进时间 →
         /// 世界结算发放奖励 → 写档 → 刷新供给。返回成功奖励（失败为 null）。
         /// </summary>
-        public EventReward SettleEvent(bool success)
+        public EventReward SettleEvent(SettlementOutcomeKind outcome)
         {
             if (CurrentEvent == null)
             {
                 return null;
             }
 
-            EventResultKind outcome = success ? EventResultKind.Success : EventResultKind.Failure;
-            EventReward reward = RepairEventShell.Resolve(CurrentEvent, outcome);
+            EventResultKind eventResult = outcome switch
+            {
+                SettlementOutcomeKind.Success => EventResultKind.Success,
+                SettlementOutcomeKind.Retreat => EventResultKind.Retreat,
+                _ => EventResultKind.Failure,
+            };
+            EventReward reward = RepairEventShell.Resolve(CurrentEvent, eventResult);
+
+            // 失败时计算失败原因（分数差额 / 未完成特殊目标 / 即时失败），供结算页展示。
+            FailureOutcome failure = null;
+            if (outcome == SettlementOutcomeKind.Failure)
+            {
+                failure = FailureReason.Compute(
+                    CurrentEvent.Level.Session.Score,
+                    CurrentEvent.Level.Round.TargetScore,
+                    CurrentEvent.Level.Round.Goals);
+            }
 
             var transaction = new SettlementTransaction();
-            LastSettlement = transaction.Execute(
-                Time,
-                CurrentEvent.Config.TimeCost,
-                success ? SettlementOutcomeKind.Success : SettlementOutcomeKind.Failure);
+            LastSettlement = transaction.Execute(Time, CurrentEvent.Config.TimeCost, outcome, failure);
 
             var worldSettle = new WorldSettlementService();
             worldSettle.Settle(World, Time.Day, Time.Period, reward != null ? reward.RepairFee : 0);
@@ -279,7 +288,7 @@ namespace Everlight.Tales.UI
 
             // 成功普通维修/临时处置实例累计（P4-013 门槛来源；档案重放/试机不计入）。
             // 计数后刷新改装支线播种：满足 L-01 已完成 + 计数门槛的支线才出现。
-            if (success)
+            if (outcome == SettlementOutcomeKind.Success)
             {
                 World.SuccessfulJobs++;
                 RefreshModTasks(World);
@@ -289,10 +298,15 @@ namespace Everlight.Tales.UI
             }
 
             LastReward = reward;
-            HasPendingSettlement = true;
             Save();
             RefreshSupply();
             return reward;
+        }
+
+        /// <summary>结算当前事件（bool 重载）：true=成功、false=失败。</summary>
+        public EventReward SettleEvent(bool success)
+        {
+            return SettleEvent(success ? SettlementOutcomeKind.Success : SettlementOutcomeKind.Failure);
         }
 
         /// <summary>卷帘门门轴标记是否已被普通推移送入校正格。</summary>

@@ -1,0 +1,422 @@
+{
+ "schemaVersion": 3,
+ "form": "SettlementPageForm",
+ "namespace": "Everlight.Tales.UI",
+ "prefabPath": "Assets/Game/Prefabs/UI/SettlementPage.prefab",
+ "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/SettlementPageForm.cs",
+ "referenceResolution": [
+  1080,
+  1920
+ ],
+ "root": {
+  "name": "SettlementPageForm",
+  "components": [
+   {
+    "type": "SettlementPageForm"
+   },
+   {
+    "type": "Canvas",
+    "renderMode": 0
+   },
+   {
+    "type": "GraphicRaycaster"
+   },
+   {
+    "type": "CanvasGroup",
+    "alpha": 1.0,
+    "interactable": true,
+    "blocksRaycasts": true
+   }
+  ],
+  "anchorMin": [0.0, 0.0],
+  "anchorMax": [1.0, 1.0],
+  "pivot": [0.5, 0.5],
+  "sizeDelta": [0.0, 0.0],
+  "anchoredPosition": [0.0, 0.0],
+  "children": [
+   {
+    "name": "Panel_Background",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.0902, 0.1020, 0.1255, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 0.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 0.5],
+    "sizeDelta": [0.0, 0.0],
+    "anchoredPosition": [0.0, 0.0]
+   },
+   {
+    "name": "Txt_Title",
+    "components": [
+     {
+      "type": "TextMeshProUGUI",
+      "text": "维修结算",
+      "fontSize": 44.0,
+      "color": [0.9412, 0.9490, 0.9569, 1.0],
+      "raycastTarget": false,
+      "wordWrap": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-160.0, 110.0],
+    "anchoredPosition": [0.0, -70.0]
+   },
+   {
+    "name": "Txt_Reward",
+    "components": [
+     {
+      "type": "TextMeshProUGUI",
+      "text": "奖励：— 维修费",
+      "fontSize": 30.0,
+      "color": [0.8784, 0.6588, 0.3451, 1.0],
+      "raycastTarget": false,
+      "wordWrap": true
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-200.0, 90.0],
+    "anchoredPosition": [0.0, -210.0]
+   },
+   {
+    "name": "Txt_Reason",
+    "components": [
+     {
+      "type": "TextMeshProUGUI",
+      "text": "原因：—",
+      "fontSize": 26.0,
+      "color": [0.6784, 0.7059, 0.7451, 1.0],
+      "raycastTarget": false,
+      "wordWrap": true
+     }
+    ],
+    "anchorMin": [0.0, 0.5],
+    "anchorMax": [1.0, 0.5],
+    "pivot": [0.5, 0.5],
+    "sizeDelta": [-200.0, 440.0],
+    "anchoredPosition": [0.0, -100.0]
+   },
+   {
+    "name": "Grp_RewardChoices",
+    "components": [
+     {
+      "type": "VerticalLayoutGroup",
+      "spacing": 16.0,
+      "ChildForceExpandWidth": true,
+      "ChildForceExpandHeight": false
+     }
+    ],
+    "anchorMin": [0.0, 0.5],
+    "anchorMax": [1.0, 0.5],
+    "pivot": [0.5, 0.5],
+    "sizeDelta": [-200.0, 420.0],
+    "anchoredPosition": [0.0, -40.0],
+    "children": [
+     {
+      "name": "Btn_Choice0",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1490, 0.1686, 0.2039, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       },
+       {
+        "type": "LayoutElement",
+        "preferredHeight": 76.0
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [0.0, 1.0],
+      "pivot": [0.0, 1.0],
+      "sizeDelta": [840.0, 76.0],
+      "anchoredPosition": [0.0, 0.0],
+      "children": [
+       {
+        "name": "Txt_Choice0Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "奖励",
+          "fontSize": 24.0,
+          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-24.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     },
+     {
+      "name": "Btn_Choice1",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1490, 0.1686, 0.2039, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       },
+       {
+        "type": "LayoutElement",
+        "preferredHeight": 76.0
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [0.0, 1.0],
+      "pivot": [0.0, 1.0],
+      "sizeDelta": [840.0, 76.0],
+      "anchoredPosition": [0.0, 0.0],
+      "children": [
+       {
+        "name": "Txt_Choice1Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "奖励",
+          "fontSize": 24.0,
+          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-24.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     },
+     {
+      "name": "Btn_Choice2",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1490, 0.1686, 0.2039, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       },
+       {
+        "type": "LayoutElement",
+        "preferredHeight": 76.0
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [0.0, 1.0],
+      "pivot": [0.0, 1.0],
+      "sizeDelta": [840.0, 76.0],
+      "anchoredPosition": [0.0, 0.0],
+      "children": [
+       {
+        "name": "Txt_Choice2Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "奖励",
+          "fontSize": 24.0,
+          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-24.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     },
+     {
+      "name": "Btn_Choice3",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1490, 0.1686, 0.2039, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       },
+       {
+        "type": "LayoutElement",
+        "preferredHeight": 76.0
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [0.0, 1.0],
+      "pivot": [0.0, 1.0],
+      "sizeDelta": [840.0, 76.0],
+      "anchoredPosition": [0.0, 0.0],
+      "children": [
+       {
+        "name": "Txt_Choice3Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "奖励",
+          "fontSize": 24.0,
+          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-24.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Btn_BackToMap",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.8784, 0.6588, 0.3451, 1.0],
+      "imageType": 1,
+      "raycastTarget": true,
+      "preserveAspect": false
+     },
+     {
+      "type": "Button",
+      "transition": 1,
+      "interactable": true
+     }
+    ],
+    "anchorMin": [0.5, 0.0],
+    "anchorMax": [0.5, 0.0],
+    "pivot": [0.5, 0.0],
+    "sizeDelta": [360.0, 88.0],
+    "anchoredPosition": [0.0, 110.0],
+    "children": [
+     {
+      "name": "Txt_BackLabel",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "回地图",
+        "fontSize": 28.0,
+        "color": [0.0902, 0.1020, 0.1255, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 0.5],
+      "sizeDelta": [-16.0, -8.0],
+      "anchoredPosition": [0.0, 0.0]
+     }
+    ]
+   }
+  ]
+ },
+ "bindings": [
+  {
+   "path": "_title",
+   "node": "SettlementPageForm/Txt_Title",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_rewardText",
+   "node": "SettlementPageForm/Txt_Reward",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_reasonText",
+   "node": "SettlementPageForm/Txt_Reason",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_rewardChoices",
+   "node": "SettlementPageForm/Grp_RewardChoices",
+   "kind": "RectTransform"
+  },
+  {
+   "path": "_backToMap",
+   "node": "SettlementPageForm/Btn_BackToMap",
+   "kind": "Button"
+  }
+ ],
+ "scalars": [],
+ "scriptFields": [],
+ "formArrays": {
+  "_choiceButtons": [
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice0",
+    "kind": "Button"
+   },
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice1",
+    "kind": "Button"
+   },
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice2",
+    "kind": "Button"
+   },
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice3",
+    "kind": "Button"
+   }
+  ],
+  "_choiceLabels": [
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice0/Txt_Choice0Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice1/Txt_Choice1Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice2/Txt_Choice2Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "SettlementPageForm/Grp_RewardChoices/Btn_Choice3/Txt_Choice3Label",
+    "kind": "TextMeshProUGUI"
+   }
+  ]
+ },
+ "generatedFrom": "手写契约（Everlight 单页竖屏页面，无共享外壳）"
+}
