@@ -48,8 +48,8 @@ namespace Everlight.Tales.UI
             LevelBoardConfig cfg = session.CurrentBoardConfig;
 
             Title.text = evt.Name;
-            Objective.text = "目标：" + cfg.Objective;
-            Duration.text = "预计耗时：" + evt.TimeCost + " 格";
+            Objective.text = "目标：" + cfg.Objective + BuildSpecialGoalsText(evt.Level);
+            Duration.text = "预计耗时：" + evt.TimeCost + " 格" + BuildBorrowedText(cfg);
             Rounds.text = "轮次：" + BuildRoundsText(evt.Level);
 
             PreviewModel preview = new PreviewModel(cfg, evt.Level);
@@ -70,6 +70,9 @@ namespace Everlight.Tales.UI
 
             ConfirmButton.onClick.RemoveAllListeners();
             ConfirmButton.onClick.AddListener(OnConfirm);
+
+            AutoFillKeys.onClick.RemoveAllListeners();
+            AutoFillKeys.onClick.AddListener(OnAutoFillKeys);
 
             for (int i = 0; i < CarrySelection.MaxSlots; i++)
             {
@@ -96,6 +99,64 @@ namespace Everlight.Tales.UI
                 }
 
                 sb.Append(round.TapCount).Append(" 拍·").Append(round.TargetScore).Append(" 分");
+            }
+
+            return sb.ToString();
+        }
+
+        private void OnAutoFillKeys()
+        {
+            WorldSession session = WorldSession.Current;
+            if (session == null || session.PendingCarry == null)
+            {
+                return;
+            }
+
+            CarrySelection carry = session.PendingCarry;
+            foreach (PartType key in carry.MissingKeyParts())
+            {
+                carry.Fill(key);
+            }
+
+            RefreshCarry();
+        }
+
+        private static string BuildSpecialGoalsText(LevelConfig level)
+        {
+            if (level == null || level.Rounds.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder();
+            foreach (RoundConfig round in level.Rounds)
+            {
+                foreach (SpecialGoalConfig goal in round.Goals)
+                {
+                    sb.Append("\n特殊目标：").Append(goal.Id).Append(" ×").Append(goal.Required);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private static string BuildBorrowedText(LevelBoardConfig cfg)
+        {
+            if (cfg.BorrowedParts == null || cfg.BorrowedParts.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            var sb = new StringBuilder();
+            sb.Append("　现场可借用：");
+            for (int i = 0; i < cfg.BorrowedParts.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append("、");
+                }
+
+                sb.Append(PartName(cfg.BorrowedParts[i]));
             }
 
             return sb.ToString();

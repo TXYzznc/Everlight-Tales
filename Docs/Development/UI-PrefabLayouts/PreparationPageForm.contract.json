@@ -191,9 +191,51 @@
       ],
       "anchorMin": [0.0, 1.0],
       "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 40.0],
-      "anchoredPosition": [0.0, -12.0]
+      "pivot": [0.0, 1.0],
+      "sizeDelta": [640.0, 40.0],
+      "anchoredPosition": [20.0, -12.0]
+     },
+     {
+      "name": "Btn_AutoFillKeys",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       }
+      ],
+      "anchorMin": [1.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [1.0, 1.0],
+      "sizeDelta": [220.0, 40.0],
+      "anchoredPosition": [-20.0, -12.0],
+      "children": [
+       {
+        "name": "Txt_AutoFillLabel",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "一键补关键件",
+          "fontSize": 20.0,
+          "color": [0.0902, 0.1020, 0.1255, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-16.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
      },
      {
       "name": "Grp_CarrySlots",
@@ -796,6 +838,11 @@
   {
    "path": "_backButton",
    "node": "PreparationPageForm/Btn_Back",
+   "kind": "Button"
+  },
+  {
+   "path": "_autoFillKeys",
+   "node": "PreparationPageForm/Panel_Carry/Btn_AutoFillKeys",
    "kind": "Button"
   }
  ],

@@ -33,6 +33,8 @@ namespace Everlight.Tales.UI
         public Button ConfirmButton => _confirmButton;
         [SerializeField] private Button _backButton;
         public Button BackButton => _backButton;
+        [SerializeField] private Button _autoFillKeys;
+        public Button AutoFillKeys => _autoFillKeys;
         [SerializeField] private Button[] _carrySlots;
         public Button[] CarrySlots => _carrySlots;
         [SerializeField] private TMP_Text[] _carrySlotLabels;
