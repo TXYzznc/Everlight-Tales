@@ -79,6 +79,9 @@ namespace Everlight.Tales.UI
         /// <summary>实体块被点击（供零件卡弹窗）；参数为被点击的实体。</summary>
         public System.Action<BoardEntity> EntityClicked;
 
+        /// <summary>正常格被点击（供机械臂搬动选择目标格）；参数为该格坐标。</summary>
+        public System.Action<HexCoord> CellClicked;
+
         /// <summary>把盘面根本地坐标换算到本视图（页面）本地坐标，抵消盘面旋转后文字仍正向。</summary>
         public Vector2 BoardToLocal(Vector2 boardLocal)
         {
@@ -102,14 +105,20 @@ namespace Everlight.Tales.UI
 
             foreach (HexCoord cell in board.EnumerateNormal())
             {
-                _cells.Add(CreateTile(
+                GameObject tile = CreateTile(
                     "cell_" + cell.Q + "_" + cell.R,
                     HexLayout.AxialToPixel(cell, m_CellSize),
                     m_CellSize,
                     m_CellColor,
                     m_CellStrokeColor,
                     1.2f,
-                    null));
+                    null);
+                _cells.Add(tile);
+
+                Button button = tile.AddComponent<Button>();
+                button.targetGraphic = tile.GetComponent<HexagonGraphic>();
+                HexCoord captured = cell;
+                button.onClick.AddListener(() => CellClicked?.Invoke(captured));
             }
 
             // 残缺墙：与正常格同为点顶六边形，但被大六边形轮廓裁切成半格。

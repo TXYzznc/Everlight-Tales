@@ -61,10 +61,11 @@ namespace Everlight.Tales.UI
             var parts = new System.Collections.Generic.List<string>();
             foreach (SpecialGoalState goal in round.Goals)
             {
-                parts.Add(goal.Id + " " + goal.Current + "/" + goal.Required);
+                string mark = goal.IsComplete ? "✓" : "□";
+                parts.Add(mark + " " + goal.Id + " " + goal.Current + "/" + goal.Required);
             }
 
-            return string.Join("；", parts);
+            return string.Join("  ", parts);
         }
 
         private TextMeshProUGUI CreateText(string name, Vector2 position)

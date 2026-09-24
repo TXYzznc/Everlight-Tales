@@ -29,7 +29,12 @@ namespace Everlight.Tales.UI
         private Button m_RotateLeft;
         private Button m_RotateRight;
         private Button m_Tap;
+        private Button m_ArmButton;
         private TextMeshProUGUI m_ResultText;
+
+        private bool m_ArmMode;
+
+        private BoardEntity m_SelectedArmEntity;
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
         public void Bind(BoardGame game)
@@ -48,17 +53,20 @@ namespace Everlight.Tales.UI
             ImpactFx.Setup(BoardView, game.Board.BoardRadius);
             ImpactFx.SetGame(game);
 
-            m_RotateLeft = CreateButton("btn_rotate_left", new Vector2(-180f, -250f), "左旋");
-            m_RotateRight = CreateButton("btn_rotate_right", new Vector2(180f, -250f), "右旋");
-            m_Tap = CreateButton("btn_tap", new Vector2(0f, -250f), "拍击");
+            m_RotateLeft = CreateButton("btn_rotate_left", new Vector2(-240f, -250f), "左旋");
+            m_RotateRight = CreateButton("btn_rotate_right", new Vector2(240f, -250f), "右旋");
+            m_ArmButton = CreateButton("btn_arm", new Vector2(-80f, -250f), "机械臂");
+            m_Tap = CreateButton("btn_tap", new Vector2(80f, -250f), "拍击");
             m_ResultText = CreateText("txt_result", new Vector2(0f, -320f));
 
             m_RotateLeft.onClick.AddListener(OnRotateLeft);
             m_RotateRight.onClick.AddListener(OnRotateRight);
+            m_ArmButton.onClick.AddListener(OnArmToggle);
             m_Tap.onClick.AddListener(OnTap);
 
             BoardView.SetGravity(Game.Settle.GravityDirection);
             BoardView.EntityClicked = OnEntityClicked;
+            BoardView.CellClicked = OnCellClicked;
 
             // 现场立绘占位（盘面两侧，登场短暂出现；正式人物立绘待美术替换）。
             CreatePortrait(new Vector2(-430f, 240f), "左立绘");
@@ -90,7 +98,38 @@ namespace Everlight.Tales.UI
             ImpactFx.ClearPreview();
             Refresh();
             UpdateResultText();
+
+            // 本轮小结：过轮时弹本轮得分/资源/特殊目标。
+            if (pass != RoundPassResult.Continue)
+            {
+                GlobalUI.ShowDialog(pass == RoundPassResult.Passed ? "本轮通过" : "本轮失败", BuildRoundSummary());
+            }
+
             return pass;
+        }
+
+        private string BuildRoundSummary()
+        {
+            var sb = new StringBuilder();
+            sb.Append("本轮得分：").Append(Game.Session.Score).Append(" / ").Append(Game.Level.Round.TargetScore).Append('\n');
+            sb.Append("机械臂剩余：").Append(Game.Session.ArmMoves).Append('\n');
+            sb.Append("维修能量：").Append(Game.Session.PublicRepairEnergy).Append('\n');
+            if (Game.Level.Round.Goals != null && Game.Level.Round.Goals.Count > 0)
+            {
+                sb.Append("特殊目标：");
+                for (int i = 0; i < Game.Level.Round.Goals.Count; i++)
+                {
+                    SpecialGoalState goal = Game.Level.Round.Goals[i];
+                    if (i > 0)
+                    {
+                        sb.Append('；');
+                    }
+
+                    sb.Append(goal.IsComplete ? "✓" : "□").Append(goal.Id);
+                }
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>同步盘面视图与 HUD。</summary>
@@ -112,7 +151,62 @@ namespace Everlight.Tales.UI
                 return;
             }
 
+            // 机械臂搬动模式下，先选实体再点目标格。
+            if (m_ArmMode)
+            {
+                m_SelectedArmEntity = entity;
+                UpdateArmHint();
+                return;
+            }
+
             GlobalUI.ShowDialog("零件信息", BuildPartDetail(entity));
+        }
+
+        private void OnCellClicked(HexCoord cell)
+        {
+            if (!m_ArmMode || m_SelectedArmEntity == null)
+            {
+                return;
+            }
+
+            ArmMoveResult result = Game.ArmMove(m_SelectedArmEntity, cell);
+            if (result == ArmMoveResult.Ok)
+            {
+                m_ArmMode = false;
+                m_SelectedArmEntity = null;
+            }
+            else
+            {
+                GlobalUI.ShowToast("无法搬动：" + result);
+            }
+
+            UpdateArmHint();
+            Refresh();
+        }
+
+        private void OnArmToggle()
+        {
+            m_ArmMode = !m_ArmMode;
+            m_SelectedArmEntity = null;
+            UpdateArmHint();
+        }
+
+        private void UpdateArmHint()
+        {
+            if (m_ResultText == null)
+            {
+                return;
+            }
+
+            if (!m_ArmMode)
+            {
+                m_ResultText.text = string.Empty;
+                return;
+            }
+
+            m_ResultText.text = m_SelectedArmEntity == null
+                ? "机械臂：点实体选中，再点目标格"
+                : "机械臂：已选中，点目标格搬动";
         }
 
         private static string BuildPartDetail(BoardEntity entity)
