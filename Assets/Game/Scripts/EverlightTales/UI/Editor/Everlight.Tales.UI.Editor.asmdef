@@ -2,7 +2,8 @@
     "name": "Everlight.Tales.UI.Editor",
     "rootNamespace": "Everlight.Tales.UI.EditorTools",
     "references": [
-        "Everlight.Tales.UI"
+        "Everlight.Tales.UI",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"

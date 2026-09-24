@@ -5,3 +5,4 @@
 	1		10	MainPageShell	True	1	True
 	2		10	DialogView	True	2	True
 	3		20	BoardPage	True	1	True
+	4		20	PreparationPage	True	1	True

@@ -1,0 +1,854 @@
+{
+ "schemaVersion": 3,
+ "form": "PreparationPageForm",
+ "namespace": "Everlight.Tales.UI",
+ "prefabPath": "Assets/Game/Prefabs/UI/PreparationPage.prefab",
+ "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/PreparationPageForm.cs",
+ "referenceResolution": [
+  1080,
+  1920
+ ],
+ "root": {
+  "name": "PreparationPageForm",
+  "components": [
+   {
+    "type": "PreparationPageForm"
+   },
+   {
+    "type": "Canvas",
+    "renderMode": 0
+   },
+   {
+    "type": "GraphicRaycaster"
+   },
+   {
+    "type": "CanvasGroup",
+    "alpha": 1.0,
+    "interactable": true,
+    "blocksRaycasts": true
+   }
+  ],
+  "anchorMin": [0.0, 0.0],
+  "anchorMax": [1.0, 1.0],
+  "pivot": [0.5, 0.5],
+  "sizeDelta": [0.0, 0.0],
+  "anchoredPosition": [0.0, 0.0],
+  "children": [
+   {
+    "name": "Panel_Background",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.0902, 0.1020, 0.1255, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 0.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 0.5],
+    "sizeDelta": [0.0, 0.0],
+    "anchoredPosition": [0.0, 0.0]
+   },
+   {
+    "name": "Txt_LevelName",
+    "components": [
+     {
+      "type": "TextMeshProUGUI",
+      "text": "准备事件",
+      "fontSize": 36.0,
+      "color": [0.9412, 0.9490, 0.9569, 1.0],
+      "raycastTarget": false,
+      "wordWrap": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 80.0],
+    "anchoredPosition": [0.0, -40.0]
+   },
+   {
+    "name": "Panel_Info",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 300.0],
+    "anchoredPosition": [0.0, -140.0],
+    "children": [
+     {
+      "name": "Txt_InfoHeading",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "关卡信息",
+        "fontSize": 26.0,
+        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 40.0],
+      "anchoredPosition": [0.0, -12.0]
+     },
+     {
+      "name": "Txt_InfoObjective",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "目标：—",
+        "fontSize": 22.0,
+        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "raycastTarget": false,
+        "wordWrap": true
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 110.0],
+      "anchoredPosition": [0.0, -56.0]
+     },
+     {
+      "name": "Txt_InfoDuration",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "预计耗时：— 格",
+        "fontSize": 20.0,
+        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [0.0, 0.0],
+      "pivot": [0.0, 0.0],
+      "sizeDelta": [480.0, 44.0],
+      "anchoredPosition": [20.0, 12.0]
+     },
+     {
+      "name": "Txt_InfoRounds",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "轮次：—",
+        "fontSize": 20.0,
+        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [1.0, 0.0],
+      "anchorMax": [1.0, 0.0],
+      "pivot": [1.0, 0.0],
+      "sizeDelta": [480.0, 44.0],
+      "anchoredPosition": [-20.0, 12.0]
+     }
+    ]
+   },
+   {
+    "name": "Panel_Carry",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 700.0],
+    "anchoredPosition": [0.0, -460.0],
+    "children": [
+     {
+      "name": "Txt_CarryHeading",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "携带选择（最多 6 种）",
+        "fontSize": 26.0,
+        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 40.0],
+      "anchoredPosition": [0.0, -12.0]
+     },
+     {
+      "name": "Grp_CarrySlots",
+      "components": [
+       {
+        "type": "GridLayoutGroup",
+        "cellSize": [300.0, 88.0],
+        "spacing": [20.0, 16.0],
+        "constraint": 1,
+        "constraintCount": 3
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 210.0],
+      "anchoredPosition": [0.0, -60.0],
+      "children": [
+       {
+        "name": "Btn_CarrySlot0",
+        "components": [
+         {
+          "type": "Image",
+          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "imageType": 1,
+          "raycastTarget": true,
+          "preserveAspect": false
+         },
+         {
+          "type": "Button",
+          "transition": 1,
+          "interactable": true
+         }
+        ],
+        "anchorMin": [0.0, 1.0],
+        "anchorMax": [0.0, 1.0],
+        "pivot": [0.0, 1.0],
+        "sizeDelta": [300.0, 88.0],
+        "anchoredPosition": [0.0, 0.0],
+        "children": [
+         {
+          "name": "Txt_CarrySlot0Label",
+          "components": [
+           {
+            "type": "TextMeshProUGUI",
+            "text": "—",
+            "fontSize": 22.0,
+            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "raycastTarget": false,
+            "wordWrap": false
+           }
+          ],
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "sizeDelta": [-16.0, -8.0],
+          "anchoredPosition": [0.0, 0.0]
+         }
+        ]
+       },
+       {
+        "name": "Btn_CarrySlot1",
+        "components": [
+         {
+          "type": "Image",
+          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "imageType": 1,
+          "raycastTarget": true,
+          "preserveAspect": false
+         },
+         {
+          "type": "Button",
+          "transition": 1,
+          "interactable": true
+         }
+        ],
+        "anchorMin": [0.0, 1.0],
+        "anchorMax": [0.0, 1.0],
+        "pivot": [0.0, 1.0],
+        "sizeDelta": [300.0, 88.0],
+        "anchoredPosition": [0.0, 0.0],
+        "children": [
+         {
+          "name": "Txt_CarrySlot1Label",
+          "components": [
+           {
+            "type": "TextMeshProUGUI",
+            "text": "—",
+            "fontSize": 22.0,
+            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "raycastTarget": false,
+            "wordWrap": false
+           }
+          ],
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "sizeDelta": [-16.0, -8.0],
+          "anchoredPosition": [0.0, 0.0]
+         }
+        ]
+       },
+       {
+        "name": "Btn_CarrySlot2",
+        "components": [
+         {
+          "type": "Image",
+          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "imageType": 1,
+          "raycastTarget": true,
+          "preserveAspect": false
+         },
+         {
+          "type": "Button",
+          "transition": 1,
+          "interactable": true
+         }
+        ],
+        "anchorMin": [0.0, 1.0],
+        "anchorMax": [0.0, 1.0],
+        "pivot": [0.0, 1.0],
+        "sizeDelta": [300.0, 88.0],
+        "anchoredPosition": [0.0, 0.0],
+        "children": [
+         {
+          "name": "Txt_CarrySlot2Label",
+          "components": [
+           {
+            "type": "TextMeshProUGUI",
+            "text": "—",
+            "fontSize": 22.0,
+            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "raycastTarget": false,
+            "wordWrap": false
+           }
+          ],
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "sizeDelta": [-16.0, -8.0],
+          "anchoredPosition": [0.0, 0.0]
+         }
+        ]
+       },
+       {
+        "name": "Btn_CarrySlot3",
+        "components": [
+         {
+          "type": "Image",
+          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "imageType": 1,
+          "raycastTarget": true,
+          "preserveAspect": false
+         },
+         {
+          "type": "Button",
+          "transition": 1,
+          "interactable": true
+         }
+        ],
+        "anchorMin": [0.0, 1.0],
+        "anchorMax": [0.0, 1.0],
+        "pivot": [0.0, 1.0],
+        "sizeDelta": [300.0, 88.0],
+        "anchoredPosition": [0.0, 0.0],
+        "children": [
+         {
+          "name": "Txt_CarrySlot3Label",
+          "components": [
+           {
+            "type": "TextMeshProUGUI",
+            "text": "—",
+            "fontSize": 22.0,
+            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "raycastTarget": false,
+            "wordWrap": false
+           }
+          ],
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "sizeDelta": [-16.0, -8.0],
+          "anchoredPosition": [0.0, 0.0]
+         }
+        ]
+       },
+       {
+        "name": "Btn_CarrySlot4",
+        "components": [
+         {
+          "type": "Image",
+          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "imageType": 1,
+          "raycastTarget": true,
+          "preserveAspect": false
+         },
+         {
+          "type": "Button",
+          "transition": 1,
+          "interactable": true
+         }
+        ],
+        "anchorMin": [0.0, 1.0],
+        "anchorMax": [0.0, 1.0],
+        "pivot": [0.0, 1.0],
+        "sizeDelta": [300.0, 88.0],
+        "anchoredPosition": [0.0, 0.0],
+        "children": [
+         {
+          "name": "Txt_CarrySlot4Label",
+          "components": [
+           {
+            "type": "TextMeshProUGUI",
+            "text": "—",
+            "fontSize": 22.0,
+            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "raycastTarget": false,
+            "wordWrap": false
+           }
+          ],
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "sizeDelta": [-16.0, -8.0],
+          "anchoredPosition": [0.0, 0.0]
+         }
+        ]
+       },
+       {
+        "name": "Btn_CarrySlot5",
+        "components": [
+         {
+          "type": "Image",
+          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "imageType": 1,
+          "raycastTarget": true,
+          "preserveAspect": false
+         },
+         {
+          "type": "Button",
+          "transition": 1,
+          "interactable": true
+         }
+        ],
+        "anchorMin": [0.0, 1.0],
+        "anchorMax": [0.0, 1.0],
+        "pivot": [0.0, 1.0],
+        "sizeDelta": [300.0, 88.0],
+        "anchoredPosition": [0.0, 0.0],
+        "children": [
+         {
+          "name": "Txt_CarrySlot5Label",
+          "components": [
+           {
+            "type": "TextMeshProUGUI",
+            "text": "—",
+            "fontSize": 22.0,
+            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "raycastTarget": false,
+            "wordWrap": false
+           }
+          ],
+          "anchorMin": [0.0, 0.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 0.5],
+          "sizeDelta": [-16.0, -8.0],
+          "anchoredPosition": [0.0, 0.0]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "name": "Txt_CarryAvailableHeading",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "可选零件（点击补位 / 再点移除）",
+        "fontSize": 20.0,
+        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 36.0],
+      "anchoredPosition": [0.0, -286.0]
+     },
+     {
+      "name": "List_CarryAvailable",
+      "components": [
+       {
+        "type": "ScrollRect",
+        "horizontal": false,
+        "vertical": true,
+        "movementType": 2
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 0.0],
+      "pivot": [0.5, 0.0],
+      "sizeDelta": [-40.0, 350.0],
+      "anchoredPosition": [0.0, 16.0],
+      "children": [
+       {
+        "name": "Viewport_CarryAvailable",
+        "components": [
+         {
+          "type": "RectMask2D"
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [0.0, 0.0],
+        "anchoredPosition": [0.0, 0.0],
+        "children": [
+         {
+          "name": "Content_CarryAvailable",
+          "components": [
+           {
+            "type": "VerticalLayoutGroup",
+            "spacing": 8.0,
+            "ChildForceExpandWidth": true,
+            "ChildForceExpandHeight": false
+           },
+           {
+            "type": "ContentSizeFitter",
+            "verticalFit": 2,
+            "horizontalFit": 0
+           }
+          ],
+          "anchorMin": [0.0, 1.0],
+          "anchorMax": [1.0, 1.0],
+          "pivot": [0.5, 1.0],
+          "sizeDelta": [0.0, 0.0],
+          "anchoredPosition": [0.0, 0.0],
+          "children": [
+           {
+            "name": "Item_CarryAvailableTemplate",
+            "components": [
+             {
+              "type": "Image",
+              "color": [0.1843, 0.2078, 0.2510, 1.0],
+              "imageType": 1,
+              "raycastTarget": true,
+              "preserveAspect": false
+             },
+             {
+              "type": "Button",
+              "transition": 1,
+              "interactable": true
+             },
+             {
+              "type": "LayoutElement",
+              "preferredHeight": 64.0
+             }
+            ],
+            "anchorMin": [0.0, 1.0],
+            "anchorMax": [0.0, 1.0],
+            "pivot": [0.0, 1.0],
+            "sizeDelta": [1000.0, 64.0],
+            "anchoredPosition": [0.0, 0.0],
+            "active": false,
+            "children": [
+             {
+              "name": "Txt_CarryAvailableItemLabel",
+              "components": [
+               {
+                "type": "TextMeshProUGUI",
+                "text": "零件",
+                "fontSize": 22.0,
+                "color": [0.9412, 0.9490, 0.9569, 1.0],
+                "raycastTarget": false,
+                "wordWrap": false
+               }
+              ],
+              "anchorMin": [0.0, 0.0],
+              "anchorMax": [1.0, 1.0],
+              "pivot": [0.5, 0.5],
+              "sizeDelta": [-24.0, -8.0],
+              "anchoredPosition": [0.0, 0.0]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Panel_Preview",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 420.0],
+    "anchoredPosition": [0.0, -1180.0],
+    "children": [
+     {
+      "name": "Txt_PreviewHeading",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "盘面预览",
+        "fontSize": 26.0,
+        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 40.0],
+      "anchoredPosition": [0.0, -12.0]
+     },
+     {
+      "name": "Panel_PreviewContent",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1843, 0.2078, 0.2510, 1.0],
+        "imageType": 1,
+        "raycastTarget": false,
+        "preserveAspect": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 300.0],
+      "anchoredPosition": [0.0, -56.0]
+     },
+     {
+      "name": "Txt_PreviewSummary",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "半径 — · 固定元素 — · 关键件 —",
+        "fontSize": 20.0,
+        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 0.0],
+      "pivot": [0.5, 0.0],
+      "sizeDelta": [-40.0, 44.0],
+      "anchoredPosition": [0.0, 12.0]
+     }
+    ]
+   },
+   {
+    "name": "Btn_Back",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.1843, 0.2078, 0.2510, 1.0],
+      "imageType": 1,
+      "raycastTarget": true,
+      "preserveAspect": false
+     },
+     {
+      "type": "Button",
+      "transition": 1,
+      "interactable": true
+     }
+    ],
+    "anchorMin": [0.0, 0.0],
+    "anchorMax": [0.0, 0.0],
+    "pivot": [0.0, 0.0],
+    "sizeDelta": [220.0, 80.0],
+    "anchoredPosition": [60.0, 60.0],
+    "children": [
+     {
+      "name": "Txt_BackLabel",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "返回",
+        "fontSize": 26.0,
+        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 0.5],
+      "sizeDelta": [-16.0, -8.0],
+      "anchoredPosition": [0.0, 0.0]
+     }
+    ]
+   },
+   {
+    "name": "Btn_Confirm",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.8784, 0.6588, 0.3451, 1.0],
+      "imageType": 1,
+      "raycastTarget": true,
+      "preserveAspect": false
+     },
+     {
+      "type": "Button",
+      "transition": 1,
+      "interactable": true
+     }
+    ],
+    "anchorMin": [1.0, 0.0],
+    "anchorMax": [1.0, 0.0],
+    "pivot": [1.0, 0.0],
+    "sizeDelta": [320.0, 80.0],
+    "anchoredPosition": [-60.0, 60.0],
+    "children": [
+     {
+      "name": "Txt_ConfirmLabel",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "确认开始",
+        "fontSize": 26.0,
+        "color": [0.0902, 0.1020, 0.1255, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 0.5],
+      "sizeDelta": [-16.0, -8.0],
+      "anchoredPosition": [0.0, 0.0]
+     }
+    ]
+   }
+  ]
+ },
+ "bindings": [
+  {
+   "path": "_title",
+   "node": "PreparationPageForm/Txt_LevelName",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_objective",
+   "node": "PreparationPageForm/Panel_Info/Txt_InfoObjective",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_duration",
+   "node": "PreparationPageForm/Panel_Info/Txt_InfoDuration",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_rounds",
+   "node": "PreparationPageForm/Panel_Info/Txt_InfoRounds",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_previewSummary",
+   "node": "PreparationPageForm/Panel_Preview/Txt_PreviewSummary",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_availableContent",
+   "node": "PreparationPageForm/Panel_Carry/List_CarryAvailable/Viewport_CarryAvailable/Content_CarryAvailable",
+   "kind": "RectTransform"
+  },
+  {
+   "path": "_availableItemTemplate",
+   "node": "PreparationPageForm/Panel_Carry/List_CarryAvailable/Viewport_CarryAvailable/Content_CarryAvailable/Item_CarryAvailableTemplate",
+   "kind": "GameObject"
+  },
+  {
+   "path": "_confirmButton",
+   "node": "PreparationPageForm/Btn_Confirm",
+   "kind": "Button"
+  },
+  {
+   "path": "_backButton",
+   "node": "PreparationPageForm/Btn_Back",
+   "kind": "Button"
+  }
+ ],
+ "scalars": [],
+ "scriptFields": [],
+ "formArrays": {
+  "_carrySlots": [
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot0",
+    "kind": "Button"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot1",
+    "kind": "Button"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot2",
+    "kind": "Button"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot3",
+    "kind": "Button"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot4",
+    "kind": "Button"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot5",
+    "kind": "Button"
+   }
+  ],
+  "_carrySlotLabels": [
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot0/Txt_CarrySlot0Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot1/Txt_CarrySlot1Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot2/Txt_CarrySlot2Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot3/Txt_CarrySlot3Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot4/Txt_CarrySlot4Label",
+    "kind": "TextMeshProUGUI"
+   },
+   {
+    "node": "PreparationPageForm/Panel_Carry/Grp_CarrySlots/Btn_CarrySlot5/Txt_CarrySlot5Label",
+    "kind": "TextMeshProUGUI"
+   }
+  ]
+ },
+ "generatedFrom": "手写契约（Everlight 单页竖屏页面，无共享外壳）"
+}

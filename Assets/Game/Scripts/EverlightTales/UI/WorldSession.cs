@@ -78,6 +78,12 @@ namespace Everlight.Tales.UI
         /// <summary>当前盘面事件的盘面配置。</summary>
         public LevelBoardConfig CurrentBoardConfig { get; private set; }
 
+        /// <summary>准备阶段暂存的携带选择（P2-007，确认后建盘面并清空）。</summary>
+        public CarrySelection PendingCarry { get; private set; }
+
+        /// <summary>准备阶段暂存的事件配置（P2-007，确认后 Begin 并清空）。</summary>
+        public RepairEventConfig PendingEventConfig { get; private set; }
+
         /// <summary>当前试机事件（T-G01~04，借用样机）。</summary>
         public TrialInstance CurrentTrial { get; private set; }
 
@@ -185,8 +191,11 @@ namespace Everlight.Tales.UI
             PlayerPrefs.Save();
         }
 
-        /// <summary>开始卷帘门事件（EV-N01）：构建盘面与关卡运行时，进入准备完成态。</summary>
-        public RepairEventInstance StartRollerDoor()
+        /// <summary>
+        /// 准备卷帘门事件（EV-N01，P2-007）：创建盘面配置 + 事件配置 + 携带选择并暂存，
+        /// 供准备页展示与调整；不建盘面、不进盘面。确认后调用 <see cref="ConfirmRollerDoor"/>。
+        /// </summary>
+        public LevelBoardConfig PrepareRollerDoor()
         {
             LevelBoardConfig boardConfig = RollerDoorEvent.CreateBoardConfig();
             RepairEventConfig eventConfig = RollerDoorEvent.CreateConfig();
@@ -197,11 +206,25 @@ namespace Everlight.Tales.UI
                 keyParts.Add(key.PartType);
             }
 
-            CarrySelection carry = new CarrySelection(World.OwnedParts, boardConfig.BorrowedParts, keyParts);
-            BoardState board = InitialBoardBuilder.Build(boardConfig, carry.SelectedParts(), Rng);
-
+            PendingCarry = new CarrySelection(World.OwnedParts, boardConfig.BorrowedParts, keyParts);
+            PendingEventConfig = eventConfig;
             CurrentBoardConfig = boardConfig;
-            CurrentEvent = RepairEventShell.Begin(eventConfig, board);
+            return boardConfig;
+        }
+
+        /// <summary>
+        /// 确认卷帘门事件（P2-007）：用准备页调整后的携带选择建盘面并 Begin 事件。
+        /// 未先 <see cref="PrepareRollerDoor"/> 或已确认过则返回 null。
+        /// </summary>
+        public RepairEventInstance ConfirmRollerDoor()
+        {
+            if (CurrentBoardConfig == null || PendingCarry == null || PendingEventConfig == null)
+            {
+                return null;
+            }
+
+            BoardState board = InitialBoardBuilder.Build(CurrentBoardConfig, PendingCarry.SelectedParts(), Rng);
+            CurrentEvent = RepairEventShell.Begin(PendingEventConfig, board);
 
             // 注入四选一累计的机械臂次数奖励（跨事件保留，注入后清零）。
             if (PendingArmMoves > 0)
@@ -210,7 +233,16 @@ namespace Everlight.Tales.UI
                 PendingArmMoves = 0;
             }
 
+            PendingCarry = null;
+            PendingEventConfig = null;
             return CurrentEvent;
+        }
+
+        /// <summary>开始卷帘门事件（EV-N01）：准备 + 确认一步到位（快捷路径，供无准备页调用）。</summary>
+        public RepairEventInstance StartRollerDoor()
+        {
+            PrepareRollerDoor();
+            return ConfirmRollerDoor();
         }
 
         /// <summary>

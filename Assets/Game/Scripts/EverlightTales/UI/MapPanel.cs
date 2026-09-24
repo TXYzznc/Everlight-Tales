@@ -217,8 +217,8 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            session.StartRollerDoor();
-            GF.UI.OpenUIForm(UIViews.BoardPage);
+            session.PrepareRollerDoor();
+            GF.UI.OpenUIForm(UIViews.PreparationPage);
         }
 
         private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)
