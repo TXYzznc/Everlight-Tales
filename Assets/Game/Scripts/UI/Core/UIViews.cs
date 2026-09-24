@@ -9,5 +9,6 @@ public enum UIViews : int
 	BoardPage = 3,
 	PreparationPage = 4,
 	SettlementPage = 5,
-	Settings = 6
+	Settings = 6,
+	SaveSlotPage = 7
 }

@@ -8,3 +8,4 @@
 	4		20	PreparationPage	True	1	True
 	5		30	SettlementPage	True	1	True
 	6		50	Settings	True	1	True
+	7		5	SaveSlotPage	True	1	False

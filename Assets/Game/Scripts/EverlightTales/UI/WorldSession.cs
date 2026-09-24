@@ -40,6 +40,18 @@ namespace Everlight.Tales.UI
         private const string KeyDisplay = "et.world.display";
         private const string KeyJobs = "et.world.jobs";
         private const string KeyTutorialStage = "et.world.tutorialStage";
+        private const string KeySlotMetaPrefix = "et.world.meta.";
+
+        /// <summary>存档位（1~3，1=原单存档键，向后兼容老档）。</summary>
+        public int Slot { get; private set; } = 1;
+
+        /// <summary>把存档键按存档位加后缀：slot&lt;=1 用原键，slot&gt;1 换成 et.world.{slot}.* 前缀。</summary>
+        private static string SlotKey(string key, int slot)
+        {
+            return slot <= 1 ? key : key.Replace("et.world.", "et.world." + slot + ".");
+        }
+
+        private static string SlotMetaKey(int slot) => KeySlotMetaPrefix + slot;
 
         /// <summary>
         /// 四条改装支线任务模板（P4-013）：F 类四形态的图样任务，任务页领奖发 T-G01~T-G04 图样。
@@ -111,7 +123,7 @@ namespace Everlight.Tales.UI
         public bool HasAttemptSave => false;
 
         /// <summary>新档：建世界 + 开局地图 + 初始零件 + 刷新供给。</summary>
-        public static WorldSession NewGame(int seed)
+        public static WorldSession NewGame(int seed, int slot = 1)
         {
             var s = new WorldSession
             {
@@ -121,6 +133,7 @@ namespace Everlight.Tales.UI
                 Intro = new RedShoeIntroService(),
                 Opening = new OpeningService(),
                 HeldBuffs = new BuffSet(),
+                Slot = slot,
                 IsNewGame = true,
             };
             s.RegisterMap();
@@ -132,10 +145,10 @@ namespace Everlight.Tales.UI
             return s;
         }
 
-        /// <summary>有存档则恢复，无存档则新档。</summary>
-        public static WorldSession LoadOrNew(int seed)
+        /// <summary>有存档则恢复，无存档则新档（slot 默认 1，兼容原单存档入口）。</summary>
+        public static WorldSession LoadOrNew(int seed, int slot = 1)
         {
-            return HasSave() ? Restore(seed) : NewGame(seed);
+            return HasSave(slot) ? Restore(seed, slot) : NewGame(seed, slot);
         }
 
         /// <summary>
@@ -173,14 +186,15 @@ namespace Everlight.Tales.UI
 
         public void Save()
         {
-            PlayerPrefs.SetInt(KeyDay, World.Day);
-            PlayerPrefs.SetInt(KeyPeriod, (int)World.Period);
-            PlayerPrefs.SetInt(KeyRepairFee, World.RepairFee);
-            PlayerPrefs.SetInt(KeyBatch, World.BatchNumber);
-            PlayerPrefs.SetInt(KeyTutorial, World.TutorialComplete ? 1 : 0);
+            int slot = Slot;
+            PlayerPrefs.SetInt(SlotKey(KeyDay, slot), World.Day);
+            PlayerPrefs.SetInt(SlotKey(KeyPeriod, slot), (int)World.Period);
+            PlayerPrefs.SetInt(SlotKey(KeyRepairFee, slot), World.RepairFee);
+            PlayerPrefs.SetInt(SlotKey(KeyBatch, slot), World.BatchNumber);
+            PlayerPrefs.SetInt(SlotKey(KeyTutorial, slot), World.TutorialComplete ? 1 : 0);
 
-            PlayerPrefs.SetString(KeyOwned, JoinParts(World.OwnedParts));
-            PlayerPrefs.SetString(KeyKnown, JoinParts(World.KnownParts));
+            PlayerPrefs.SetString(SlotKey(KeyOwned, slot), JoinParts(World.OwnedParts));
+            PlayerPrefs.SetString(SlotKey(KeyKnown, slot), JoinParts(World.KnownParts));
 
             var materials = new List<string>();
             foreach (MaterialStack stack in World.Materials.Stacks)
@@ -188,9 +202,9 @@ namespace Everlight.Tales.UI
                 materials.Add(stack.MaterialId + ":" + stack.Count + ":" + (stack.SourceCase ?? ""));
             }
 
-            PlayerPrefs.SetString(KeyMaterials, string.Join(";", materials));
-            PlayerPrefs.SetString(KeyBlueprints, string.Join(",", World.Blueprints));
-            PlayerPrefs.SetString(KeyForms, string.Join(",", World.UnlockedForms));
+            PlayerPrefs.SetString(SlotKey(KeyMaterials, slot), string.Join(";", materials));
+            PlayerPrefs.SetString(SlotKey(KeyBlueprints, slot), string.Join(",", World.Blueprints));
+            PlayerPrefs.SetString(SlotKey(KeyForms, slot), string.Join(",", World.UnlockedForms));
 
             var currentForms = new List<string>();
             foreach (var pair in World.CurrentForms)
@@ -201,7 +215,7 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            PlayerPrefs.SetString(KeyCurrentForms, string.Join(";", currentForms));
+            PlayerPrefs.SetString(SlotKey(KeyCurrentForms, slot), string.Join(";", currentForms));
 
             var tasks = new List<string>();
             foreach (TaskState task in World.Tasks)
@@ -209,7 +223,7 @@ namespace Everlight.Tales.UI
                 tasks.Add(task.Config.Id + ":" + (int)task.Kind + ":" + task.CurrentStep);
             }
 
-            PlayerPrefs.SetString(KeyTasks, string.Join(";", tasks));
+            PlayerPrefs.SetString(SlotKey(KeyTasks, slot), string.Join(";", tasks));
 
             var displays = new List<string>();
             foreach (DisplayItem item in World.DisplayItems)
@@ -217,9 +231,10 @@ namespace Everlight.Tales.UI
                 displays.Add(item.Id + ":" + item.Name + ":" + (int)item.Kind + ":" + item.Source + ":" + item.ObtainedDay);
             }
 
-            PlayerPrefs.SetString(KeyDisplay, string.Join(";", displays));
-            PlayerPrefs.SetInt(KeyJobs, World.SuccessfulJobs);
-            PlayerPrefs.SetInt(KeyTutorialStage, World.TutorialStage);
+            PlayerPrefs.SetString(SlotKey(KeyDisplay, slot), string.Join(";", displays));
+            PlayerPrefs.SetInt(SlotKey(KeyJobs, slot), World.SuccessfulJobs);
+            PlayerPrefs.SetInt(SlotKey(KeyTutorialStage, slot), World.TutorialStage);
+            PlayerPrefs.SetString(SlotMetaKey(slot), DateTime.UtcNow.ToString("O"));
             PlayerPrefs.Save();
         }
 
@@ -572,38 +587,39 @@ namespace Everlight.Tales.UI
             return null;
         }
 
-        private static bool HasSave()
+        private static bool HasSave(int slot)
         {
-            return PlayerPrefs.HasKey(KeyDay);
+            return PlayerPrefs.HasKey(SlotKey(KeyDay, slot));
         }
 
-        private static WorldSession Restore(int seed)
+        private static WorldSession Restore(int seed, int slot)
         {
-            int day = PlayerPrefs.GetInt(KeyDay, 1);
-            var period = (TimeOfDay)PlayerPrefs.GetInt(KeyPeriod, (int)TimeOfDay.Morning);
+            int day = PlayerPrefs.GetInt(SlotKey(KeyDay, slot), 1);
+            var period = (TimeOfDay)PlayerPrefs.GetInt(SlotKey(KeyPeriod, slot), (int)TimeOfDay.Morning);
 
             var s = new WorldSession
             {
                 World = new WorldState(day, period)
                 {
-                    RepairFee = PlayerPrefs.GetInt(KeyRepairFee, 0),
-                    BatchNumber = PlayerPrefs.GetInt(KeyBatch, 1),
-                    TutorialComplete = PlayerPrefs.GetInt(KeyTutorial, 0) != 0,
+                    RepairFee = PlayerPrefs.GetInt(SlotKey(KeyRepairFee, slot), 0),
+                    BatchNumber = PlayerPrefs.GetInt(SlotKey(KeyBatch, slot), 1),
+                    TutorialComplete = PlayerPrefs.GetInt(SlotKey(KeyTutorial, slot), 0) != 0,
                 },
                 Time = new TimeState(day, period, TimeState.CellsPerPeriod),
                 Rng = new RandomService(seed),
                 Intro = new RedShoeIntroService(),
                 Opening = new OpeningService(),
                 HeldBuffs = new BuffSet(),
+                Slot = slot,
                 IsNewGame = false,
             };
 
             s.RegisterMap();
 
-            ParseParts(PlayerPrefs.GetString(KeyOwned, ""), s.World.OwnedParts);
-            ParseParts(PlayerPrefs.GetString(KeyKnown, ""), s.World.KnownParts);
+            ParseParts(PlayerPrefs.GetString(SlotKey(KeyOwned, slot), ""), s.World.OwnedParts);
+            ParseParts(PlayerPrefs.GetString(SlotKey(KeyKnown, slot), ""), s.World.KnownParts);
 
-            foreach (string item in PlayerPrefs.GetString(KeyMaterials, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string item in PlayerPrefs.GetString(SlotKey(KeyMaterials, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] parts = item.Split(':');
                 if (parts.Length >= 2 && int.TryParse(parts[1], out int count))
@@ -612,17 +628,17 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            foreach (string id in PlayerPrefs.GetString(KeyBlueprints, "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string id in PlayerPrefs.GetString(SlotKey(KeyBlueprints, slot), "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 s.World.Blueprints.Add(id);
             }
 
-            foreach (string id in PlayerPrefs.GetString(KeyForms, "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string id in PlayerPrefs.GetString(SlotKey(KeyForms, slot), "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 s.World.UnlockedForms.Add(id);
             }
 
-            foreach (string item in PlayerPrefs.GetString(KeyCurrentForms, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string item in PlayerPrefs.GetString(SlotKey(KeyCurrentForms, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] parts = item.Split(':');
                 if (parts.Length >= 2 && int.TryParse(parts[0], out int host) && host != 0)
@@ -632,10 +648,10 @@ namespace Everlight.Tales.UI
             }
 
             RestoreTasks(s.World);
-            s.World.SuccessfulJobs = PlayerPrefs.GetInt(KeyJobs, 0);
-            s.World.TutorialStage = PlayerPrefs.GetInt(KeyTutorialStage, 0);
+            s.World.SuccessfulJobs = PlayerPrefs.GetInt(SlotKey(KeyJobs, slot), 0);
+            s.World.TutorialStage = PlayerPrefs.GetInt(SlotKey(KeyTutorialStage, slot), 0);
 
-            foreach (string item in PlayerPrefs.GetString(KeyDisplay, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string item in PlayerPrefs.GetString(SlotKey(KeyDisplay, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] parts = item.Split(':');
                 if (parts.Length >= 5 && int.TryParse(parts[2], out int kind) && int.TryParse(parts[4], out int obtainedDay))

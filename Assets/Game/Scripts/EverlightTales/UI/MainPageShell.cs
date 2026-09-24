@@ -68,7 +68,11 @@ namespace Everlight.Tales.UI
             }
 
             // 初始化世界会话（新档/继续），再装配地图页签。
-            WorldSession.LoadOrNew(WorldSession.DemoSeed);
+            // 标题页（SaveSlotPage）已选档时 Current 已存在，直接复用；否则回退到 slot 1。
+            if (WorldSession.Current == null)
+            {
+                WorldSession.LoadOrNew(WorldSession.DemoSeed);
+            }
             m_Content = FindContent();
 
             SelectTab(0);

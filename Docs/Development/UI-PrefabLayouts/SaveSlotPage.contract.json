@@ -1,0 +1,521 @@
+{
+ "schemaVersion": 3,
+ "form": "SaveSlotPage",
+ "namespace": "Everlight.Tales.UI",
+ "prefabPath": "Assets/Game/Prefabs/UI/SaveSlotPage.prefab",
+ "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/SaveSlotPage.cs",
+ "referenceResolution": [
+  1080,
+  1920
+ ],
+ "root": {
+  "name": "SaveSlotPage",
+  "components": [
+   {
+    "type": "SaveSlotPage"
+   },
+   {
+    "type": "Canvas",
+    "renderMode": 0
+   },
+   {
+    "type": "GraphicRaycaster"
+   },
+   {
+    "type": "CanvasGroup",
+    "alpha": 1.0,
+    "interactable": true,
+    "blocksRaycasts": true
+   }
+  ],
+  "anchorMin": [0.0, 0.0],
+  "anchorMax": [1.0, 1.0],
+  "pivot": [0.5, 0.5],
+  "sizeDelta": [0.0, 0.0],
+  "anchoredPosition": [0.0, 0.0],
+  "children": [
+   {
+    "name": "Panel_Background",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.0902, 0.1020, 0.1255, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 0.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 0.5],
+    "sizeDelta": [0.0, 0.0],
+    "anchoredPosition": [0.0, 0.0]
+   },
+   {
+    "name": "Txt_Title",
+    "components": [
+     {
+      "type": "TextMeshProUGUI",
+      "text": "常明奇谭",
+      "fontSize": 64.0,
+      "color": [0.8784, 0.6588, 0.3451, 1.0],
+      "raycastTarget": false,
+      "wordWrap": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 120.0],
+    "anchoredPosition": [0.0, -160.0]
+   },
+   {
+    "name": "Txt_Hint",
+    "components": [
+     {
+      "type": "TextMeshProUGUI",
+      "text": "选择存档位继续，或新建空位",
+      "fontSize": 26.0,
+      "color": [0.6784, 0.7098, 0.7529, 1.0],
+      "raycastTarget": false,
+      "wordWrap": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 60.0],
+    "anchoredPosition": [0.0, -290.0]
+   },
+   {
+    "name": "Panel_Slot1",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 180.0],
+    "anchoredPosition": [0.0, -380.0],
+    "children": [
+     {
+      "name": "Txt_Slot1",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "空存档位",
+        "fontSize": 30.0,
+        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 70.0],
+      "anchoredPosition": [0.0, -16.0]
+     },
+     {
+      "name": "Btn_Delete1",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1843, 0.2078, 0.2510, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [0.0, 0.0],
+      "pivot": [0.0, 0.0],
+      "sizeDelta": [160.0, 64.0],
+      "anchoredPosition": [40.0, 24.0],
+      "children": [
+       {
+        "name": "Txt_Delete1Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "删除",
+          "fontSize": 24.0,
+          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-16.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     },
+     {
+      "name": "Btn_Slot1",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       }
+      ],
+      "anchorMin": [1.0, 0.0],
+      "anchorMax": [1.0, 0.0],
+      "pivot": [1.0, 0.0],
+      "sizeDelta": [240.0, 64.0],
+      "anchoredPosition": [-40.0, 24.0],
+      "children": [
+       {
+        "name": "Txt_Slot1Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "新档",
+          "fontSize": 26.0,
+          "color": [0.0902, 0.1020, 0.1255, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-16.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Panel_Slot2",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 180.0],
+    "anchoredPosition": [0.0, -580.0],
+    "children": [
+     {
+      "name": "Txt_Slot2",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "空存档位",
+        "fontSize": 30.0,
+        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 70.0],
+      "anchoredPosition": [0.0, -16.0]
+     },
+     {
+      "name": "Btn_Delete2",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1843, 0.2078, 0.2510, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [0.0, 0.0],
+      "pivot": [0.0, 0.0],
+      "sizeDelta": [160.0, 64.0],
+      "anchoredPosition": [40.0, 24.0],
+      "children": [
+       {
+        "name": "Txt_Delete2Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "删除",
+          "fontSize": 24.0,
+          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-16.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     },
+     {
+      "name": "Btn_Slot2",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       }
+      ],
+      "anchorMin": [1.0, 0.0],
+      "anchorMax": [1.0, 0.0],
+      "pivot": [1.0, 0.0],
+      "sizeDelta": [240.0, 64.0],
+      "anchoredPosition": [-40.0, 24.0],
+      "children": [
+       {
+        "name": "Txt_Slot2Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "新档",
+          "fontSize": 26.0,
+          "color": [0.0902, 0.1020, 0.1255, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-16.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "Panel_Slot3",
+    "components": [
+     {
+      "type": "Image",
+      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "imageType": 1,
+      "raycastTarget": false,
+      "preserveAspect": false
+     }
+    ],
+    "anchorMin": [0.0, 1.0],
+    "anchorMax": [1.0, 1.0],
+    "pivot": [0.5, 1.0],
+    "sizeDelta": [-80.0, 180.0],
+    "anchoredPosition": [0.0, -780.0],
+    "children": [
+     {
+      "name": "Txt_Slot3",
+      "components": [
+       {
+        "type": "TextMeshProUGUI",
+        "text": "空存档位",
+        "fontSize": 30.0,
+        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "raycastTarget": false,
+        "wordWrap": false
+       }
+      ],
+      "anchorMin": [0.0, 1.0],
+      "anchorMax": [1.0, 1.0],
+      "pivot": [0.5, 1.0],
+      "sizeDelta": [-40.0, 70.0],
+      "anchoredPosition": [0.0, -16.0]
+     },
+     {
+      "name": "Btn_Delete3",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.1843, 0.2078, 0.2510, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       }
+      ],
+      "anchorMin": [0.0, 0.0],
+      "anchorMax": [0.0, 0.0],
+      "pivot": [0.0, 0.0],
+      "sizeDelta": [160.0, 64.0],
+      "anchoredPosition": [40.0, 24.0],
+      "children": [
+       {
+        "name": "Txt_Delete3Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "删除",
+          "fontSize": 24.0,
+          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-16.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     },
+     {
+      "name": "Btn_Slot3",
+      "components": [
+       {
+        "type": "Image",
+        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "imageType": 1,
+        "raycastTarget": true,
+        "preserveAspect": false
+       },
+       {
+        "type": "Button",
+        "transition": 1,
+        "interactable": true
+       }
+      ],
+      "anchorMin": [1.0, 0.0],
+      "anchorMax": [1.0, 0.0],
+      "pivot": [1.0, 0.0],
+      "sizeDelta": [240.0, 64.0],
+      "anchoredPosition": [-40.0, 24.0],
+      "children": [
+       {
+        "name": "Txt_Slot3Label",
+        "components": [
+         {
+          "type": "TextMeshProUGUI",
+          "text": "新档",
+          "fontSize": 26.0,
+          "color": [0.0902, 0.1020, 0.1255, 1.0],
+          "raycastTarget": false,
+          "wordWrap": false
+         }
+        ],
+        "anchorMin": [0.0, 0.0],
+        "anchorMax": [1.0, 1.0],
+        "pivot": [0.5, 0.5],
+        "sizeDelta": [-16.0, -8.0],
+        "anchoredPosition": [0.0, 0.0]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "bindings": [
+  {
+   "path": "_slot1Text",
+   "node": "SaveSlotPage/Panel_Slot1/Txt_Slot1",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_slot1Button",
+   "node": "SaveSlotPage/Panel_Slot1/Btn_Slot1",
+   "kind": "Button"
+  },
+  {
+   "path": "_slot1Label",
+   "node": "SaveSlotPage/Panel_Slot1/Btn_Slot1/Txt_Slot1Label",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_slot1Delete",
+   "node": "SaveSlotPage/Panel_Slot1/Btn_Delete1",
+   "kind": "Button"
+  },
+  {
+   "path": "_slot2Text",
+   "node": "SaveSlotPage/Panel_Slot2/Txt_Slot2",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_slot2Button",
+   "node": "SaveSlotPage/Panel_Slot2/Btn_Slot2",
+   "kind": "Button"
+  },
+  {
+   "path": "_slot2Label",
+   "node": "SaveSlotPage/Panel_Slot2/Btn_Slot2/Txt_Slot2Label",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_slot2Delete",
+   "node": "SaveSlotPage/Panel_Slot2/Btn_Delete2",
+   "kind": "Button"
+  },
+  {
+   "path": "_slot3Text",
+   "node": "SaveSlotPage/Panel_Slot3/Txt_Slot3",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_slot3Button",
+   "node": "SaveSlotPage/Panel_Slot3/Btn_Slot3",
+   "kind": "Button"
+  },
+  {
+   "path": "_slot3Label",
+   "node": "SaveSlotPage/Panel_Slot3/Btn_Slot3/Txt_Slot3Label",
+   "kind": "TextMeshProUGUI"
+  },
+  {
+   "path": "_slot3Delete",
+   "node": "SaveSlotPage/Panel_Slot3/Btn_Delete3",
+   "kind": "Button"
+  }
+ ],
+ "scalars": [],
+ "scriptFields": [],
+ "formArrays": {},
+ "generatedFrom": "手写契约（Everlight 单页竖屏标题页，3 个存档位卡片）"
+}

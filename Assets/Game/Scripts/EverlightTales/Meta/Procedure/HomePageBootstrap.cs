@@ -37,9 +37,10 @@ namespace Everlight.Tales.Procedure
             }
 
             // Home 加载完成时，框架预加载（UITable/UIGroupTable）已就绪，UI 系统可用。
+            // 先打开标题页（存档选择），选档后由 SaveSlotPage 打开主页壳。
             s_Opened = true;
             SceneManager.sceneLoaded -= OnSceneLoaded;
-            GF.UI.OpenUIForm(UIViews.MainPageShell);
+            GF.UI.OpenUIForm(UIViews.SaveSlotPage);
         }
     }
 }
