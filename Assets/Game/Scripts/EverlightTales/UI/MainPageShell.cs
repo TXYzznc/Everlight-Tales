@@ -73,6 +73,23 @@ namespace Everlight.Tales.UI
 
             SelectTab(0);
             ShowTab(0);
+
+            // 恢复面板：有未完成维修尝试时弹「继续/放弃」。
+            if (WorldSession.Current.HasAttemptSave)
+            {
+                GlobalUI.Confirm("恢复维修尝试", "检测到未完成的维修尝试，是否继续？", OnRecoveryContinue, OnRecoveryAbandon);
+            }
+        }
+
+        private void OnRecoveryContinue()
+        {
+            // 首版尝试存档未持久化，恢复逻辑待接入维修尝试存档时补齐。
+            GlobalUI.ShowToast("继续维修（首版尝试存档未持久化，暂跳过）");
+        }
+
+        private void OnRecoveryAbandon()
+        {
+            GlobalUI.ShowToast("已放弃维修尝试");
         }
 
         private void Update()

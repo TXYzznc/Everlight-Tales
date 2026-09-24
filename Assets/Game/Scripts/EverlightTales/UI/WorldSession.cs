@@ -104,6 +104,9 @@ namespace Everlight.Tales.UI
         /// <summary>当前昼/夜的一批普通供给。</summary>
         public IReadOnlyList<SupplyInstance> Supply => _supply;
 
+        /// <summary>是否有未完成的维修尝试存档（首版 PlayerPrefs 最简存档未持久化尝试，暂恒 false；恢复面板预留）。</summary>
+        public bool HasAttemptSave => false;
+
         /// <summary>新档：建世界 + 开局地图 + 初始零件 + 刷新供给。</summary>
         public static WorldSession NewGame(int seed)
         {

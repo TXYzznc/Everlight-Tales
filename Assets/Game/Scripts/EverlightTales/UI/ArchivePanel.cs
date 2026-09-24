@@ -81,10 +81,47 @@ namespace Everlight.Tales.UI
 
             y = AddHeader(y, "拥有物");
             y = AddRow(y, "维修费  " + world.RepairFee);
-            y = AddRow(y, "材料  " + world.Materials.Stacks.Count + " 种");
-            y = AddRow(y, "图样  " + world.Blueprints.Count);
+            y = AddHeader(y, "材料");
+            foreach (MaterialConfig m in MaterialCatalog.All())
+            {
+                int count = TotalMaterial(world.Materials, m);
+                y = AddRow(y, "· " + m.Name + " ×" + count, count > 0 ? Color.white : new Color(0.5f, 0.5f, 0.52f, 1f));
+            }
+
+            y = AddHeader(y, "图样");
+            if (world.Blueprints.Count == 0)
+            {
+                y = AddRow(y, "（无）", new Color(0.5f, 0.5f, 0.52f, 1f));
+            }
+            else
+            {
+                foreach (string bp in world.Blueprints)
+                {
+                    y = AddRow(y, "· " + bp);
+                }
+            }
+
             y = AddRow(y, "永久零件与形态  " + world.OwnedParts.Count + " 零件 / " + world.UnlockedForms.Count + " 形态");
             y = AddRow(y, "纪念物与档案  " + world.DisplayItems.Count);
+        }
+
+        private static int TotalMaterial(MaterialBackpack backpack, MaterialConfig material)
+        {
+            if (!material.IsTypedByCase)
+            {
+                return backpack.GetCount(material.Id);
+            }
+
+            int total = 0;
+            foreach (MaterialStack stack in backpack.Stacks)
+            {
+                if (stack.MaterialId == material.Id)
+                {
+                    total += stack.Count;
+                }
+            }
+
+            return total;
         }
 
         private static string KindLabel(DisplayKind kind)
