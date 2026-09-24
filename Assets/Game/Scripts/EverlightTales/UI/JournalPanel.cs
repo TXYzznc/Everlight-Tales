@@ -24,6 +24,8 @@ namespace Everlight.Tales.UI
         private RectTransform m_ListRoot;
         private readonly Button[] m_SubButtons = new Button[3];
 
+        private readonly TextMeshProUGUI[] m_SubBadges = new TextMeshProUGUI[3];
+
         public void Build()
         {
             var topGo = new GameObject("journal_top", typeof(RectTransform), typeof(Image));
@@ -46,6 +48,11 @@ namespace Everlight.Tales.UI
                 int index = i;
                 m_SubButtons[i] = UIFactory.MakeButton(topGo.transform, "sub_" + names[i], new Vector2(-430f + i * 150f, -24f), new Vector2(140f, 56f), names[i], 26);
                 m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
+
+                m_SubBadges[i] = UIFactory.MakeText(topGo.transform, "badge_" + names[i], new Vector2(-430f + i * 150f + 54f, -6f), new Vector2(36f, 26f), 20, TextAlignmentOptions.Center);
+                m_SubBadges[i].color = new Color(0.88f, 0.66f, 0.35f, 1f);
+                m_SubBadges[i].raycastTarget = false;
+                m_SubBadges[i].text = string.Empty;
             }
 
             var listGo = new GameObject("journal_list", typeof(RectTransform));
@@ -70,6 +77,9 @@ namespace Everlight.Tales.UI
             }
 
             m_BalanceLabel.text = "维修费 " + session.World.RepairFee;
+            m_SubBadges[0].text = BadgeText(CountActionableEvents(session));
+            m_SubBadges[1].text = BadgeText(CountClaimableTasks(session));
+            m_SubBadges[2].text = BadgeText(CountActiveCases(session));
             RebuildList();
         }
 
@@ -100,6 +110,56 @@ namespace Everlight.Tales.UI
                 case 1: BuildTaskPage(session); break;
                 default: BuildCasePage(session); break;
             }
+        }
+
+        // ---- 页签角标计数 ----
+
+        private static int CountActionableEvents(WorldSession session)
+        {
+            int count = 0;
+            foreach (SupplyInstance supply in session.Supply)
+            {
+                EventEntry entry = EventEntry.FromSupply(supply, "本城");
+                if (EventPageLayout.GroupOf(entry, session.Time.Period) == EventGroup.Actionable)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountClaimableTasks(WorldSession session)
+        {
+            int count = 0;
+            foreach (TaskState task in session.World.Tasks)
+            {
+                if (TaskPageLayout.GroupOf(task) == TaskGroup.Claimable)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static int CountActiveCases(WorldSession session)
+        {
+            int count = 0;
+            foreach (CaseState c in session.World.Cases)
+            {
+                if (c.Kind == CaseStateKind.Investigating || c.Kind == CaseStateKind.AwaitingRepair || c.Kind == CaseStateKind.Repairing)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static string BadgeText(int count)
+        {
+            return count > 0 ? count.ToString() : string.Empty;
         }
 
         // ---- 事件页 ----
