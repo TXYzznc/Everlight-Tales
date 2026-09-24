@@ -300,15 +300,17 @@ def render(p):
 
 
 def main():
-    os.makedirs(OUT_DIR, exist_ok=True)
     written = []
     for p in FORMS:
-        path = os.path.join(OUT_DIR, f"样张-形态{p['id']}{p['name']}.md")
+        sub = "形态/怪谈形态" if p["id"].startswith("M-") else "形态/通用形态"
+        out_dir = os.path.join(OUT_DIR, sub)
+        os.makedirs(out_dir, exist_ok=True)
+        path = os.path.join(out_dir, f"样张-形态{p['id']}{p['name']}.md")
         with open(path, "w", encoding="utf-8") as f:
             f.write(render(p))
         written.append(path)
         print(f"[WROTE] {os.path.basename(path)}")
-    print(f"\n共生成 {len(written)} 份形态样张文档 -> {OUT_DIR}")
+    print(f"\n共生成 {len(written)} 份形态样张文档（通用形态 + 怪谈形态）")
 
 
 if __name__ == "__main__":
