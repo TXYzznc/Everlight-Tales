@@ -1649,6 +1649,7 @@ MonoBehaviour:
   _duration: {fileID: 3067992404220507212}
   _rounds: {fileID: 742824311590905894}
   _previewSummary: {fileID: 6378627853681178100}
+  _previewContent: {fileID: 7075220048606900539}
   _availableContent: {fileID: 1212054586866948527}
   _availableItemTemplate: {fileID: 9071914631955267707}
   _confirmButton: {fileID: 4617034439755432220}

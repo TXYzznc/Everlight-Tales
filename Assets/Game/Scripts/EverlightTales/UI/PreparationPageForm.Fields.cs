@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,6 +23,8 @@ namespace Everlight.Tales.UI
         public TMP_Text Rounds => _rounds;
         [SerializeField] private TMP_Text _previewSummary;
         public TMP_Text PreviewSummary => _previewSummary;
+        [SerializeField] private RectTransform _previewContent;
+        public RectTransform PreviewContent => _previewContent;
         [SerializeField] private RectTransform _availableContent;
         public RectTransform AvailableContent => _availableContent;
         [SerializeField] private GameObject _availableItemTemplate;

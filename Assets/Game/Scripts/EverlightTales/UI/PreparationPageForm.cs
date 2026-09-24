@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
 using Everlight.Tales.Events;
@@ -57,6 +57,8 @@ namespace Everlight.Tales.UI
                 "半径 {0} · 固定元素 {1} · 关键件 {2}",
                 preview.BoardRadius, preview.FixedElements.Count, preview.KeyPieces.Count);
 
+            RenderPreview(preview);
+
             BuildAvailableList(session.PendingCarry);
             RefreshCarry();
         }
@@ -97,6 +99,22 @@ namespace Everlight.Tales.UI
             }
 
             return sb.ToString();
+        }
+
+        private void RenderPreview(PreviewModel preview)
+        {
+            if (preview == null || PreviewContent == null)
+            {
+                return;
+            }
+
+            PreviewBoardView view = PreviewContent.GetComponent<PreviewBoardView>();
+            if (view == null)
+            {
+                view = PreviewContent.gameObject.AddComponent<PreviewBoardView>();
+            }
+
+            view.Render(preview);
         }
 
         private void BuildAvailableList(CarrySelection carry)

@@ -774,6 +774,11 @@
    "kind": "TextMeshProUGUI"
   },
   {
+   "path": "_previewContent",
+   "node": "PreparationPageForm/Panel_Preview/Panel_PreviewContent",
+   "kind": "RectTransform"
+  },
+  {
    "path": "_availableContent",
    "node": "PreparationPageForm/Panel_Carry/List_CarryAvailable/Viewport_CarryAvailable/Content_CarryAvailable",
    "kind": "RectTransform"
