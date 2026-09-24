@@ -283,14 +283,24 @@ namespace Everlight.Tales.UI
             if (card.IsBase)
             {
                 FormService.SwitchCurrent(session.World, m_SelectedHost, FormService.BaseFormId);
+                GlobalUI.ShowToast("已切换为基础形态");
             }
             else if (card.State == FormCardState.Unlocked)
             {
                 FormService.SwitchCurrent(session.World, m_SelectedHost, card.Id);
+                GlobalUI.ShowToast("已切换：" + card.Name);
             }
             else if (card.State == FormCardState.Craftable)
             {
-                FormService.Unlock(session.World, FormCatalog.Get(card.Id), session.Time.Day);
+                UnlockResult result = FormService.Unlock(session.World, FormCatalog.Get(card.Id), session.Time.Day);
+                if (result.Success)
+                {
+                    GlobalUI.ShowUnlock("新形态", card.Name + (result.AutoSetCurrent ? "（已设为当前使用）" : ""));
+                }
+                else if (result.Insufficient)
+                {
+                    GlobalUI.ShowToast("维修费或材料不足");
+                }
             }
 
             session.Save();

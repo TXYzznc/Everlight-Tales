@@ -441,9 +441,27 @@ namespace Everlight.Tales.UI
             if (result.Success)
             {
                 Save();
+                ShowRevisitUnlock(state.Config.RevisitBlueprints);
             }
 
             return result;
+        }
+
+        private static void ShowRevisitUnlock(IReadOnlyList<string> blueprints)
+        {
+            if (blueprints == null || blueprints.Count == 0)
+            {
+                return;
+            }
+
+            var names = new List<string>();
+            foreach (string blueprint in blueprints)
+            {
+                FormConfig form = FormCatalog.FindByBlueprint(blueprint);
+                names.Add(form != null ? form.Name : blueprint);
+            }
+
+            GlobalUI.ShowUnlock("获得图样", string.Join("、", names));
         }
 
         /// <summary>演示入口：确保红舞鞋 L-01 已解决（待回访）并配置回访奖励（D-085）。</summary>
@@ -522,6 +540,9 @@ namespace Everlight.Tales.UI
             bool ok = TutorialService.CompleteStage(World, stageIndex);
             if (ok)
             {
+                PartType part = TutorialService.StagePart(stageIndex);
+                PartCodexConfig codex = PartCodexCatalog.Get(part);
+                GlobalUI.ShowUnlock("新零件", codex != null ? codex.Name : part.ToString());
                 Save();
             }
 

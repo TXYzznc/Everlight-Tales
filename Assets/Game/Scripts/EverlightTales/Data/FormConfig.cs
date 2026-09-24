@@ -263,6 +263,25 @@ namespace Everlight.Tales.Data
             return null;
         }
 
+        /// <summary>按图样 ID 反查形态（蓝图 → 形态），找不到返回 null。</summary>
+        public static FormConfig FindByBlueprint(string blueprintId)
+        {
+            if (string.IsNullOrEmpty(blueprintId))
+            {
+                return null;
+            }
+
+            foreach (FormConfig f in _forms)
+            {
+                if (f.BlueprintId == blueprintId)
+                {
+                    return f;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>某宿主零件的全部形态（不含基础形态）。</summary>
         public static IReadOnlyList<FormConfig> OfHost(PartType hostPart)
         {

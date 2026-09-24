@@ -38,6 +38,12 @@ namespace Everlight.Tales.UI
             return GF.UI.OpenUIForm(UIViews.DialogView, p);
         }
 
+        /// <summary>解锁反馈（新零件/图样/形态）：标题带「解锁」前缀的单按钮弹窗。</summary>
+        public static int ShowUnlock(string title, string content)
+        {
+            return ShowDialog("解锁 · " + title, content);
+        }
+
         public static void ShowToast(string message)
         {
             EnsureRoot().ShowToast(message);
