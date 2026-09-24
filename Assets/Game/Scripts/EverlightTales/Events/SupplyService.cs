@@ -11,12 +11,14 @@ namespace Everlight.Tales.Events
         public SupplyCandidate Template;
         public bool Night;
         public bool Processed;
+        public string PlaceId;
 
         public SupplyInstance(string instanceId, SupplyCandidate template, bool night)
         {
             InstanceId = instanceId;
             Template = template;
             Night = night;
+            PlaceId = template.PlaceId;
         }
     }
 

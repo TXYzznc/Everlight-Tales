@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Text;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
+using Everlight.Tales.Events;
 using Everlight.Tales.Meta;
 using UnityEngine;
 using UnityEngine.UI;
@@ -280,7 +282,48 @@ namespace Everlight.Tales.UI
                     StartRollerDoor);
             }
 
+            // 普通供给按地点落到事件卡。
+            foreach (SupplyInstance supply in session.Supply)
+            {
+                if (supply.PlaceId == m_SelectedPlaceId)
+                {
+                    SupplyInstance captured = supply;
+                    AddEventEntry(supply.Template.Name, EventEntry.KindText(supply.Template.Kind), supply.Template.TimeCost + " 格",
+                        BuildSupplyDetail(supply), () => StartSupply(captured), supply.Template.OpenPeriods);
+                }
+            }
+
             m_WaitButton.gameObject.SetActive(true);
+        }
+
+        private static string BuildSupplyDetail(SupplyInstance supply)
+        {
+            var sb = new StringBuilder();
+            sb.Append(supply.Template.Name).Append('\n');
+            sb.Append("类型：").Append(EventEntry.KindText(supply.Template.Kind)).Append('\n');
+            sb.Append("耗时：").Append(supply.Template.TimeCost).Append(" 格\n");
+            if (supply.Template.OpenPeriods != null && supply.Template.OpenPeriods.Length > 0)
+            {
+                sb.Append("开放时段：");
+                for (int i = 0; i < supply.Template.OpenPeriods.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append('、');
+                    }
+
+                    sb.Append(TimePeriod.DisplayName(supply.Template.OpenPeriods[i]));
+                }
+                sb.Append('\n');
+            }
+
+            sb.Append("奖励：").Append(supply.Template.RewardFee).Append(" 维修费");
+            return sb.ToString();
+        }
+
+        private static void StartSupply(SupplyInstance supply)
+        {
+            GlobalUI.ShowToast("开始处理（待接入）：" + supply.Template.Name);
         }
 
         private static string PlaceStatusText(PlaceNodeStatus status)
@@ -350,7 +393,7 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private void AddEventEntry(string name, string typeLabel, string timeLabel, string detail, System.Action onStart)
+        private void AddEventEntry(string name, string typeLabel, string timeLabel, string detail, System.Action onStart, TimeOfDay[] openPeriods = null)
         {
             var entry = new PlaceEventEntry
             {
@@ -378,10 +421,31 @@ namespace Everlight.Tales.UI
 
             TextMeshProUGUI metaText = MakeText(card.transform, "meta", new Vector2(-420f, -16f), new Vector2(760f, 24f), 16, TextAlignmentOptions.Left);
             metaText.color = new Color(0.68f, 0.71f, 0.75f, 1f);
-            metaText.text = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
+            string meta = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
+            if (openPeriods != null && openPeriods.Length > 0)
+            {
+                meta += " · " + BuildPeriodsText(openPeriods);
+            }
+            metaText.text = meta;
 
             var captured = entry;
             card.GetComponent<Button>().onClick.AddListener(() => OnEventClicked(captured));
+        }
+
+        private static string BuildPeriodsText(TimeOfDay[] periods)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < periods.Length; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append('/');
+                }
+
+                sb.Append(TimePeriod.DisplayName(periods[i]));
+            }
+
+            return sb.ToString();
         }
 
         private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)
