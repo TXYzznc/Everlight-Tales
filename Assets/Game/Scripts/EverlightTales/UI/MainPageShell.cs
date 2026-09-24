@@ -222,6 +222,7 @@ namespace Everlight.Tales.UI
             if (m_Home == null)
             {
                 m_Home = CreatePanelGo("home_panel").AddComponent<HomePanel>();
+                m_Home.OnNavigate = ShowTab;
                 m_Home.Build();
             }
 

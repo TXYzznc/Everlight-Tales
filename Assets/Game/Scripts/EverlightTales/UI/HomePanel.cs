@@ -1,13 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 namespace Everlight.Tales.UI
 {
     /// <summary>
     /// 家园五区（b28，P4-008）：来客 / 加工 / 收藏 / 保管 / 服务五区导航。
-    /// 加工复用 WorkbenchPanel、收藏复用 CodexPanel、保管复用 ArchivePanel（新），
-    /// 来客 / 服务首版为只读占位（不经营客流、不计算好感）。挂在 MainPageShell 内容容器。
+    /// 加工复用 WorkbenchPanel、收藏复用 CodexPanel、保管复用 ArchivePanel（新）；
+    /// 来客（GuestPanel）/ 服务（ServicePanel）为轻量入口（批 19，不做经营数值）。
+    /// 挂在 MainPageShell 内容容器。
     /// </summary>
     public sealed class HomePanel : MonoBehaviour
     {
@@ -22,8 +22,11 @@ namespace Everlight.Tales.UI
         private WorkbenchPanel m_Workbench;
         private CodexPanel m_Codex;
         private ArchivePanel m_Archive;
-        private TextMeshProUGUI m_GuestText;
-        private TextMeshProUGUI m_ServiceText;
+        private GuestPanel m_Guest;
+        private ServicePanel m_Service;
+
+        /// <summary>跳主壳页签回调（0 地图 / 1 任务），由 MainPageShell 注入。</summary>
+        public System.Action<int> OnNavigate;
 
         public void Build()
         {
@@ -59,9 +62,6 @@ namespace Everlight.Tales.UI
             areaRt.sizeDelta = new Vector2(0f, -ZoneBarHeight);
             m_ContentArea = areaRt;
 
-            m_GuestText = MakePlaceholder("占位：首版暂不经营客流，来客区留待内容批接入。");
-            m_ServiceText = MakePlaceholder("占位：首版暂无服务，服务区留待内容批接入。");
-
             ShowZone(2); // 默认落在「收藏」区（保留原图鉴用途）。
         }
 
@@ -80,9 +80,11 @@ namespace Everlight.Tales.UI
 
             switch (index)
             {
+                case 0: BuildGuest(); break;
                 case 1: BuildWorkbench(); break;
                 case 2: BuildCodex(); break;
                 case 3: BuildArchive(); break;
+                case 4: BuildService(); break;
             }
 
             ToggleVisibility();
@@ -97,6 +99,7 @@ namespace Everlight.Tales.UI
 
             switch (m_Zone)
             {
+                case 0: if (m_Guest != null) m_Guest.Refresh(); break;
                 case 1: if (m_Workbench != null) m_Workbench.Refresh(); break;
                 case 2: if (m_Codex != null) m_Codex.Refresh(); break;
                 case 3: if (m_Archive != null) m_Archive.Refresh(); break;
@@ -105,14 +108,14 @@ namespace Everlight.Tales.UI
 
         private void ToggleVisibility()
         {
-            if (m_GuestText != null)
+            if (m_Guest != null)
             {
-                m_GuestText.gameObject.SetActive(m_Zone == 0);
+                m_Guest.gameObject.SetActive(m_Zone == 0);
             }
 
-            if (m_ServiceText != null)
+            if (m_Service != null)
             {
-                m_ServiceText.gameObject.SetActive(m_Zone == 4);
+                m_Service.gameObject.SetActive(m_Zone == 4);
             }
 
             if (m_Workbench != null)
@@ -164,6 +167,28 @@ namespace Everlight.Tales.UI
             m_Archive.Build();
         }
 
+        private void BuildGuest()
+        {
+            if (m_Guest != null)
+            {
+                return;
+            }
+
+            m_Guest = CreateSub<GuestPanel>("guest_panel");
+            m_Guest.Build(index => OnNavigate?.Invoke(index));
+        }
+
+        private void BuildService()
+        {
+            if (m_Service != null)
+            {
+                return;
+            }
+
+            m_Service = CreateSub<ServicePanel>("service_panel");
+            m_Service.Build();
+        }
+
         private T CreateSub<T>(string name) where T : Component
         {
             var go = new GameObject(name, typeof(RectTransform));
@@ -177,24 +202,5 @@ namespace Everlight.Tales.UI
             return go.AddComponent<T>();
         }
 
-        private TextMeshProUGUI MakePlaceholder(string message)
-        {
-            var go = new GameObject("zone_placeholder", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(m_ContentArea, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 0.5f);
-            rt.anchorMax = new Vector2(1f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(-80f, 120f);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = 26;
-            text.color = new Color(0.6f, 0.6f, 0.62f, 1f);
-            text.alignment = TextAlignmentOptions.Center;
-            text.raycastTarget = false;
-            text.text = message;
-            return text;
-        }
     }
 }

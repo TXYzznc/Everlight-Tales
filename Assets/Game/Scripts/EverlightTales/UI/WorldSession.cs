@@ -541,6 +541,12 @@ namespace Everlight.Tales.UI
             }
         }
 
+        /// <summary>按 ID 查案件状态（供来客区等 UI 读取，不改变状态）。</summary>
+        public CaseState GetCase(string caseId)
+        {
+            return FindCase(caseId);
+        }
+
         private CaseState FindCase(string caseId)
         {
             foreach (CaseState state in World.Cases)
