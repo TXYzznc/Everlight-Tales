@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -10,10 +11,10 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class DialogView : UIFormBase
     {
-        [SerializeField] private Text m_TitleText = null;
-        [SerializeField] private Text m_ContentText = null;
+        [SerializeField] private TextMeshProUGUI m_TitleText = null;
+        [SerializeField] private TextMeshProUGUI m_ContentText = null;
         [SerializeField] private Button[] m_Buttons = null;
-        [SerializeField] private Text[] m_ButtonLabels = null;
+        [SerializeField] private TextMeshProUGUI[] m_ButtonLabels = null;
 
         private bool m_ResultConsumed = false;
 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -62,15 +63,15 @@ namespace Everlight.Tales.UI
             m_LoadingRoot = loadingGo;
             m_LoadingRoot.SetActive(false);
 
-            var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
+            var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(loadingGo.transform, false);
             Stretch(labelGo.GetComponent<RectTransform>());
-            var label = labelGo.GetComponent<Text>();
+            var label = labelGo.GetComponent<TextMeshProUGUI>();
             label.text = "加载中…";
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.font = TMP_Settings.defaultFontAsset;
             label.fontSize = 48;
             label.color = Color.white;
-            label.alignment = TextAnchor.MiddleCenter;
+            label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
         }
 
@@ -118,15 +119,15 @@ namespace Everlight.Tales.UI
             var rt = go.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(680f, 84f);
 
-            var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
+            var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
             Stretch(labelGo.GetComponent<RectTransform>());
-            var label = labelGo.GetComponent<Text>();
+            var label = labelGo.GetComponent<TextMeshProUGUI>();
             label.text = string.Empty;
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.font = TMP_Settings.defaultFontAsset;
             label.fontSize = 32;
             label.color = Color.white;
-            label.alignment = TextAnchor.MiddleCenter;
+            label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
 
             return go.GetComponent<ToastItem>();

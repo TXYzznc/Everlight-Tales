@@ -3,6 +3,7 @@ using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -17,9 +18,9 @@ namespace Everlight.Tales.UI
 
         private CityMapView m_MapView;
 
-        private Text m_PlaceLabel;
+        private TextMeshProUGUI m_PlaceLabel;
 
-        private Text m_EventLabel;
+        private TextMeshProUGUI m_EventLabel;
 
         private Button m_StartButton;
 
@@ -87,14 +88,14 @@ namespace Everlight.Tales.UI
             m_TimeBar.DayPeriodLabel.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             m_TimeBar.DayPeriodLabel.rectTransform.anchoredPosition = new Vector2(20f, 10f);
             m_TimeBar.DayPeriodLabel.rectTransform.sizeDelta = new Vector2(0f, 40f);
-            m_TimeBar.DayPeriodLabel.alignment = TextAnchor.MiddleLeft;
+            m_TimeBar.DayPeriodLabel.alignment = TextAlignmentOptions.Left;
             m_TimeBar.DayPeriodLabel.fontSize = 26;
             // 右：剩N/4
             m_TimeBar.RemainingLabel.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             m_TimeBar.RemainingLabel.rectTransform.anchorMax = new Vector2(1f, 0.5f);
             m_TimeBar.RemainingLabel.rectTransform.anchoredPosition = new Vector2(-20f, 10f);
             m_TimeBar.RemainingLabel.rectTransform.sizeDelta = new Vector2(0f, 40f);
-            m_TimeBar.RemainingLabel.alignment = TextAnchor.MiddleRight;
+            m_TimeBar.RemainingLabel.alignment = TextAlignmentOptions.Right;
             m_TimeBar.RemainingLabel.fontSize = 26;
             // 中：四时段格
             for (int i = 0; i < m_TimeBar.PeriodCells.Length; i++)
@@ -141,8 +142,8 @@ namespace Everlight.Tales.UI
             var bg = go.AddComponent<Image>();
             bg.color = new Color(0.10f, 0.12f, 0.16f, 0.92f);
 
-            m_PlaceLabel = MakeText(go.transform, "place_label", new Vector2(0f, 74f), new Vector2(900f, 40f), 28, TextAnchor.MiddleCenter);
-            m_EventLabel = MakeText(go.transform, "event_label", new Vector2(0f, 30f), new Vector2(900f, 60f), 24, TextAnchor.MiddleCenter);
+            m_PlaceLabel = MakeText(go.transform, "place_label", new Vector2(0f, 74f), new Vector2(900f, 40f), 28, TextAlignmentOptions.Center);
+            m_EventLabel = MakeText(go.transform, "event_label", new Vector2(0f, 30f), new Vector2(900f, 60f), 24, TextAlignmentOptions.Center);
 
             m_StartButton = MakeButton(go.transform, "btn_start_event", new Vector2(0f, -40f), new Vector2(300f, 56f), "开始事件");
             m_StartButton.onClick.AddListener(OnStartEvent);
@@ -220,15 +221,15 @@ namespace Everlight.Tales.UI
             GF.UI.OpenUIForm(UIViews.BoardPage);
         }
 
-        private static Text MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAnchor anchor)
+        private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
             var rt = (RectTransform)go.transform;
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
-            var text = go.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = go.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = fontSize;
             text.color = new Color(1f, 1f, 1f, 1f);
             text.alignment = anchor;
@@ -245,16 +246,16 @@ namespace Everlight.Tales.UI
             rt.sizeDelta = size;
             go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
 
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(Text));
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
             var labelRt = (RectTransform)labelGo.transform;
             labelRt.anchoredPosition = Vector2.zero;
             labelRt.sizeDelta = size;
-            var text = labelGo.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = 24;
             text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.text = label;
 
             return go.GetComponent<Button>();

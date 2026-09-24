@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -9,7 +10,7 @@ namespace Everlight.Tales.UI
     /// </summary>
     public static class UIFactory
     {
-        public static readonly Font BuiltinFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        public static readonly TMP_FontAsset BuiltinFont = TMP_Settings.defaultFontAsset;
 
         public static readonly Color BgDark = new Color(0.10f, 0.12f, 0.16f, 0.92f);
         public static readonly Color ButtonBlue = new Color(0.30f, 0.42f, 0.55f, 1f);
@@ -30,14 +31,14 @@ namespace Everlight.Tales.UI
             return rt;
         }
 
-        public static Text MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAnchor anchor, Color? color = null)
+        public static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor, Color? color = null)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
             var rt = (RectTransform)go.transform;
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
-            var text = go.GetComponent<Text>();
+            var text = go.GetComponent<TextMeshProUGUI>();
             text.font = BuiltinFont;
             text.fontSize = fontSize;
             text.color = color ?? Color.white;
@@ -55,16 +56,16 @@ namespace Everlight.Tales.UI
             rt.sizeDelta = size;
             go.GetComponent<Image>().color = bg ?? ButtonBlue;
 
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(Text));
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
             var labelRt = (RectTransform)labelGo.transform;
             labelRt.anchoredPosition = Vector2.zero;
             labelRt.sizeDelta = size;
-            var text = labelGo.GetComponent<Text>();
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
             text.font = BuiltinFont;
             text.fontSize = fontSize;
             text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.text = label;
             text.raycastTarget = false;
 
@@ -81,7 +82,7 @@ namespace Everlight.Tales.UI
             Transform labelGo = button.transform.Find("label");
             if (labelGo != null)
             {
-                Text text = labelGo.GetComponent<Text>();
+                TextMeshProUGUI text = labelGo.GetComponent<TextMeshProUGUI>();
                 if (text != null)
                 {
                     text.text = label;

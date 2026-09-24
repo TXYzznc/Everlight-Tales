@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Everlight.Tales.Meta;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -15,7 +16,7 @@ namespace Everlight.Tales.UI
         private const float RowHeight = 46f;
 
         private int m_SubTab;
-        private Text m_ProgressLabel;
+        private TextMeshProUGUI m_ProgressLabel;
         private RectTransform m_ListRoot;
         private readonly Button[] m_SubButtons = new Button[2];
 
@@ -31,7 +32,7 @@ namespace Everlight.Tales.UI
             topRt.sizeDelta = new Vector2(0f, TopBarHeight);
             topGo.GetComponent<Image>().color = UIFactory.BgDark;
 
-            m_ProgressLabel = UIFactory.MakeText(topGo.transform, "progress", new Vector2(-24f, -24f), new Vector2(260f, 36f), 26, TextAnchor.MiddleRight);
+            m_ProgressLabel = UIFactory.MakeText(topGo.transform, "progress", new Vector2(-24f, -24f), new Vector2(260f, 36f), 26, TextAlignmentOptions.Right);
 
             string[] names = { "零件 P", "形态 M" };
             for (int i = 0; i < names.Length; i++)
@@ -127,7 +128,7 @@ namespace Everlight.Tales.UI
                 line += "  ·" + entry.SourceHint;
             }
 
-            var go = new GameObject("entry", typeof(RectTransform), typeof(Text));
+            var go = new GameObject("entry", typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(m_ListRoot, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = new Vector2(0f, 1f);
@@ -135,11 +136,11 @@ namespace Everlight.Tales.UI
             rt.pivot = new Vector2(0.5f, 1f);
             rt.anchoredPosition = new Vector2(0f, y);
             rt.sizeDelta = new Vector2(-40f, RowHeight);
-            var text = go.GetComponent<Text>();
+            var text = go.GetComponent<TextMeshProUGUI>();
             text.font = UIFactory.BuiltinFont;
             text.fontSize = 24;
             text.color = color;
-            text.alignment = TextAnchor.MiddleLeft;
+            text.alignment = TextAlignmentOptions.Left;
             text.raycastTarget = false;
             text.text = line;
 

@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -21,8 +22,8 @@ namespace Everlight.Tales.UI
         private WorkbenchPanel m_Workbench;
         private CodexPanel m_Codex;
         private ArchivePanel m_Archive;
-        private Text m_GuestText;
-        private Text m_ServiceText;
+        private TextMeshProUGUI m_GuestText;
+        private TextMeshProUGUI m_ServiceText;
 
         public void Build()
         {
@@ -176,9 +177,9 @@ namespace Everlight.Tales.UI
             return go.AddComponent<T>();
         }
 
-        private Text MakePlaceholder(string message)
+        private TextMeshProUGUI MakePlaceholder(string message)
         {
-            var go = new GameObject("zone_placeholder", typeof(RectTransform), typeof(Text));
+            var go = new GameObject("zone_placeholder", typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(m_ContentArea, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = new Vector2(0f, 0.5f);
@@ -186,11 +187,11 @@ namespace Everlight.Tales.UI
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = Vector2.zero;
             rt.sizeDelta = new Vector2(-80f, 120f);
-            var text = go.GetComponent<Text>();
+            var text = go.GetComponent<TextMeshProUGUI>();
             text.font = UIFactory.BuiltinFont;
             text.fontSize = 26;
             text.color = new Color(0.6f, 0.6f, 0.62f, 1f);
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.raycastTarget = false;
             text.text = message;
             return text;

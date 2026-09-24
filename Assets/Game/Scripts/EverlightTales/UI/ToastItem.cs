@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -10,7 +11,7 @@ namespace Everlight.Tales.UI
     {
         public void SetMessage(string message)
         {
-            var text = GetComponentInChildren<Text>(true);
+            var text = GetComponentInChildren<TextMeshProUGUI>(true);
             if (text != null)
             {
                 text.text = message;

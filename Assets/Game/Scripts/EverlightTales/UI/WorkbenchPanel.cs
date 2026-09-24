@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
 using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -17,15 +18,15 @@ namespace Everlight.Tales.UI
         private const float TopBarHeight = 96f;
 
         private int m_SubTab; // 0 加工 / 1 材料 / 2 账目
-        private Text m_FeeLabel;
+        private TextMeshProUGUI m_FeeLabel;
         private readonly Button[] m_SubButtons = new Button[3];
 
         private RectTransform m_WorkbenchRoot;
         private RectTransform m_HostRow;
         private RectTransform m_FormList;
-        private Text m_DetailText;
+        private TextMeshProUGUI m_DetailText;
         private Button m_ActionButton;
-        private Text m_ActionHint;
+        private TextMeshProUGUI m_ActionHint;
 
         private RectTransform m_MaterialsRoot;
         private RectTransform m_LedgerRoot;
@@ -45,7 +46,7 @@ namespace Everlight.Tales.UI
             topRt.sizeDelta = new Vector2(0f, TopBarHeight);
             topGo.GetComponent<Image>().color = UIFactory.BgDark;
 
-            m_FeeLabel = UIFactory.MakeText(topGo.transform, "fee", new Vector2(-24f, -24f), new Vector2(240f, 36f), 26, TextAnchor.MiddleRight);
+            m_FeeLabel = UIFactory.MakeText(topGo.transform, "fee", new Vector2(-24f, -24f), new Vector2(240f, 36f), 26, TextAlignmentOptions.Right);
 
             string[] names = { "加工", "材料", "账目" };
             for (int i = 0; i < names.Length; i++)
@@ -141,10 +142,10 @@ namespace Everlight.Tales.UI
             formRt.sizeDelta = new Vector2(0f, 300f);
             m_FormList = formRt;
 
-            m_DetailText = MakeFullText(root, "detail", -420f, 380f, 26, new Color(0.92f, 0.92f, 0.92f, 1f), TextAnchor.UpperLeft);
+            m_DetailText = MakeFullText(root, "detail", -420f, 380f, 26, new Color(0.92f, 0.92f, 0.92f, 1f), TextAlignmentOptions.TopLeft);
             m_ActionButton = MakeFullButton(root, "action", -820f, 64f, "加工", 26);
             m_ActionButton.onClick.AddListener(OnAction);
-            m_ActionHint = MakeFullText(root, "action_hint", -900f, 40f, 22, new Color(0.6f, 0.65f, 0.7f, 1f), TextAnchor.MiddleCenter);
+            m_ActionHint = MakeFullText(root, "action_hint", -900f, 40f, 22, new Color(0.6f, 0.65f, 0.7f, 1f), TextAlignmentOptions.Center);
         }
 
         private void RebuildWorkbench(WorldState world)
@@ -414,9 +415,9 @@ namespace Everlight.Tales.UI
             return rt;
         }
 
-        private static Text MakeFullText(RectTransform parent, string name, float y, float height, int fontSize, Color color, TextAnchor anchor)
+        private static TextMeshProUGUI MakeFullText(RectTransform parent, string name, float y, float height, int fontSize, Color color, TextAlignmentOptions anchor)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = new Vector2(0f, 1f);
@@ -424,7 +425,7 @@ namespace Everlight.Tales.UI
             rt.pivot = new Vector2(0.5f, 1f);
             rt.anchoredPosition = new Vector2(0f, y);
             rt.sizeDelta = new Vector2(-40f, height);
-            var text = go.GetComponent<Text>();
+            var text = go.GetComponent<TextMeshProUGUI>();
             text.font = UIFactory.BuiltinFont;
             text.fontSize = fontSize;
             text.color = color;
@@ -465,25 +466,25 @@ namespace Everlight.Tales.UI
 
         private static void AttachLabel(Transform parent, string label, int fontSize)
         {
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(Text));
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(parent, false);
             var labelRt = (RectTransform)labelGo.transform;
             labelRt.anchorMin = Vector2.zero;
             labelRt.anchorMax = Vector2.one;
             labelRt.anchoredPosition = Vector2.zero;
             labelRt.sizeDelta = Vector2.zero;
-            var text = labelGo.GetComponent<Text>();
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
             text.font = UIFactory.BuiltinFont;
             text.fontSize = fontSize;
             text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.text = label;
             text.raycastTarget = false;
         }
 
         private static float MakeRow(RectTransform parent, float y, string label, Color color)
         {
-            var go = new GameObject("row", typeof(RectTransform), typeof(Text));
+            var go = new GameObject("row", typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(parent, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = new Vector2(0f, 1f);
@@ -491,11 +492,11 @@ namespace Everlight.Tales.UI
             rt.pivot = new Vector2(0.5f, 1f);
             rt.anchoredPosition = new Vector2(0f, y);
             rt.sizeDelta = new Vector2(-40f, 52f);
-            var text = go.GetComponent<Text>();
+            var text = go.GetComponent<TextMeshProUGUI>();
             text.font = UIFactory.BuiltinFont;
             text.fontSize = 26;
             text.color = color;
-            text.alignment = TextAnchor.MiddleLeft;
+            text.alignment = TextAlignmentOptions.Left;
             text.raycastTarget = false;
             text.text = label;
             return y - 52f;

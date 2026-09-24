@@ -2,6 +2,7 @@ using Everlight.Tales.Board;
 using Everlight.Tales.Data;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -11,8 +12,8 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class TimePeriodBar : MonoBehaviour
     {
-        public Text DayPeriodLabel;
-        public Text RemainingLabel;
+        public TextMeshProUGUI DayPeriodLabel;
+        public TextMeshProUGUI RemainingLabel;
         public Image[] PeriodCells;
 
         public static Color DayActive = new Color(1f, 0.88f, 0.4f);
@@ -58,11 +59,11 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private Text MakeText(string name)
+        private TextMeshProUGUI MakeText(string name)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(transform, false);
-            return go.GetComponent<Text>();
+            return go.GetComponent<TextMeshProUGUI>();
         }
     }
 }

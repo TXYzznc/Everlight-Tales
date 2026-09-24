@@ -1,6 +1,7 @@
 using Everlight.Tales.Board;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -12,11 +13,11 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class BoardHUD : MonoBehaviour
     {
-        private Text m_RoundTapText;
-        private Text m_ScoreText;
-        private Text m_GoalsText;
-        private Text m_EnergyText;
-        private Text m_ArmText;
+        private TextMeshProUGUI m_RoundTapText;
+        private TextMeshProUGUI m_ScoreText;
+        private TextMeshProUGUI m_GoalsText;
+        private TextMeshProUGUI m_EnergyText;
+        private TextMeshProUGUI m_ArmText;
 
         public string RoundTapText => m_RoundTapText != null ? m_RoundTapText.text : null;
         public string ScoreText => m_ScoreText != null ? m_ScoreText.text : null;
@@ -66,18 +67,18 @@ namespace Everlight.Tales.UI
             return string.Join("；", parts);
         }
 
-        private Text CreateText(string name, Vector2 position)
+        private TextMeshProUGUI CreateText(string name, Vector2 position)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(transform, false);
             RectTransform rt = (RectTransform)go.transform;
             rt.anchoredPosition = position;
             rt.sizeDelta = new Vector2(600f, 36f);
-            var text = go.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = go.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = 24;
             text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             return text;
         }
     }

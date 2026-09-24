@@ -3,6 +3,7 @@ using Everlight.Tales.Data;
 using Everlight.Tales.Events;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -67,16 +68,16 @@ namespace Everlight.Tales.UI
             rt.sizeDelta = new Vector2(220f, 48f);
             go.GetComponent<Image>().color = new Color(0.45f, 0.55f, 0.30f, 1f);
 
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(Text));
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
             var labelRt = (RectTransform)labelGo.transform;
             labelRt.anchoredPosition = Vector2.zero;
             labelRt.sizeDelta = new Vector2(220f, 48f);
-            var text = labelGo.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = 22;
             text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.text = "结算返回";
 
             go.GetComponent<Button>().onClick.AddListener(OnSettle);

@@ -1,12 +1,13 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
     /// <summary>
     /// 得分弹窗（b42 特效）：得分事件位置弹出「+N」上飘淡出。参考 2026CIGA 的 ShowScorePop 用 TMP +
-    /// 协程；本项目用 uGUI Text + DOTween。挂页面根（不随盘面旋转），文字始终正向。
+    /// 协程；本项目用 uGUI TextMeshProUGUI + DOTween。挂页面根（不随盘面旋转），文字始终正向。
     /// </summary>
     public sealed class ScorePopup : MonoBehaviour
     {
@@ -25,12 +26,12 @@ namespace Everlight.Tales.UI
             rt.anchoredPosition = pageLocalPosition;
             rt.sizeDelta = new Vector2(160f, 40f);
 
-            var text = go.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = go.AddComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = m_FontSize;
-            text.fontStyle = FontStyle.Bold;
+            text.fontStyle = FontStyles.Bold;
             text.color = new Color(1f, 0.92f, 0.20f, 1f);
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.raycastTarget = false;
             text.text = "+" + score;
 

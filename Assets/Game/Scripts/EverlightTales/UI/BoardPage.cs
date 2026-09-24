@@ -1,6 +1,7 @@
 using Everlight.Tales.Board;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -26,7 +27,7 @@ namespace Everlight.Tales.UI
         private Button m_RotateLeft;
         private Button m_RotateRight;
         private Button m_Tap;
-        private Text m_ResultText;
+        private TextMeshProUGUI m_ResultText;
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
         public void Bind(BoardGame game)
@@ -142,33 +143,33 @@ namespace Everlight.Tales.UI
             rt.sizeDelta = new Vector2(120f, 56f);
             go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
 
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(Text));
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
             var labelRt = (RectTransform)labelGo.transform;
             labelRt.anchoredPosition = Vector2.zero;
             labelRt.sizeDelta = new Vector2(120f, 56f);
-            var text = labelGo.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = 22;
             text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.text = label;
 
             return go.GetComponent<Button>();
         }
 
-        private Text CreateText(string name, Vector2 position)
+        private TextMeshProUGUI CreateText(string name, Vector2 position)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(transform, false);
             RectTransform rt = (RectTransform)go.transform;
             rt.anchoredPosition = position;
             rt.sizeDelta = new Vector2(600f, 36f);
-            var text = go.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var text = go.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = 24;
             text.color = new Color(1f, 0.85f, 0.35f, 1f);
-            text.alignment = TextAnchor.MiddleCenter;
+            text.alignment = TextAlignmentOptions.Center;
             text.text = string.Empty;
             return text;
         }

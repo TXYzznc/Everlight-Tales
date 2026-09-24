@@ -1,7 +1,8 @@
-﻿using Everlight.Tales.Data;
+using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -29,7 +30,7 @@ namespace Everlight.Tales.UI
             topRt.sizeDelta = new Vector2(0f, TopBarHeight);
             topGo.GetComponent<Image>().color = UIFactory.BgDark;
 
-            UIFactory.MakeText(topGo.transform, "title", new Vector2(24f, -24f), new Vector2(300f, 36f), 28, TextAnchor.MiddleLeft, new Color(1f, 0.85f, 0.35f, 1f)).text = "陈列 / 档案";
+            UIFactory.MakeText(topGo.transform, "title", new Vector2(24f, -24f), new Vector2(300f, 36f), 28, TextAlignmentOptions.Left, new Color(1f, 0.85f, 0.35f, 1f)).text = "陈列 / 档案";
 
             var listGo = new GameObject("archive_list", typeof(RectTransform));
             listGo.transform.SetParent(transform, false);
@@ -104,7 +105,7 @@ namespace Everlight.Tales.UI
 
         private float AddRow(float y, string label, Color? color = null)
         {
-            var go = new GameObject("row", typeof(RectTransform), typeof(Text));
+            var go = new GameObject("row", typeof(RectTransform), typeof(TextMeshProUGUI));
             go.transform.SetParent(m_ListRoot, false);
             var rt = (RectTransform)go.transform;
             rt.anchorMin = new Vector2(0f, 1f);
@@ -112,11 +113,11 @@ namespace Everlight.Tales.UI
             rt.pivot = new Vector2(0.5f, 1f);
             rt.anchoredPosition = new Vector2(0f, y);
             rt.sizeDelta = new Vector2(-40f, RowHeight);
-            var text = go.GetComponent<Text>();
+            var text = go.GetComponent<TextMeshProUGUI>();
             text.font = UIFactory.BuiltinFont;
             text.fontSize = 24;
             text.color = color ?? new Color(0.92f, 0.92f, 0.92f, 1f);
-            text.alignment = TextAnchor.MiddleLeft;
+            text.alignment = TextAlignmentOptions.Left;
             text.raycastTarget = false;
             text.text = label;
             return y - RowHeight;

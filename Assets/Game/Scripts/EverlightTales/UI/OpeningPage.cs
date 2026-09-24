@@ -1,6 +1,7 @@
 using Everlight.Tales.Data;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Everlight.Tales.UI
 {
@@ -10,7 +11,7 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class OpeningPage : MonoBehaviour
     {
-        public Text SubtitleText;
+        public TextMeshProUGUI SubtitleText;
 
         public OpeningSequence Sequence { get; private set; }
 
