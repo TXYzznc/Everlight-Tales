@@ -19,6 +19,8 @@ namespace Everlight.Tales.UI
 
         private BoardPage m_Page;
 
+        private PauseMenuView m_PauseMenu;
+
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
@@ -47,6 +49,7 @@ namespace Everlight.Tales.UI
             m_Page.Bind(game);
 
             CreateSettleButton();
+            CreatePauseButton();
         }
 
         private void BuildTutorialBoard()
@@ -93,6 +96,52 @@ namespace Everlight.Tales.UI
                 session.SettleEvent(outcome == EventResultKind.Success
                     ? SettlementOutcomeKind.Success
                     : SettlementOutcomeKind.Failure);
+            }
+
+            OnClickClose();
+            GF.UI.OpenUIForm(UIViews.SettlementPage);
+        }
+
+        private void CreatePauseButton()
+        {
+            var go = new GameObject("btn_pause", typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(transform, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchoredPosition = new Vector2(-360f, 400f);
+            rt.sizeDelta = new Vector2(96f, 56f);
+            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
+
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(go.transform, false);
+            var labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = Vector2.zero;
+            labelRt.offsetMax = Vector2.zero;
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
+            text.fontSize = 22;
+            text.color = Color.white;
+            text.alignment = TextAlignmentOptions.Center;
+            text.raycastTarget = false;
+            text.text = "暂停";
+
+            m_PauseMenu = gameObject.AddComponent<PauseMenuView>();
+            m_PauseMenu.Build(OnRetreat);
+            go.GetComponent<Button>().onClick.AddListener(m_PauseMenu.Show);
+        }
+
+        private void OnRetreat()
+        {
+            GlobalUI.Confirm("放弃本关", "确认放弃本关并撤退？（不计失败、无奖励）", DoRetreat, null);
+        }
+
+        private void DoRetreat()
+        {
+            WorldSession session = WorldSession.Current;
+            if (session != null && session.CurrentEvent != null)
+            {
+                session.SettleEvent(SettlementOutcomeKind.Retreat);
             }
 
             OnClickClose();
