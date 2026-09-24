@@ -26,6 +26,8 @@ namespace Everlight.Tales.UI
 
         private readonly TextMeshProUGUI[] m_SubBadges = new TextMeshProUGUI[3];
 
+        private EventKind m_EventFilter;
+
         public void Build()
         {
             var topGo = new GameObject("journal_top", typeof(RectTransform), typeof(Image));
@@ -164,17 +166,40 @@ namespace Everlight.Tales.UI
 
         // ---- 事件页 ----
 
+        private void BuildEventFilterRow()
+        {
+            string[] names = { "全部", "维修", "处置", "生活", "调查", "怪谈" };
+            EventKind[] kinds = { EventKind.None, EventKind.Repair, EventKind.Disposal, EventKind.Life, EventKind.Investigate, EventKind.Anomaly };
+            for (int i = 0; i < names.Length; i++)
+            {
+                int index = i;
+                Button btn = UIFactory.MakeButton(m_ListRoot, "filter_" + names[i], new Vector2(-430f + i * 90f, -12f), new Vector2(84f, 44f), names[i], 20);
+                btn.image.color = m_EventFilter == kinds[i] ? UIFactory.ButtonGreen : UIFactory.ButtonBlue;
+                btn.onClick.AddListener(() =>
+                {
+                    m_EventFilter = kinds[index];
+                    RebuildList();
+                });
+            }
+        }
+
         private void BuildEventPage(WorldSession session)
         {
+            BuildEventFilterRow();
+
             var entries = new List<EventEntry>();
             foreach (SupplyInstance supply in session.Supply)
             {
-                entries.Add(EventEntry.FromSupply(supply, "本城"));
+                EventEntry entry = EventEntry.FromSupply(supply, "本城");
+                if (m_EventFilter == EventKind.None || entry.Kind == m_EventFilter)
+                {
+                    entries.Add(entry);
+                }
             }
 
             entries.Sort(EventPageLayout.Compare);
 
-            float y = -18f;
+            float y = -72f;
             y = AddHeader(y, "可处理");
             bool anyActionable = false;
             foreach (EventEntry entry in entries)

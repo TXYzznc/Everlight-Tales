@@ -19,6 +19,7 @@ namespace Everlight.Tales.UI
         public string Id;
         public string Name;
         public string Type;
+        public EventKind Kind;
         public string PlaceName;
         public string Description;
         public int TimeCost;
@@ -32,7 +33,8 @@ namespace Everlight.Tales.UI
             {
                 Id = supply.InstanceId,
                 Name = supply.Template.Name,
-                Type = "维修",
+                Type = KindText(supply.Template.Kind),
+                Kind = supply.Template.Kind,
                 PlaceName = placeName,
                 Description = supply.Template.Name,
                 TimeCost = supply.Template.TimeCost,
@@ -40,6 +42,19 @@ namespace Everlight.Tales.UI
                 InProgress = false,
                 OpenPeriods = supply.Template.OpenPeriods,
             };
+        }
+
+        public static string KindText(EventKind kind)
+        {
+            switch (kind)
+            {
+                case EventKind.Repair: return "维修";
+                case EventKind.Disposal: return "处置";
+                case EventKind.Life: return "生活";
+                case EventKind.Investigate: return "调查";
+                case EventKind.Anomaly: return "怪谈";
+                default: return "其他";
+            }
         }
     }
 
