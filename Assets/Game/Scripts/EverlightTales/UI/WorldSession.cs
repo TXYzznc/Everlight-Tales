@@ -48,10 +48,10 @@ namespace Everlight.Tales.UI
         /// </summary>
         public static IReadOnlyList<TaskConfig> ModTaskConfigs { get; } = new[]
         {
-            new TaskConfig("TASK-MOD-001", "改装·贯通撞锤", 40, new[] { "T-G01" }, false, "周衡", "为惯性撞锤打造贯通形态：力从另一头出来。", 1, "L-01", 0),
-            new TaskConfig("TASK-MOD-002", "改装·横推撞锤", 40, new[] { "T-G02" }, false, "周衡", "为惯性撞锤打造横推形态：一边输入，两边接应。", 1, "L-01", 1),
-            new TaskConfig("TASK-MOD-003", "改装·轴向线圈", 40, new[] { "T-G03" }, false, "周衡", "为爆破线圈打造轴向形态：隔着空隙传过去。", 1, "L-01", 1),
-            new TaskConfig("TASK-MOD-004", "改装·定时线圈", 40, new[] { "T-G04" }, false, "周衡", "为爆破线圈打造定时形态：把这一拍留到下一拍。", 1, "L-01", 2),
+            new TaskConfig("TASK-MOD-001", "改装·贯通撞锤", 40, new[] { "T-G01" }, false, "周衡", "为惯性撞锤打造贯通形态：力从另一头出来。", 1, "L-01", 0, "home"),
+            new TaskConfig("TASK-MOD-002", "改装·横推撞锤", 40, new[] { "T-G02" }, false, "周衡", "为惯性撞锤打造横推形态：一边输入，两边接应。", 1, "L-01", 1, "home"),
+            new TaskConfig("TASK-MOD-003", "改装·轴向线圈", 40, new[] { "T-G03" }, false, "周衡", "为爆破线圈打造轴向形态：隔着空隙传过去。", 1, "L-01", 1, "home"),
+            new TaskConfig("TASK-MOD-004", "改装·定时线圈", 40, new[] { "T-G04" }, false, "周衡", "为爆破线圈打造定时形态：把这一拍留到下一拍。", 1, "L-01", 2, "home"),
         };
 
         public static WorldSession Current { get; private set; }
@@ -71,6 +71,9 @@ namespace Everlight.Tales.UI
 
         /// <summary>本次进入是否为新档（未读到存档）。</summary>
         public bool IsNewGame { get; private set; }
+
+        /// <summary>当前跟踪任务（定位/跟踪，P3-011），空=未跟踪。</summary>
+        public string TrackedTaskId { get; private set; }
 
         /// <summary>当前盘面事件（卷帘门 EV-N01）。</summary>
         public RepairEventInstance CurrentEvent { get; private set; }
@@ -139,6 +142,35 @@ namespace Everlight.Tales.UI
         /// 把当前世界状态写 PlayerPrefs。b44 由最简 6 键扩展到成长闭环状态
         /// （已知零件/材料/图样/已解锁形态/当前形态/改装支线任务），仍走 PlayerPrefs。
         /// </summary>
+        /// <summary>设置跟踪任务（P3-011），空 id 取消跟踪。</summary>
+        public void TrackTask(string taskId)
+        {
+            TrackedTaskId = taskId;
+        }
+
+        /// <summary>当前跟踪任务的目标地点名（未跟踪返回 null）。</summary>
+        public string TrackedTaskPlaceName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(TrackedTaskId))
+                {
+                    return null;
+                }
+
+                foreach (TaskState task in World.Tasks)
+                {
+                    if (task.Config.Id == TrackedTaskId)
+                    {
+                        PlaceConfig place = PlaceCatalog.Get(task.Config.PlaceId);
+                        return place != null ? place.Name : "长明修理铺";
+                    }
+                }
+
+                return null;
+            }
+        }
+
         public void Save()
         {
             PlayerPrefs.SetInt(KeyDay, World.Day);

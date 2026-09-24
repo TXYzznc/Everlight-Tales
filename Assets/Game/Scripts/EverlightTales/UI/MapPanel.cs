@@ -113,6 +113,14 @@ namespace Everlight.Tales.UI
                 return;
             }
 
+            // 跟踪任务优先展示（P3-011）。
+            string tracked = session.TrackedTaskPlaceName;
+            if (tracked != null)
+            {
+                m_TrackLabel.text = "跟踪任务 · 目标：" + tracked;
+                return;
+            }
+
             string suggestion = null;
             foreach (PlaceState place in session.World.Map.Places)
             {

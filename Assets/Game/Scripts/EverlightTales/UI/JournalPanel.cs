@@ -269,7 +269,7 @@ namespace Everlight.Tales.UI
             y = AddHeader(y, "进行中");
             foreach (TaskState task in groups[0].Item2)
             {
-                y = AddCard(y, "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）", BuildTaskDetail(task), new Color(0.92f, 0.92f, 0.92f, 1f));
+                y = AddTrackRow(y, task);
             }
 
             if (groups[0].Item2.Count == 0)
@@ -352,6 +352,81 @@ namespace Everlight.Tales.UI
                 session.Save();
                 RebuildList();
             }
+        }
+
+        // ---- 进行中任务的定位 / 跟踪 ----
+
+        private float AddTrackRow(float y, TaskState task)
+        {
+            var textGo = new GameObject("row_text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textGo.transform.SetParent(m_ListRoot, false);
+            var textRt = (RectTransform)textGo.transform;
+            textRt.anchorMin = new Vector2(0f, 1f);
+            textRt.anchorMax = new Vector2(1f, 1f);
+            textRt.pivot = new Vector2(0.5f, 1f);
+            textRt.anchoredPosition = new Vector2(0f, y);
+            textRt.sizeDelta = new Vector2(-300f, RowHeight);
+            var text = textGo.GetComponent<TextMeshProUGUI>();
+            text.font = UIFactory.BuiltinFont;
+            text.fontSize = 24;
+            text.color = new Color(0.92f, 0.92f, 0.92f, 1f);
+            text.alignment = TextAlignmentOptions.Left;
+            text.raycastTarget = false;
+            text.text = "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）";
+
+            MakeTrackButton(new Vector2(-160f, y), "跟踪", UIFactory.ButtonGreen, () => TrackTask(task));
+            MakeTrackButton(new Vector2(-20f, y), "定位", UIFactory.ButtonBlue, () => LocateTask(task));
+
+            return y - RowHeight - 6f;
+        }
+
+        private void MakeTrackButton(Vector2 pos, string label, Color color, UnityEngine.Events.UnityAction onClick)
+        {
+            var btnGo = new GameObject("row_action", typeof(RectTransform), typeof(Image), typeof(Button));
+            btnGo.transform.SetParent(m_ListRoot, false);
+            var btnRt = (RectTransform)btnGo.transform;
+            btnRt.anchorMin = new Vector2(1f, 1f);
+            btnRt.anchorMax = new Vector2(1f, 1f);
+            btnRt.pivot = new Vector2(1f, 1f);
+            btnRt.anchoredPosition = pos;
+            btnRt.sizeDelta = new Vector2(120f, 44f);
+            btnGo.GetComponent<Image>().color = color;
+
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(btnGo.transform, false);
+            var labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.anchoredPosition = Vector2.zero;
+            labelRt.sizeDelta = Vector2.zero;
+            var btnText = labelGo.GetComponent<TextMeshProUGUI>();
+            btnText.font = UIFactory.BuiltinFont;
+            btnText.fontSize = 22;
+            btnText.color = Color.white;
+            btnText.alignment = TextAlignmentOptions.Center;
+            btnText.text = label;
+            btnText.raycastTarget = false;
+
+            btnGo.GetComponent<Button>().onClick.AddListener(onClick);
+        }
+
+        private void TrackTask(TaskState task)
+        {
+            WorldSession session = WorldSession.Current;
+            if (session == null)
+            {
+                return;
+            }
+
+            session.TrackTask(task.Config.Id);
+            GlobalUI.ShowToast("已跟踪：" + task.Config.Name);
+            RebuildList();
+        }
+
+        private void LocateTask(TaskState task)
+        {
+            PlaceConfig place = PlaceCatalog.Get(task.Config.PlaceId);
+            GlobalUI.ShowDialog("目标地点", "任务：" + task.Config.Name + "\n地点：" + (place != null ? place.Name : "长明修理铺"));
         }
 
         // ---- 详情文案（点卡片弹窗）----

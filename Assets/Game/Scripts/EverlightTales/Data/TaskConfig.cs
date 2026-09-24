@@ -31,8 +31,11 @@ namespace Everlight.Tales.Data
         public string RequiredCaseDone;
         public int RequiredSuccessCount;
 
+        // 目标地点（P3-011 定位/跟踪）：任务推进要去的据点，空=修理铺 home。
+        public string PlaceId;
+
         public TaskConfig(string id, string name, int rewardFee, IReadOnlyList<string> blueprints = null, bool isMain = false, string client = "", string description = "", int totalSteps = 1,
-            string requiredCaseDone = "", int requiredSuccessCount = 0)
+            string requiredCaseDone = "", int requiredSuccessCount = 0, string placeId = "")
         {
             Id = id;
             Name = name;
@@ -44,6 +47,7 @@ namespace Everlight.Tales.Data
             TotalSteps = totalSteps;
             RequiredCaseDone = requiredCaseDone ?? "";
             RequiredSuccessCount = requiredSuccessCount;
+            PlaceId = placeId ?? "";
         }
     }
 }

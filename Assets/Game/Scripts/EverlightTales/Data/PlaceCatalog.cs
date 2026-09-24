@@ -16,5 +16,23 @@ namespace Everlight.Tales.Data
                 new PlaceConfig("community", "社区活动中心", "积水处置／邻里找物", PlaceUnlockSource.Story, 2f, 0f),
             };
         }
+
+        public static PlaceConfig Get(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
+
+            foreach (PlaceConfig place in FirstBatch())
+            {
+                if (place.Id == id)
+                {
+                    return place;
+                }
+            }
+
+            return null;
+        }
     }
 }
