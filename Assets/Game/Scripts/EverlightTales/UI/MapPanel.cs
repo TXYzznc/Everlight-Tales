@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
@@ -20,11 +21,31 @@ namespace Everlight.Tales.UI
 
         private TextMeshProUGUI m_PlaceLabel;
 
-        private TextMeshProUGUI m_EventLabel;
+        private TextMeshProUGUI m_PlaceDesc;
+
+        private RectTransform m_EventListRoot;
 
         private Button m_StartButton;
 
+        private Button m_WaitButton;
+
         private string m_SelectedPlaceId;
+
+        private readonly List<PlaceEventEntry> m_CurrentEntries = new List<PlaceEventEntry>();
+
+        private PlaceEventEntry m_SelectedEntry;
+
+        /// <summary>地点详情面板里的一张事件卡（P1 地图信息层视图模型）。</summary>
+        private sealed class PlaceEventEntry
+        {
+            public string Name;
+
+            public string TypeLabel;
+
+            public string TimeLabel;
+
+            public System.Action OnStart;
+        }
 
         /// <summary>程序化构建时段条、地图与地点事件面板。</summary>
         public void Build()
@@ -137,16 +158,29 @@ namespace Everlight.Tales.UI
             rt.anchorMax = new Vector2(1f, 0f);
             rt.pivot = new Vector2(0.5f, 0f);
             rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(0f, 200f);
+            rt.sizeDelta = new Vector2(0f, 360f);
 
             var bg = go.AddComponent<Image>();
             bg.color = new Color(0.10f, 0.12f, 0.16f, 0.92f);
 
-            m_PlaceLabel = MakeText(go.transform, "place_label", new Vector2(0f, 74f), new Vector2(900f, 40f), 28, TextAlignmentOptions.Center);
-            m_EventLabel = MakeText(go.transform, "event_label", new Vector2(0f, 30f), new Vector2(900f, 60f), 24, TextAlignmentOptions.Center);
+            m_PlaceLabel = MakeText(go.transform, "place_label", new Vector2(0f, 168f), new Vector2(920f, 40f), 28, TextAlignmentOptions.Center);
+            m_PlaceDesc = MakeText(go.transform, "place_desc", new Vector2(0f, 132f), new Vector2(920f, 56f), 20, TextAlignmentOptions.Center);
+            m_PlaceDesc.color = new Color(0.68f, 0.71f, 0.75f, 1f);
 
-            m_StartButton = MakeButton(go.transform, "btn_start_event", new Vector2(0f, -40f), new Vector2(300f, 56f), "开始事件");
+            var listGo = new GameObject("event_list", typeof(RectTransform));
+            listGo.transform.SetParent(go.transform, false);
+            m_EventListRoot = (RectTransform)listGo.transform;
+            m_EventListRoot.anchorMin = new Vector2(0f, 0.5f);
+            m_EventListRoot.anchorMax = new Vector2(1f, 0.5f);
+            m_EventListRoot.pivot = new Vector2(0.5f, 0.5f);
+            m_EventListRoot.anchoredPosition = new Vector2(0f, 30f);
+            m_EventListRoot.sizeDelta = new Vector2(-40f, 120f);
+
+            m_StartButton = MakeButton(go.transform, "btn_start_event", new Vector2(0f, -90f), new Vector2(360f, 56f), "开始事件");
             m_StartButton.onClick.AddListener(OnStartEvent);
+
+            m_WaitButton = MakeButton(go.transform, "btn_wait", new Vector2(0f, -152f), new Vector2(360f, 52f), "等待到下一时段");
+            m_WaitButton.onClick.AddListener(OnWaitNextPeriod);
         }
 
         private void HookNodeClicks()
@@ -178,11 +212,14 @@ namespace Everlight.Tales.UI
                 return;
             }
 
+            ClearEventList();
+
             if (string.IsNullOrEmpty(m_SelectedPlaceId))
             {
                 m_PlaceLabel.text = "点击地图节点查看地点";
-                m_EventLabel.text = string.Empty;
+                m_PlaceDesc.text = string.Empty;
                 m_StartButton.gameObject.SetActive(false);
+                m_WaitButton.gameObject.SetActive(true);
                 return;
             }
 
@@ -193,10 +230,16 @@ namespace Everlight.Tales.UI
             }
 
             m_PlaceLabel.text = place.Config.Name + "（" + PlaceStatusText(place.Status) + "）";
+            m_PlaceDesc.text = place.Config.Description;
 
-            bool hasEvent = m_SelectedPlaceId == "home";
-            m_EventLabel.text = hasEvent ? "事件：卡住的卷帘门（EV-N01）" : "当前无事件";
-            m_StartButton.gameObject.SetActive(hasEvent);
+            m_SelectedEntry = null;
+            if (m_SelectedPlaceId == "home")
+            {
+                AddEventEntry("卡住的卷帘门", "维修", "1 格", StartRollerDoor);
+            }
+
+            UpdateStartButton();
+            m_WaitButton.gameObject.SetActive(true);
         }
 
         private static string PlaceStatusText(PlaceNodeStatus status)
@@ -211,6 +254,16 @@ namespace Everlight.Tales.UI
 
         private void OnStartEvent()
         {
+            if (m_SelectedEntry == null || m_SelectedEntry.OnStart == null)
+            {
+                return;
+            }
+
+            m_SelectedEntry.OnStart();
+        }
+
+        private void StartRollerDoor()
+        {
             WorldSession session = WorldSession.Current;
             if (session == null)
             {
@@ -219,6 +272,87 @@ namespace Everlight.Tales.UI
 
             session.PrepareRollerDoor();
             GF.UI.OpenUIForm(UIViews.PreparationPage);
+        }
+
+        private void OnWaitNextPeriod()
+        {
+            WorldSession session = WorldSession.Current;
+            if (session == null)
+            {
+                return;
+            }
+
+            session.WaitToNextPeriod();
+            Refresh();
+        }
+
+        private void OnEventClicked(PlaceEventEntry entry)
+        {
+            m_SelectedEntry = entry;
+            UpdateStartButton();
+        }
+
+        private void UpdateStartButton()
+        {
+            if (m_SelectedEntry == null)
+            {
+                m_StartButton.gameObject.SetActive(false);
+                return;
+            }
+
+            m_StartButton.gameObject.SetActive(true);
+            TextMeshProUGUI label = m_StartButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+            {
+                label.text = "开始：" + m_SelectedEntry.Name;
+            }
+        }
+
+        private void ClearEventList()
+        {
+            m_CurrentEntries.Clear();
+            if (m_EventListRoot == null)
+            {
+                return;
+            }
+
+            for (int i = m_EventListRoot.childCount - 1; i >= 0; i--)
+            {
+                Destroy(m_EventListRoot.GetChild(i).gameObject);
+            }
+        }
+
+        private void AddEventEntry(string name, string typeLabel, string timeLabel, System.Action onStart)
+        {
+            var entry = new PlaceEventEntry
+            {
+                Name = name,
+                TypeLabel = typeLabel,
+                TimeLabel = timeLabel,
+                OnStart = onStart,
+            };
+            m_CurrentEntries.Add(entry);
+
+            var card = new GameObject("event_card", typeof(RectTransform), typeof(Image), typeof(Button));
+            card.transform.SetParent(m_EventListRoot, false);
+            var rt = (RectTransform)card.transform;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.sizeDelta = new Vector2(0f, 56f);
+            rt.anchoredPosition = new Vector2(0f, -(m_CurrentEntries.Count - 1) * 62f);
+
+            card.GetComponent<Image>().color = new Color(0.18f, 0.21f, 0.25f, 1f);
+
+            TextMeshProUGUI nameText = MakeText(card.transform, "name", new Vector2(-420f, 10f), new Vector2(760f, 30f), 22, TextAlignmentOptions.Left);
+            nameText.text = entry.Name;
+
+            TextMeshProUGUI metaText = MakeText(card.transform, "meta", new Vector2(-420f, -16f), new Vector2(760f, 24f), 16, TextAlignmentOptions.Left);
+            metaText.color = new Color(0.68f, 0.71f, 0.75f, 1f);
+            metaText.text = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
+
+            var captured = entry;
+            card.GetComponent<Button>().onClick.AddListener(() => OnEventClicked(captured));
         }
 
         private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)

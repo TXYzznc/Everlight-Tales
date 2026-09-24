@@ -723,6 +723,15 @@ namespace Everlight.Tales.UI
             _supply = SupplyService.Refresh(SupplyCatalog.FirstBatch(), night, 1, Rng);
         }
 
+        /// <summary>等待到下一时段：推进剩余时间格 + 刷新供给 + 保存（P3-004 等待按钮）。</summary>
+        public TimeAdvanceResult WaitToNextPeriod()
+        {
+            TimeAdvanceResult result = Time.Advance(Time.RemainingCells);
+            RefreshSupply();
+            Save();
+            return result;
+        }
+
         /// <summary>推进指定改装支线任务一步（仅进行中任务）。</summary>
         private void AdvanceModTask(string id)
         {
