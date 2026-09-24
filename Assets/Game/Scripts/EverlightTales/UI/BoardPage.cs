@@ -1,4 +1,6 @@
+using System.Text;
 using Everlight.Tales.Board;
+using Everlight.Tales.Data;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -56,6 +58,11 @@ namespace Everlight.Tales.UI
             m_Tap.onClick.AddListener(OnTap);
 
             BoardView.SetGravity(Game.Settle.GravityDirection);
+            BoardView.EntityClicked = OnEntityClicked;
+
+            // 现场立绘占位（盘面两侧，登场短暂出现；正式人物立绘待美术替换）。
+            CreatePortrait(new Vector2(-430f, 240f), "左立绘");
+            CreatePortrait(new Vector2(430f, 240f), "右立绘");
         }
 
         /// <summary>左旋一个相位（只改重力方向与盘面旋转动画，不重建盘面）。</summary>
@@ -96,6 +103,76 @@ namespace Everlight.Tales.UI
 
             BoardView.Refresh(Game.Board);
             Hud.Refresh(Game.Session, Game.Level);
+        }
+
+        private void OnEntityClicked(BoardEntity entity)
+        {
+            if (entity == null)
+            {
+                return;
+            }
+
+            GlobalUI.ShowDialog("零件信息", BuildPartDetail(entity));
+        }
+
+        private static string BuildPartDetail(BoardEntity entity)
+        {
+            PartCodexConfig codex = PartCodexCatalog.Get(entity.PartType);
+            string name = codex != null ? codex.Name + "（" + codex.Id + "）" : entity.PartType.ToString();
+
+            PartConfig cfg = PartCatalog.Get(entity.PartType);
+            if (cfg == null)
+            {
+                return name + "\n（无能力配置）";
+            }
+
+            var sb = new StringBuilder();
+            sb.Append(name).Append('\n');
+            sb.Append("触发分：").Append(cfg.TriggerScore).Append("（触发不耗能）\n");
+            sb.Append("能量：容量 ").Append(cfg.EnergyCapacity).Append(" / 单次消耗 ").Append(cfg.EffectCost).Append('\n');
+            if (cfg.EffectScorePerCell > 0)
+            {
+                sb.Append("效果分：每推移 1 格 +").Append(cfg.EffectScorePerCell).Append('\n');
+            }
+            if (cfg.EffectScorePerTarget > 0)
+            {
+                sb.Append("效果分：每命中 +").Append(cfg.EffectScorePerTarget).Append('\n');
+            }
+            if (cfg.PublicEnergyPerEffect > 0)
+            {
+                sb.Append("产能：公共能量 +").Append(cfg.PublicEnergyPerEffect).Append('\n');
+            }
+            if (cfg.BonusNth > 0)
+            {
+                sb.Append("第 ").Append(cfg.BonusNth).Append(" 次起每次 +").Append(cfg.BonusScoreFromNth).Append('\n');
+            }
+            if (cfg.PushDistance > 1)
+            {
+                sb.Append("推距：").Append(cfg.PushDistance).Append(" 格\n");
+            }
+            if (cfg.RemovesSelf)
+            {
+                sb.Append("起爆后移除本体\n");
+            }
+
+            return sb.ToString().TrimEnd('\n');
+        }
+
+        private TextMeshProUGUI CreatePortrait(Vector2 position, string label)
+        {
+            var go = new GameObject("portrait", typeof(RectTransform), typeof(TextMeshProUGUI));
+            go.transform.SetParent(transform, false);
+            RectTransform rt = (RectTransform)go.transform;
+            rt.anchoredPosition = position;
+            rt.sizeDelta = new Vector2(200f, 360f);
+            var text = go.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
+            text.fontSize = 22;
+            text.color = new Color(0.55f, 0.58f, 0.64f, 1f);
+            text.alignment = TextAlignmentOptions.Center;
+            text.text = label;
+            text.raycastTarget = false;
+            return text;
         }
 
         private void OnRotateLeft()

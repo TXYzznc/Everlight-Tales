@@ -76,6 +76,9 @@ namespace Everlight.Tales.UI
         /// <summary>大六边形轮廓半径（像素）= 2 · (boardRadius + 1) · CellSize。</summary>
         public float OutlineRadius { get; private set; }
 
+        /// <summary>实体块被点击（供零件卡弹窗）；参数为被点击的实体。</summary>
+        public System.Action<BoardEntity> EntityClicked;
+
         /// <summary>把盘面根本地坐标换算到本视图（页面）本地坐标，抵消盘面旋转后文字仍正向。</summary>
         public Vector2 BoardToLocal(Vector2 boardLocal)
         {
@@ -134,6 +137,11 @@ namespace Everlight.Tales.UI
                     0f,
                     null);
                 _entityTiles.Add(entity.Id, tile);
+
+                Button button = tile.AddComponent<Button>();
+                button.targetGraphic = tile.GetComponent<HexagonGraphic>();
+                BoardEntity captured = entity;
+                button.onClick.AddListener(() => EntityClicked?.Invoke(captured));
             }
 
             RebuildOutline(board.BoardRadius);
