@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -35,6 +36,8 @@ namespace Everlight.Tales.UI
         private bool m_ArmMode;
 
         private BoardEntity m_SelectedArmEntity;
+
+        private GameObject m_FormPicker;
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
         public void Bind(BoardGame game)
@@ -159,6 +162,12 @@ namespace Everlight.Tales.UI
                 return;
             }
 
+            // 形态宿主零件：弹形态选择（临时切换，只影响本关盘面，D-060/D7）。
+            if (TryShowFormPicker(entity))
+            {
+                return;
+            }
+
             GlobalUI.ShowDialog("零件信息", BuildPartDetail(entity));
         }
 
@@ -222,6 +231,11 @@ namespace Everlight.Tales.UI
 
             var sb = new StringBuilder();
             sb.Append(name).Append('\n');
+            if (!string.IsNullOrEmpty(entity.FormId))
+            {
+                FormConfig form = FormCatalog.Get(entity.FormId);
+                sb.Append("形态：").Append(form != null ? form.Name : entity.FormId).Append('\n');
+            }
             sb.Append("触发分：").Append(cfg.TriggerScore).Append("（触发不耗能）\n");
             sb.Append("能量：容量 ").Append(cfg.EnergyCapacity).Append(" / 单次消耗 ").Append(cfg.EffectCost).Append('\n');
             if (cfg.EffectScorePerCell > 0)
@@ -250,6 +264,139 @@ namespace Everlight.Tales.UI
             }
 
             return sb.ToString().TrimEnd('\n');
+        }
+
+        private bool TryShowFormPicker(BoardEntity entity)
+        {
+            if (entity.Kind != EntityKind.Part)
+            {
+                return false;
+            }
+
+            if (FormCatalog.OfHost(entity.PartType).Count == 0)
+            {
+                return false;
+            }
+
+            ShowFormPicker(entity.PartType);
+            return true;
+        }
+
+        private void ShowFormPicker(PartType host)
+        {
+            ClearFormPicker();
+
+            m_FormPicker = new GameObject("form_picker", typeof(RectTransform), typeof(Image));
+            m_FormPicker.transform.SetParent(transform, false);
+            var rt = (RectTransform)m_FormPicker.transform;
+            rt.anchoredPosition = new Vector2(0f, 60f);
+            rt.sizeDelta = new Vector2(560f, 560f);
+            m_FormPicker.GetComponent<Image>().color = new Color(0.09f, 0.10f, 0.125f, 0.98f);
+
+            PartCodexConfig codex = PartCodexCatalog.Get(host);
+            string hostName = codex != null ? codex.Name : host.ToString();
+            AddPickerLabel("形态切换 · " + hostName, new Vector2(0f, 240f), 30);
+
+            // 基础形态 + 已解锁形态（D7：只列已解锁）。
+            AddPickerButton(IsCurrentForm(host, null) ? "基础形态（当前）" : "基础形态", new Vector2(0f, 160f), () => ApplyTempForm(host, null));
+
+            var world = WorldSession.Current != null ? WorldSession.Current.World : null;
+            int y = 90;
+            IReadOnlyList<FormConfig> forms = FormCatalog.OfHost(host);
+            for (int i = 0; i < forms.Count; i++)
+            {
+                FormConfig form = forms[i];
+                if (world == null || !world.UnlockedForms.Contains(form.Id))
+                {
+                    continue;
+                }
+
+                string label = form.Name + (IsCurrentForm(host, form.Id) ? "（当前）" : "");
+                AddPickerButton(label, new Vector2(0f, y), () => ApplyTempForm(host, form.Id));
+                y -= 68;
+            }
+
+            AddPickerButton("关闭", new Vector2(0f, y - 40f), ClearFormPicker);
+        }
+
+        private bool IsCurrentForm(PartType host, string formId)
+        {
+            foreach (BoardEntity entity in Game.Board.Entities)
+            {
+                if (entity.Kind == EntityKind.Part && entity.PartType == host)
+                {
+                    return entity.FormId == formId;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>临时切换某宿主形态：只改盘面零件 FormId（本关演算），不改 World.CurrentForms（永久当前形态）。</summary>
+        private void ApplyTempForm(PartType host, string formId)
+        {
+            foreach (BoardEntity entity in Game.Board.Entities)
+            {
+                if (entity.Kind == EntityKind.Part && entity.PartType == host)
+                {
+                    entity.SetForm(formId);
+                }
+            }
+
+            FormConfig form = formId != null ? FormCatalog.Get(formId) : null;
+            GlobalUI.ShowToast("本关已切换：" + (form != null ? form.Name : "基础形态"));
+            ClearFormPicker();
+            Refresh();
+        }
+
+        private void ClearFormPicker()
+        {
+            if (m_FormPicker != null)
+            {
+                Destroy(m_FormPicker);
+                m_FormPicker = null;
+            }
+        }
+
+        private void AddPickerLabel(string text, Vector2 position, int fontSize)
+        {
+            var go = new GameObject("picker_label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            go.transform.SetParent(m_FormPicker.transform, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchoredPosition = position;
+            rt.sizeDelta = new Vector2(480f, 44f);
+            var label = go.GetComponent<TextMeshProUGUI>();
+            label.font = TMP_Settings.defaultFontAsset;
+            label.fontSize = fontSize;
+            label.color = new Color(1f, 0.85f, 0.35f, 1f);
+            label.alignment = TextAlignmentOptions.Center;
+            label.text = text;
+            label.raycastTarget = false;
+        }
+
+        private void AddPickerButton(string label, Vector2 position, System.Action onClick)
+        {
+            var go = new GameObject("picker_btn", typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(m_FormPicker.transform, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchoredPosition = position;
+            rt.sizeDelta = new Vector2(380f, 56f);
+            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
+
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(go.transform, false);
+            var labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchoredPosition = Vector2.zero;
+            labelRt.sizeDelta = new Vector2(380f, 56f);
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
+            text.fontSize = 22;
+            text.color = Color.white;
+            text.alignment = TextAlignmentOptions.Center;
+            text.text = label;
+            text.raycastTarget = false;
+
+            go.GetComponent<Button>().onClick.AddListener(() => onClick());
         }
 
         private TextMeshProUGUI CreatePortrait(Vector2 position, string label)

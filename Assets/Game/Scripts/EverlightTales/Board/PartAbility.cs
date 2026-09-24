@@ -11,6 +11,12 @@ namespace Everlight.Tales.Board
     /// </summary>
     public static class PartAbility
     {
+        // D-060 首批通用零件形态（F 类）ID：撞锤两态 + 线圈两态。
+        private const string FormPierceHammer = "P-001-F01";
+        private const string FormSweepHammer = "P-001-F02";
+        private const string FormAxialCoil = "P-003-F01";
+        private const string FormFuseCoil = "P-003-F02";
+
         private readonly struct Outcome
         {
             public readonly int EffectScore;
@@ -52,7 +58,7 @@ namespace Everlight.Tales.Board
             switch (target.PartType)
             {
                 case PartType.InertiaHammer:
-                    outcome = Hammer(context, target, sourceId, kind == TriggerKinds.Collision, incoming, config);
+                    outcome = HammerForm(context, target, sourceId, kind == TriggerKinds.Collision, incoming, config);
                     break;
 
                 case PartType.MeteringRatchet:
@@ -60,7 +66,7 @@ namespace Everlight.Tales.Board
                     break;
 
                 case PartType.BlastCoil:
-                    outcome = Coil(context, target, config);
+                    outcome = CoilForm(context, target, config);
                     break;
 
                 case PartType.ReversalGear:
@@ -188,6 +194,108 @@ namespace Everlight.Tales.Board
             return moved > 0 ? new Outcome(moved * effectPerCell, 0) : default;
         }
 
+        /// <summary>撞锤形态分派（D-060）：贯通 / 横推 / 基础。</summary>
+        private static Outcome HammerForm(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, HexDirection incoming, PartConfig config)
+        {
+            if (target.FormId == FormPierceHammer)
+            {
+                return PierceHammer(context, target, sourceId, hasIncoming, incoming, config);
+            }
+
+            if (target.FormId == FormSweepHammer)
+            {
+                return SweepHammer(context, target, sourceId, hasIncoming, incoming, config);
+            }
+
+            return Hammer(context, target, sourceId, hasIncoming, incoming, config);
+        }
+
+        /// <summary>
+        /// 贯通撞锤（P-001-F01，D-060）：被实体撞击时推移输出侧对象（被撞零件沿入射方向相邻格）1 格，
+        /// 来撞件留原位。输出侧无对象／不可动时已支付能量不退还。
+        /// </summary>
+        private static Outcome PierceHammer(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, HexDirection incoming, PartConfig config)
+        {
+            if (!hasIncoming)
+            {
+                return default; // 冲击无实体入射：只触发分。
+            }
+
+            if (target.Energy < config.EffectCost)
+            {
+                return default; // 能量不足：不耗能、不推移。
+            }
+
+            target.Energy -= config.EffectCost;
+
+            BoardEntity outputEntity = context.Board.EntityAt(target.Coord.Neighbor(incoming));
+            if (outputEntity == null || !outputEntity.IsMovable)
+            {
+                return default; // 输出侧无对象／固定：已支付能量不退还。
+            }
+
+            int distance = 1 + context.Bonuses.DistanceBonus(target.PartType);
+            int effectPerCell = config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType);
+            int moved = 0;
+            for (int step = 0; step < distance; step++)
+            {
+                HexCoord destination = outputEntity.Coord.Neighbor(incoming);
+                if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
+                {
+                    break;
+                }
+
+                context.Board.Move(outputEntity, destination, MoveSource.Push);
+                moved++;
+            }
+
+            return moved > 0 ? new Outcome(moved * effectPerCell, 0) : default;
+        }
+
+        /// <summary>
+        /// 横推撞锤（P-001-F02，D-060）：被实体撞击时把入射方向的顺／逆时针相邻两路对象各推 1 格，
+        /// 两路合计费 1，缺一路照常结算另一路。
+        /// </summary>
+        private static Outcome SweepHammer(SettlementContext context, BoardEntity target, int sourceId, bool hasIncoming, HexDirection incoming, PartConfig config)
+        {
+            if (!hasIncoming)
+            {
+                return default;
+            }
+
+            if (target.Energy < config.EffectCost)
+            {
+                return default;
+            }
+
+            target.Energy -= config.EffectCost;
+
+            int effectPerCell = config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType);
+            int totalMoved = 0;
+            totalMoved += PushSide(context, target, HexDirections.Rotate(incoming, 1));
+            totalMoved += PushSide(context, target, HexDirections.Rotate(incoming, -1));
+            return totalMoved > 0 ? new Outcome(totalMoved * effectPerCell, 0) : default;
+        }
+
+        /// <summary>把撞锤某侧相邻格对象沿该方向推 1 格，返回是否成功推移。</summary>
+        private static int PushSide(SettlementContext context, BoardEntity target, HexDirection direction)
+        {
+            BoardEntity entity = context.Board.EntityAt(target.Coord.Neighbor(direction));
+            if (entity == null || !entity.IsMovable)
+            {
+                return 0;
+            }
+
+            HexCoord destination = entity.Coord.Neighbor(direction);
+            if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
+            {
+                return 0;
+            }
+
+            context.Board.Move(entity, destination, MoveSource.Push);
+            return 1;
+        }
+
         /// <summary>棘轮：能量足够时消耗 1 点、产出 1 点公共维修能量；本拍第 N 次及以后成功产能另得效果分。</summary>
         private static Outcome Ratchet(SettlementContext context, BoardEntity target, PartConfig config)
         {
@@ -244,6 +352,103 @@ namespace Everlight.Tales.Board
 
             int effectPerTarget = config.EffectScorePerTarget + context.Bonuses.EffectUnitBonus(target.PartType);
             return new Outcome(hitTargets.Count * effectPerTarget, 0);
+        }
+
+        /// <summary>线圈形态分派（D-060）：轴向 / 定时 / 基础。</summary>
+        private static Outcome CoilForm(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.FormId == FormAxialCoil)
+            {
+                return AxialCoil(context, target, config);
+            }
+
+            if (target.FormId == FormFuseCoil)
+            {
+                return FuseCoil(context, target, config);
+            }
+
+            return Coil(context, target, config);
+        }
+
+        /// <summary>
+        /// 轴向线圈（P-003-F01，D-060）：受触发时沿 D0、D3 各发最长 2 格射线，命中首个实体即停
+        /// （零件发冲击、耐久障碍扣耐久），然后移除本体。
+        /// </summary>
+        private static Outcome AxialCoil(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.Energy < config.EffectCost)
+            {
+                return default; // 能量不足：只触发分，不发射线、不移除。
+            }
+
+            target.Energy -= config.EffectCost;
+
+            var hitTargets = new List<BoardEntity>();
+            ScanRay(context, target.Coord, HexDirection.D0, 2, hitTargets);
+            ScanRay(context, target.Coord, HexDirection.D3, 2, hitTargets);
+
+            // 起爆后移除本体（移除后仍按快照向命中件发冲击）。
+            context.Board.Remove(target);
+
+            for (int i = 0; i < hitTargets.Count; i++)
+            {
+                context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Shock, target.Id, hitTargets[i].Id));
+            }
+
+            int effectPerTarget = config.EffectScorePerTarget + context.Bonuses.EffectUnitBonus(target.PartType);
+            return new Outcome(hitTargets.Count * effectPerTarget, 0);
+        }
+
+        /// <summary>从 center 沿 direction 扫描最多 range 格，命中首个实体即停（零件计入命中、耐久障碍扣耐久）。</summary>
+        private static void ScanRay(SettlementContext context, HexCoord center, HexDirection direction, int range, List<BoardEntity> hits)
+        {
+            HexCoord cell = center;
+            for (int i = 0; i < range; i++)
+            {
+                cell = cell.Neighbor(direction);
+                if (!context.Board.IsValid(cell))
+                {
+                    break;
+                }
+
+                BoardEntity occupant = context.Board.EntityAt(cell);
+                if (occupant == null)
+                {
+                    continue; // 空格继续延伸。
+                }
+
+                if (occupant.Kind == EntityKind.Part && occupant.PartType != PartType.None)
+                {
+                    hits.Add(occupant);
+                }
+                else if (occupant.ObstacleType != ObstacleType.None && occupant.MaxDurability > 0)
+                {
+                    ObstacleService.Damage(context, occupant);
+                }
+
+                break; // 命中首个实体即停。
+            }
+        }
+
+        /// <summary>
+        /// 定时线圈（P-003-F02，D-060）：首次触发支付 1 进入待爆（到期拍 = 当前拍 + 1），
+        /// 待爆再触发只加触发分不支付不累积；到期爆破由 FuseCoilService 在到期拍扣额度后执行。
+        /// </summary>
+        private static Outcome FuseCoil(SettlementContext context, BoardEntity target, PartConfig config)
+        {
+            if (target.FuseDueTap > 0)
+            {
+                return default; // 已待爆：本次触发只加触发分（开头已加）。
+            }
+
+            if (target.Energy < config.EffectCost)
+            {
+                return default; // 能量不足：不启动待爆。
+            }
+
+            target.Energy -= config.EffectCost;
+            target.SetFuseDueTap(context.Session.TapSerial + 1);
+            return default; // 启动时效果分 0。
         }
 
         /// <summary>换向齿轮（P-004）：有实体入射且能量足够时，消耗 1 点把来撞实体沿入射方向顺时针偏转 60° 推进 1 格。</summary>

@@ -55,11 +55,14 @@ namespace Everlight.Tales.Board
         /// <summary>执行一次拍击：以本轮剩余额度结算，并回填额度、返回过轮判定（P1-011）。</summary>
         public RoundPassResult Tap()
         {
+            // D-060 定时线圈：本拍到期待爆实体先于基础定势下落执行，结算后拍序号 +1。
+            var dueEffects = FuseCoilService.BuildDueEffects(Board, Session.TapSerial);
             SettlementResult result = TapTransaction.Settle(
                 Board,
                 Settle,
-                new TapContext(Level.Round.TapQuotaRemaining),
+                new TapContext(Level.Round.TapQuotaRemaining, dueEffects),
                 Session);
+            Session.TapSerial++;
             LastSettlement = result;
             return Level.ResolveAfterTap(result.TapQuotaAfter);
         }

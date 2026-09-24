@@ -67,7 +67,7 @@ namespace Everlight.Tales.Board
     /// </summary>
     public static class InitialBoardBuilder
     {
-        public static BoardState Build(LevelBoardConfig config, IReadOnlyList<PartType> selectedCarry, RandomService rng)
+        public static BoardState Build(LevelBoardConfig config, IReadOnlyList<PartType> selectedCarry, RandomService rng, IReadOnlyDictionary<PartType, string> forms = null)
         {
             if (config == null)
             {
@@ -89,10 +89,10 @@ namespace Everlight.Tales.Board
                 board.Place(element.CreateEntity(nextId++), element.Position);
             }
 
-            // 2. 关键件固定工作位。
+            // 2. 关键件固定工作位（按当前形态写入 FormId，D-060）。
             foreach (KeyPieceConfig key in config.KeyPieces)
             {
-                board.Place(BoardEntity.Part(nextId++, key.PartType), key.Position);
+                board.Place(BoardEntity.Part(nextId++, key.PartType, ResolveForm(forms, key.PartType)), key.Position);
             }
 
             // 3. 剩余名额从携带池等权有放回抽种类、随机合法空格落位。
@@ -122,10 +122,20 @@ namespace Everlight.Tales.Board
                 int index = rng.NextInt(0, empty.Count);
                 HexCoord coord = empty[index];
                 empty.RemoveAt(index);
-                board.Place(BoardEntity.Part(nextId++, kind), coord);
+                board.Place(BoardEntity.Part(nextId++, kind, ResolveForm(forms, kind)), coord);
             }
 
             return board;
+        }
+
+        private static string ResolveForm(IReadOnlyDictionary<PartType, string> forms, PartType part)
+        {
+            if (forms == null || !forms.TryGetValue(part, out string formId))
+            {
+                return null;
+            }
+
+            return formId;
         }
     }
 }

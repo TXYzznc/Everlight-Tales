@@ -259,6 +259,26 @@ namespace Everlight.Tales.UI
             return boardConfig;
         }
 
+        /// <summary>解析本关形态映射（D-060）：当前形态 + 试机借用形态覆盖（借用覆盖宿主当前形态）。</summary>
+        private Dictionary<PartType, string> ResolveBoardForms(TrialConfig trial)
+        {
+            var forms = new Dictionary<PartType, string>();
+            foreach (var pair in World.CurrentForms)
+            {
+                if (!string.IsNullOrEmpty(pair.Value))
+                {
+                    forms[pair.Key] = pair.Value;
+                }
+            }
+
+            if (trial != null && !string.IsNullOrEmpty(trial.BorrowedFormId))
+            {
+                forms[trial.HostPart] = trial.BorrowedFormId;
+            }
+
+            return forms;
+        }
+
         /// <summary>
         /// 确认卷帘门事件（P2-007）：用准备页调整后的携带选择建盘面并 Begin 事件。
         /// 未先 <see cref="PrepareRollerDoor"/> 或已确认过则返回 null。
@@ -270,7 +290,7 @@ namespace Everlight.Tales.UI
                 return null;
             }
 
-            BoardState board = InitialBoardBuilder.Build(CurrentBoardConfig, PendingCarry.SelectedParts(), Rng);
+            BoardState board = InitialBoardBuilder.Build(CurrentBoardConfig, PendingCarry.SelectedParts(), Rng, ResolveBoardForms(null));
             CurrentEvent = RepairEventShell.Begin(PendingEventConfig, board);
 
             // 注入四选一累计的机械臂次数奖励（跨事件保留，注入后清零）。
@@ -389,7 +409,7 @@ namespace Everlight.Tales.UI
             }
 
             CarrySelection carry = new CarrySelection(World.OwnedParts, boardConfig.BorrowedParts, keyParts);
-            BoardState board = InitialBoardBuilder.Build(boardConfig, carry.SelectedParts(), Rng);
+            BoardState board = InitialBoardBuilder.Build(boardConfig, carry.SelectedParts(), Rng, ResolveBoardForms(trial));
 
             CurrentTrial = TrialEventShell.Begin(trial, board);
             return CurrentTrial;

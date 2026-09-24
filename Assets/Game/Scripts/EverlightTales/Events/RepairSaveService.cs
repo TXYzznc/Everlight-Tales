@@ -31,6 +31,7 @@ namespace Everlight.Tales.Events
             save.ArmMoves = level.Session.ArmMoves;
             save.Seed = rng.Seed;
             save.RandomConsumed = rng.ConsumedCount;
+            save.TapSerial = level.Session.TapSerial;
 
             foreach (BoardEntity entity in board.Entities)
             {
@@ -53,6 +54,8 @@ namespace Everlight.Tales.Events
                     IsLocked = entity.IsLocked,
                     Movable = !entity.IsFixed,
                     AnchorLabel = entity.Goal != null ? entity.Goal.AnchorLabel : 0,
+                    FormId = entity.FormId,
+                    FuseDueTap = entity.FuseDueTap,
                 };
 
                 if (entity.RepairConfig != null)
@@ -94,6 +97,7 @@ namespace Everlight.Tales.Events
             level.Session.Score = save.Score;
             level.Session.PublicRepairEnergy = save.PublicRepairEnergy;
             level.Session.ArmMoves = save.ArmMoves;
+            level.Session.TapSerial = save.TapSerial;
 
             var buffs = new BuffSet();
             foreach (SavedBuff saved in save.Buffs)
@@ -123,8 +127,9 @@ namespace Everlight.Tales.Events
             switch (saved.Kind)
             {
                 case EntityKind.Part:
-                    entity = BoardEntity.Part(saved.Id, saved.PartType);
+                    entity = BoardEntity.Part(saved.Id, saved.PartType, saved.FormId);
                     entity.SetEnergy(saved.Energy);
+                    entity.SetFuseDueTap(saved.FuseDueTap);
                     break;
 
                 case EntityKind.RepairTarget:

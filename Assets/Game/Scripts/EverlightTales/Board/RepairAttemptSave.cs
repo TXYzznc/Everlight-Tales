@@ -26,6 +26,8 @@ namespace Everlight.Tales.Board
         public bool IsLocked;
         public bool Movable;
         public int AnchorLabel;
+        public string FormId;
+        public int FuseDueTap;
     }
 
     /// <summary>存档中的本局 Buff（P2-010）。</summary>
@@ -50,6 +52,7 @@ namespace Everlight.Tales.Board
         public int ArmMoves;
         public int Seed;
         public int RandomConsumed;
+        public int TapSerial;
         public List<SavedEntity> Entities = new List<SavedEntity>();
         public List<SavedBuff> Buffs = new List<SavedBuff>();
     }

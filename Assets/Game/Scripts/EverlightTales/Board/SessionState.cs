@@ -15,5 +15,8 @@ namespace Everlight.Tales.Board
 
         /// <summary>机械臂剩余搬动次数（P1-010）。跨轮保留、不自动补满，仅搬动成功时递减。</summary>
         public int ArmMoves { get; set; }
+
+        /// <summary>连续拍序号（D-060 定时线圈到期基准）：关初 0，每次拍击结算后 +1，跨轮不重置、跨关清零。</summary>
+        public int TapSerial { get; set; }
     }
 }

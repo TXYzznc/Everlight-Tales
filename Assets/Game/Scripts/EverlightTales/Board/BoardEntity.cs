@@ -37,6 +37,12 @@ namespace Everlight.Tales.Board
         /// <summary>当前零件能量（Kind==Part，跨拍保留）。</summary>
         public int Energy { get; internal set; }
 
+        /// <summary>本关形态 ID（空串=基础形态；盘面建置时按当前形态写入，D-060）。</summary>
+        public string FormId { get; internal set; }
+
+        /// <summary>定时线圈待爆到期拍序号（0=未待爆，>0=到期拍序号，D-060）。</summary>
+        public int FuseDueTap { get; internal set; }
+
         /// <summary>维修对象配置（Kind==RepairTarget）。</summary>
         public RepairTargetConfig RepairConfig { get; }
 
@@ -257,8 +263,8 @@ namespace Everlight.Tales.Board
             }
         }
 
-        /// <summary>创建一个可移动零件（按种类初始化能量）。</summary>
-        public static BoardEntity Part(int id, PartType partType)
+        /// <summary>创建一个可移动零件（按种类初始化能量），可选携带本关形态（D-060）。</summary>
+        public static BoardEntity Part(int id, PartType partType, string formId = null)
         {
             if (partType == PartType.None)
             {
@@ -266,7 +272,21 @@ namespace Everlight.Tales.Board
             }
 
             PartConfig config = PartCatalog.Get(partType);
-            return new BoardEntity(id, EntityKind.Part, false, partType, config.EnergyCapacity, config.EnergyCapacity);
+            var entity = new BoardEntity(id, EntityKind.Part, false, partType, config.EnergyCapacity, config.EnergyCapacity);
+            entity.FormId = formId;
+            return entity;
+        }
+
+        /// <summary>设定本关形态（存档恢复 / 盘面临时切换）。</summary>
+        public void SetForm(string formId)
+        {
+            FormId = formId;
+        }
+
+        /// <summary>设定定时线圈待爆到期拍（0=解除待爆）。</summary>
+        public void SetFuseDueTap(int dueTap)
+        {
+            FuseDueTap = dueTap;
         }
 
         /// <summary>创建一个固定设施。</summary>
