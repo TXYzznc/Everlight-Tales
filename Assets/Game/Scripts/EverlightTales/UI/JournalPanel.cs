@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using Everlight.Tales.Data;
 using Everlight.Tales.Events;
 using Everlight.Tales.Meta;
@@ -121,7 +122,7 @@ namespace Everlight.Tales.UI
                 if (EventPageLayout.GroupOf(entry, session.Time.Period) == EventGroup.Actionable)
                 {
                     anyActionable = true;
-                    y = AddRow(y, "◆ " + entry.Name + "（" + entry.TimeCost + " 格）");
+                    y = AddCard(y, "◆ " + entry.Name + "（" + entry.TimeCost + " 格）", BuildEventDetail(entry), new Color(0.92f, 0.92f, 0.92f, 1f));
                 }
             }
 
@@ -139,7 +140,7 @@ namespace Everlight.Tales.UI
                 {
                     anyElse = true;
                     string tag = g == EventGroup.NotOpenYet ? "未到开放" : "已错过";
-                    y = AddRow(y, "◇ " + entry.Name + "（" + tag + "）");
+                    y = AddCard(y, "◇ " + entry.Name + "（" + tag + "）", BuildEventDetail(entry), new Color(0.62f, 0.64f, 0.68f, 1f));
                 }
             }
 
@@ -183,7 +184,7 @@ namespace Everlight.Tales.UI
             y = AddHeader(y, "进行中");
             foreach (TaskState task in groups[0].Item2)
             {
-                y = AddRow(y, "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）");
+                y = AddCard(y, "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）", BuildTaskDetail(task), new Color(0.92f, 0.92f, 0.92f, 1f));
             }
 
             if (groups[0].Item2.Count == 0)
@@ -207,7 +208,7 @@ namespace Everlight.Tales.UI
             y = AddHeader(y, "已完成");
             foreach (TaskState task in groups[2].Item2)
             {
-                y = AddRow(y, "○ " + task.Config.Name);
+                y = AddCard(y, "○ " + task.Config.Name, BuildTaskDetail(task), new Color(0.62f, 0.64f, 0.68f, 1f));
             }
 
             if (groups[2].Item2.Count == 0)
@@ -247,7 +248,7 @@ namespace Everlight.Tales.UI
                     y = AddHeader(y, "批次 " + currentBatch);
                 }
 
-                y = AddRow(y, "· " + c.Config.Name + "（" + CaseKindText(c.Kind) + "）");
+                y = AddCard(y, "· " + c.Config.Name + "（" + CaseKindText(c.Kind) + "）", BuildCaseDetail(c), new Color(0.92f, 0.92f, 0.92f, 1f));
             }
         }
 
@@ -262,9 +263,86 @@ namespace Everlight.Tales.UI
             TaskClaimResult result = TaskService.Claim(task, session.World);
             if (result.Success)
             {
+                GlobalUI.ShowDialog("领取成功", BuildClaimDetail(task));
                 session.Save();
                 RebuildList();
             }
+        }
+
+        // ---- 详情文案（点卡片弹窗）----
+
+        private static string BuildEventDetail(EventEntry entry)
+        {
+            var sb = new StringBuilder();
+            sb.Append(entry.Name).Append('\n');
+            sb.Append("类型：").Append(entry.Type).Append('\n');
+            sb.Append("地点：").Append(entry.PlaceName).Append('\n');
+            sb.Append("耗时：").Append(entry.TimeCost).Append(" 格\n");
+            if (entry.OpenPeriods != null && entry.OpenPeriods.Length > 0)
+            {
+                sb.Append("开放时段：");
+                for (int i = 0; i < entry.OpenPeriods.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append('、');
+                    }
+
+                    sb.Append(TimePeriod.DisplayName(entry.OpenPeriods[i]));
+                }
+                sb.Append('\n');
+            }
+
+            return sb.ToString().TrimEnd('\n');
+        }
+
+        private static string BuildTaskDetail(TaskState task)
+        {
+            var sb = new StringBuilder();
+            sb.Append(task.Config.Name).Append('\n');
+            sb.Append("进度：").Append(task.CurrentStep).Append('/').Append(task.TotalSteps).Append('\n');
+            sb.Append("奖励：").Append(task.Config.RewardFee).Append(" 维修费");
+            if (task.Config.Blueprints != null && task.Config.Blueprints.Count > 0)
+            {
+                sb.Append(" + 图样 ").Append(string.Join("、", task.Config.Blueprints));
+            }
+            sb.Append('\n');
+            if (!string.IsNullOrEmpty(task.Config.Description))
+            {
+                sb.Append(task.Config.Description);
+            }
+
+            return sb.ToString().TrimEnd('\n');
+        }
+
+        private static string BuildCaseDetail(CaseState c)
+        {
+            var sb = new StringBuilder();
+            sb.Append(c.Config.Name).Append('\n');
+            sb.Append("批次：").Append(c.Config.Batch).Append('\n');
+            sb.Append("状态：").Append(CaseKindText(c.Kind)).Append('\n');
+            if (!string.IsNullOrEmpty(c.Config.Source))
+            {
+                sb.Append("来源：").Append(c.Config.Source).Append('\n');
+            }
+            if (!string.IsNullOrEmpty(c.Config.FirstPlace))
+            {
+                sb.Append("首现地点：").Append(c.Config.FirstPlace);
+            }
+
+            return sb.ToString().TrimEnd('\n');
+        }
+
+        private static string BuildClaimDetail(TaskState task)
+        {
+            var sb = new StringBuilder();
+            sb.Append("维修费 +").Append(task.Config.RewardFee);
+            if (task.Config.Blueprints != null && task.Config.Blueprints.Count > 0)
+            {
+                sb.Append('\n').Append("图样：").Append(string.Join("、", task.Config.Blueprints));
+            }
+
+            return sb.ToString();
         }
 
         // ---- 行渲染 ----
@@ -284,6 +362,38 @@ namespace Everlight.Tales.UI
             TextMeshProUGUI text = MakeRowText(m_ListRoot, y, label, color, fontSize);
             text.gameObject.name = "row";
             return y - RowHeight;
+        }
+
+        private float AddCard(float y, string label, string detail, Color color, int fontSize = 26)
+        {
+            var card = new GameObject("card", typeof(RectTransform), typeof(Image), typeof(Button));
+            card.transform.SetParent(m_ListRoot, false);
+            var rt = (RectTransform)card.transform;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, y);
+            rt.sizeDelta = new Vector2(-24f, RowHeight);
+            card.GetComponent<Image>().color = new Color(0.18f, 0.21f, 0.25f, 1f);
+
+            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(card.transform, false);
+            var labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchorMin = new Vector2(0f, 0f);
+            labelRt.anchorMax = new Vector2(1f, 1f);
+            labelRt.offsetMin = new Vector2(16f, 0f);
+            labelRt.offsetMax = new Vector2(-16f, 0f);
+            var text = labelGo.GetComponent<TextMeshProUGUI>();
+            text.font = UIFactory.BuiltinFont;
+            text.fontSize = fontSize;
+            text.color = color;
+            text.alignment = TextAlignmentOptions.Left;
+            text.raycastTarget = false;
+            text.text = label;
+
+            string captured = detail;
+            card.GetComponent<Button>().onClick.AddListener(() => GlobalUI.ShowDialog("详情", captured));
+            return y - RowHeight - 6f;
         }
 
         private float AddActionRow(float y, string label, string actionLabel, UnityEngine.Events.UnityAction onClick)
