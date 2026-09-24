@@ -33,6 +33,8 @@ namespace Everlight.Tales.UI
 
         private readonly List<PlaceEventEntry> m_CurrentEntries = new List<PlaceEventEntry>();
 
+        private bool m_CallShown;
+
         /// <summary>地点详情面板里的一张事件卡（P1 地图信息层视图模型）。</summary>
         private sealed class PlaceEventEntry
         {
@@ -63,6 +65,13 @@ namespace Everlight.Tales.UI
             if (session != null && m_TimeBar != null)
             {
                 m_TimeBar.Refresh(session.Time);
+            }
+
+            // 来电提示：进入夜晚时段时提示一次调查入口（占位文案，正式叙事接入后替换）。
+            if (!m_CallShown && session != null && TimePeriod.IsNight(session.Time.Period))
+            {
+                m_CallShown = true;
+                GlobalUI.ShowDialog("助手来电", "晚上好，城里似乎又有了新的怪谈动静。留意调查，注意安全。");
             }
         }
 
