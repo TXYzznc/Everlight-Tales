@@ -28,28 +28,63 @@
     "blocksRaycasts": true
    }
   ],
-  "anchorMin": [0.0, 0.0],
-  "anchorMax": [1.0, 1.0],
-  "pivot": [0.5, 0.5],
-  "sizeDelta": [0.0, 0.0],
-  "anchoredPosition": [0.0, 0.0],
+  "anchorMin": [
+   0.0,
+   0.0
+  ],
+  "anchorMax": [
+   1.0,
+   1.0
+  ],
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "sizeDelta": [
+   0.0,
+   0.0
+  ],
+  "anchoredPosition": [
+   0.0,
+   0.0
+  ],
   "children": [
    {
     "name": "Panel_Background",
     "components": [
      {
       "type": "Image",
-      "color": [0.0902, 0.1020, 0.1255, 1.0],
+      "color": [
+       0.0902,
+       0.102,
+       0.1255,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": false,
       "preserveAspect": false
      }
     ],
-    "anchorMin": [0.0, 0.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 0.5],
-    "sizeDelta": [0.0, 0.0],
-    "anchoredPosition": [0.0, 0.0]
+    "anchorMin": [
+     0.0,
+     0.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     0.5
+    ],
+    "sizeDelta": [
+     0.0,
+     0.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     0.0
+    ]
    },
    {
     "name": "Txt_LevelName",
@@ -58,33 +93,74 @@
       "type": "TextMeshProUGUI",
       "text": "准备事件",
       "fontSize": 36.0,
-      "color": [0.9412, 0.9490, 0.9569, 1.0],
+      "color": [
+       0.9412,
+       0.949,
+       0.9569,
+       1.0
+      ],
       "raycastTarget": false,
       "wordWrap": false
      }
     ],
-    "anchorMin": [0.0, 1.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 1.0],
-    "sizeDelta": [-80.0, 80.0],
-    "anchoredPosition": [0.0, -40.0]
+    "anchorMin": [
+     0.0,
+     1.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     1.0
+    ],
+    "sizeDelta": [
+     -80.0,
+     80.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     -40.0
+    ]
    },
    {
     "name": "Panel_Info",
     "components": [
      {
       "type": "Image",
-      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "color": [
+       1.0,
+       1.0,
+       1.0,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": false,
-      "preserveAspect": false
+      "preserveAspect": false,
+      "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-001面板.png"
      }
     ],
-    "anchorMin": [0.0, 1.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 1.0],
-    "sizeDelta": [-80.0, 300.0],
-    "anchoredPosition": [0.0, -140.0],
+    "anchorMin": [
+     0.0,
+     1.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     1.0
+    ],
+    "sizeDelta": [
+     -80.0,
+     300.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     -140.0
+    ],
     "children": [
      {
       "name": "Txt_InfoHeading",
@@ -93,16 +169,36 @@
         "type": "TextMeshProUGUI",
         "text": "关卡信息",
         "fontSize": 26.0,
-        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "color": [
+         0.8784,
+         0.6588,
+         0.3451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 40.0],
-      "anchoredPosition": [0.0, -12.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -12.0
+      ]
      },
      {
       "name": "Txt_InfoObjective",
@@ -111,16 +207,36 @@
         "type": "TextMeshProUGUI",
         "text": "目标：—",
         "fontSize": 22.0,
-        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "color": [
+         0.9412,
+         0.949,
+         0.9569,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": true
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 110.0],
-      "anchoredPosition": [0.0, -56.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       110.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -56.0
+      ]
      },
      {
       "name": "Txt_InfoDuration",
@@ -129,16 +245,36 @@
         "type": "TextMeshProUGUI",
         "text": "预计耗时：— 格",
         "fontSize": 20.0,
-        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "color": [
+         0.6784,
+         0.7059,
+         0.7451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 0.0],
-      "anchorMax": [0.0, 0.0],
-      "pivot": [0.0, 0.0],
-      "sizeDelta": [480.0, 44.0],
-      "anchoredPosition": [20.0, 12.0]
+      "anchorMin": [
+       0.0,
+       0.0
+      ],
+      "anchorMax": [
+       0.0,
+       0.0
+      ],
+      "pivot": [
+       0.0,
+       0.0
+      ],
+      "sizeDelta": [
+       480.0,
+       44.0
+      ],
+      "anchoredPosition": [
+       20.0,
+       12.0
+      ]
      },
      {
       "name": "Txt_InfoRounds",
@@ -147,16 +283,36 @@
         "type": "TextMeshProUGUI",
         "text": "轮次：—",
         "fontSize": 20.0,
-        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "color": [
+         0.6784,
+         0.7059,
+         0.7451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [1.0, 0.0],
-      "anchorMax": [1.0, 0.0],
-      "pivot": [1.0, 0.0],
-      "sizeDelta": [480.0, 44.0],
-      "anchoredPosition": [-20.0, 12.0]
+      "anchorMin": [
+       1.0,
+       0.0
+      ],
+      "anchorMax": [
+       1.0,
+       0.0
+      ],
+      "pivot": [
+       1.0,
+       0.0
+      ],
+      "sizeDelta": [
+       480.0,
+       44.0
+      ],
+      "anchoredPosition": [
+       -20.0,
+       12.0
+      ]
      }
     ]
    },
@@ -165,17 +321,38 @@
     "components": [
      {
       "type": "Image",
-      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "color": [
+       1.0,
+       1.0,
+       1.0,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": false,
-      "preserveAspect": false
+      "preserveAspect": false,
+      "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-001面板.png"
      }
     ],
-    "anchorMin": [0.0, 1.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 1.0],
-    "sizeDelta": [-80.0, 700.0],
-    "anchoredPosition": [0.0, -460.0],
+    "anchorMin": [
+     0.0,
+     1.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     1.0
+    ],
+    "sizeDelta": [
+     -80.0,
+     700.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     -460.0
+    ],
     "children": [
      {
       "name": "Txt_CarryHeading",
@@ -184,26 +361,52 @@
         "type": "TextMeshProUGUI",
         "text": "携带选择（最多 6 种）",
         "fontSize": 26.0,
-        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "color": [
+         0.8784,
+         0.6588,
+         0.3451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.0, 1.0],
-      "sizeDelta": [640.0, 40.0],
-      "anchoredPosition": [20.0, -12.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.0,
+       1.0
+      ],
+      "sizeDelta": [
+       640.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       20.0,
+       -12.0
+      ]
      },
      {
       "name": "Btn_AutoFillKeys",
       "components": [
        {
         "type": "Image",
-        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "color": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ],
         "imageType": 1,
         "raycastTarget": true,
-        "preserveAspect": false
+        "preserveAspect": false,
+        "spritePath": "Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"
        },
        {
         "type": "Button",
@@ -211,11 +414,26 @@
         "interactable": true
        }
       ],
-      "anchorMin": [1.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [1.0, 1.0],
-      "sizeDelta": [220.0, 40.0],
-      "anchoredPosition": [-20.0, -12.0],
+      "anchorMin": [
+       1.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       1.0,
+       1.0
+      ],
+      "sizeDelta": [
+       220.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       -20.0,
+       -12.0
+      ],
       "children": [
        {
         "name": "Txt_AutoFillLabel",
@@ -224,16 +442,36 @@
           "type": "TextMeshProUGUI",
           "text": "一键补关键件",
           "fontSize": 20.0,
-          "color": [0.0902, 0.1020, 0.1255, 1.0],
+          "color": [
+           0.0902,
+           0.102,
+           0.1255,
+           1.0
+          ],
           "raycastTarget": false,
           "wordWrap": false
          }
         ],
-        "anchorMin": [0.0, 0.0],
-        "anchorMax": [1.0, 1.0],
-        "pivot": [0.5, 0.5],
-        "sizeDelta": [-16.0, -8.0],
-        "anchoredPosition": [0.0, 0.0]
+        "anchorMin": [
+         0.0,
+         0.0
+        ],
+        "anchorMax": [
+         1.0,
+         1.0
+        ],
+        "pivot": [
+         0.5,
+         0.5
+        ],
+        "sizeDelta": [
+         -16.0,
+         -8.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ]
        }
       ]
      },
@@ -242,27 +480,54 @@
       "components": [
        {
         "type": "GridLayoutGroup",
-        "cellSize": [300.0, 88.0],
-        "spacing": [20.0, 16.0],
+        "cellSize": [
+         300.0,
+         88.0
+        ],
+        "spacing": [
+         20.0,
+         16.0
+        ],
         "constraint": 1,
         "constraintCount": 3
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 210.0],
-      "anchoredPosition": [0.0, -60.0],
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       210.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -60.0
+      ],
       "children": [
        {
         "name": "Btn_CarrySlot0",
         "components": [
          {
           "type": "Image",
-          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-004-empty槽位.png"
          },
          {
           "type": "Button",
@@ -270,11 +535,26 @@
           "interactable": true
          }
         ],
-        "anchorMin": [0.0, 1.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 1.0],
-        "sizeDelta": [300.0, 88.0],
-        "anchoredPosition": [0.0, 0.0],
+        "anchorMin": [
+         0.0,
+         1.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         1.0
+        ],
+        "sizeDelta": [
+         300.0,
+         88.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ],
         "children": [
          {
           "name": "Txt_CarrySlot0Label",
@@ -283,16 +563,36 @@
             "type": "TextMeshProUGUI",
             "text": "—",
             "fontSize": 22.0,
-            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "color": [
+             0.9412,
+             0.949,
+             0.9569,
+             1.0
+            ],
             "raycastTarget": false,
             "wordWrap": false
            }
           ],
-          "anchorMin": [0.0, 0.0],
-          "anchorMax": [1.0, 1.0],
-          "pivot": [0.5, 0.5],
-          "sizeDelta": [-16.0, -8.0],
-          "anchoredPosition": [0.0, 0.0]
+          "anchorMin": [
+           0.0,
+           0.0
+          ],
+          "anchorMax": [
+           1.0,
+           1.0
+          ],
+          "pivot": [
+           0.5,
+           0.5
+          ],
+          "sizeDelta": [
+           -16.0,
+           -8.0
+          ],
+          "anchoredPosition": [
+           0.0,
+           0.0
+          ]
          }
         ]
        },
@@ -301,10 +601,16 @@
         "components": [
          {
           "type": "Image",
-          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-004-empty槽位.png"
          },
          {
           "type": "Button",
@@ -312,11 +618,26 @@
           "interactable": true
          }
         ],
-        "anchorMin": [0.0, 1.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 1.0],
-        "sizeDelta": [300.0, 88.0],
-        "anchoredPosition": [0.0, 0.0],
+        "anchorMin": [
+         0.0,
+         1.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         1.0
+        ],
+        "sizeDelta": [
+         300.0,
+         88.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ],
         "children": [
          {
           "name": "Txt_CarrySlot1Label",
@@ -325,16 +646,36 @@
             "type": "TextMeshProUGUI",
             "text": "—",
             "fontSize": 22.0,
-            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "color": [
+             0.9412,
+             0.949,
+             0.9569,
+             1.0
+            ],
             "raycastTarget": false,
             "wordWrap": false
            }
           ],
-          "anchorMin": [0.0, 0.0],
-          "anchorMax": [1.0, 1.0],
-          "pivot": [0.5, 0.5],
-          "sizeDelta": [-16.0, -8.0],
-          "anchoredPosition": [0.0, 0.0]
+          "anchorMin": [
+           0.0,
+           0.0
+          ],
+          "anchorMax": [
+           1.0,
+           1.0
+          ],
+          "pivot": [
+           0.5,
+           0.5
+          ],
+          "sizeDelta": [
+           -16.0,
+           -8.0
+          ],
+          "anchoredPosition": [
+           0.0,
+           0.0
+          ]
          }
         ]
        },
@@ -343,10 +684,16 @@
         "components": [
          {
           "type": "Image",
-          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-004-empty槽位.png"
          },
          {
           "type": "Button",
@@ -354,11 +701,26 @@
           "interactable": true
          }
         ],
-        "anchorMin": [0.0, 1.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 1.0],
-        "sizeDelta": [300.0, 88.0],
-        "anchoredPosition": [0.0, 0.0],
+        "anchorMin": [
+         0.0,
+         1.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         1.0
+        ],
+        "sizeDelta": [
+         300.0,
+         88.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ],
         "children": [
          {
           "name": "Txt_CarrySlot2Label",
@@ -367,16 +729,36 @@
             "type": "TextMeshProUGUI",
             "text": "—",
             "fontSize": 22.0,
-            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "color": [
+             0.9412,
+             0.949,
+             0.9569,
+             1.0
+            ],
             "raycastTarget": false,
             "wordWrap": false
            }
           ],
-          "anchorMin": [0.0, 0.0],
-          "anchorMax": [1.0, 1.0],
-          "pivot": [0.5, 0.5],
-          "sizeDelta": [-16.0, -8.0],
-          "anchoredPosition": [0.0, 0.0]
+          "anchorMin": [
+           0.0,
+           0.0
+          ],
+          "anchorMax": [
+           1.0,
+           1.0
+          ],
+          "pivot": [
+           0.5,
+           0.5
+          ],
+          "sizeDelta": [
+           -16.0,
+           -8.0
+          ],
+          "anchoredPosition": [
+           0.0,
+           0.0
+          ]
          }
         ]
        },
@@ -385,10 +767,16 @@
         "components": [
          {
           "type": "Image",
-          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-004-empty槽位.png"
          },
          {
           "type": "Button",
@@ -396,11 +784,26 @@
           "interactable": true
          }
         ],
-        "anchorMin": [0.0, 1.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 1.0],
-        "sizeDelta": [300.0, 88.0],
-        "anchoredPosition": [0.0, 0.0],
+        "anchorMin": [
+         0.0,
+         1.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         1.0
+        ],
+        "sizeDelta": [
+         300.0,
+         88.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ],
         "children": [
          {
           "name": "Txt_CarrySlot3Label",
@@ -409,16 +812,36 @@
             "type": "TextMeshProUGUI",
             "text": "—",
             "fontSize": 22.0,
-            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "color": [
+             0.9412,
+             0.949,
+             0.9569,
+             1.0
+            ],
             "raycastTarget": false,
             "wordWrap": false
            }
           ],
-          "anchorMin": [0.0, 0.0],
-          "anchorMax": [1.0, 1.0],
-          "pivot": [0.5, 0.5],
-          "sizeDelta": [-16.0, -8.0],
-          "anchoredPosition": [0.0, 0.0]
+          "anchorMin": [
+           0.0,
+           0.0
+          ],
+          "anchorMax": [
+           1.0,
+           1.0
+          ],
+          "pivot": [
+           0.5,
+           0.5
+          ],
+          "sizeDelta": [
+           -16.0,
+           -8.0
+          ],
+          "anchoredPosition": [
+           0.0,
+           0.0
+          ]
          }
         ]
        },
@@ -427,10 +850,16 @@
         "components": [
          {
           "type": "Image",
-          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-004-empty槽位.png"
          },
          {
           "type": "Button",
@@ -438,11 +867,26 @@
           "interactable": true
          }
         ],
-        "anchorMin": [0.0, 1.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 1.0],
-        "sizeDelta": [300.0, 88.0],
-        "anchoredPosition": [0.0, 0.0],
+        "anchorMin": [
+         0.0,
+         1.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         1.0
+        ],
+        "sizeDelta": [
+         300.0,
+         88.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ],
         "children": [
          {
           "name": "Txt_CarrySlot4Label",
@@ -451,16 +895,36 @@
             "type": "TextMeshProUGUI",
             "text": "—",
             "fontSize": 22.0,
-            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "color": [
+             0.9412,
+             0.949,
+             0.9569,
+             1.0
+            ],
             "raycastTarget": false,
             "wordWrap": false
            }
           ],
-          "anchorMin": [0.0, 0.0],
-          "anchorMax": [1.0, 1.0],
-          "pivot": [0.5, 0.5],
-          "sizeDelta": [-16.0, -8.0],
-          "anchoredPosition": [0.0, 0.0]
+          "anchorMin": [
+           0.0,
+           0.0
+          ],
+          "anchorMax": [
+           1.0,
+           1.0
+          ],
+          "pivot": [
+           0.5,
+           0.5
+          ],
+          "sizeDelta": [
+           -16.0,
+           -8.0
+          ],
+          "anchoredPosition": [
+           0.0,
+           0.0
+          ]
          }
         ]
        },
@@ -469,10 +933,16 @@
         "components": [
          {
           "type": "Image",
-          "color": [0.1843, 0.2078, 0.2510, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-004-empty槽位.png"
          },
          {
           "type": "Button",
@@ -480,11 +950,26 @@
           "interactable": true
          }
         ],
-        "anchorMin": [0.0, 1.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 1.0],
-        "sizeDelta": [300.0, 88.0],
-        "anchoredPosition": [0.0, 0.0],
+        "anchorMin": [
+         0.0,
+         1.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         1.0
+        ],
+        "sizeDelta": [
+         300.0,
+         88.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ],
         "children": [
          {
           "name": "Txt_CarrySlot5Label",
@@ -493,16 +978,36 @@
             "type": "TextMeshProUGUI",
             "text": "—",
             "fontSize": 22.0,
-            "color": [0.9412, 0.9490, 0.9569, 1.0],
+            "color": [
+             0.9412,
+             0.949,
+             0.9569,
+             1.0
+            ],
             "raycastTarget": false,
             "wordWrap": false
            }
           ],
-          "anchorMin": [0.0, 0.0],
-          "anchorMax": [1.0, 1.0],
-          "pivot": [0.5, 0.5],
-          "sizeDelta": [-16.0, -8.0],
-          "anchoredPosition": [0.0, 0.0]
+          "anchorMin": [
+           0.0,
+           0.0
+          ],
+          "anchorMax": [
+           1.0,
+           1.0
+          ],
+          "pivot": [
+           0.5,
+           0.5
+          ],
+          "sizeDelta": [
+           -16.0,
+           -8.0
+          ],
+          "anchoredPosition": [
+           0.0,
+           0.0
+          ]
          }
         ]
        }
@@ -515,16 +1020,36 @@
         "type": "TextMeshProUGUI",
         "text": "可选零件（点击补位 / 再点移除）",
         "fontSize": 20.0,
-        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "color": [
+         0.6784,
+         0.7059,
+         0.7451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 36.0],
-      "anchoredPosition": [0.0, -286.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       36.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -286.0
+      ]
      },
      {
       "name": "List_CarryAvailable",
@@ -536,11 +1061,26 @@
         "movementType": 2
        }
       ],
-      "anchorMin": [0.0, 0.0],
-      "anchorMax": [1.0, 0.0],
-      "pivot": [0.5, 0.0],
-      "sizeDelta": [-40.0, 350.0],
-      "anchoredPosition": [0.0, 16.0],
+      "anchorMin": [
+       0.0,
+       0.0
+      ],
+      "anchorMax": [
+       1.0,
+       0.0
+      ],
+      "pivot": [
+       0.5,
+       0.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       350.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       16.0
+      ],
       "children": [
        {
         "name": "Viewport_CarryAvailable",
@@ -549,11 +1089,26 @@
           "type": "RectMask2D"
          }
         ],
-        "anchorMin": [0.0, 0.0],
-        "anchorMax": [1.0, 1.0],
-        "pivot": [0.5, 0.5],
-        "sizeDelta": [0.0, 0.0],
-        "anchoredPosition": [0.0, 0.0],
+        "anchorMin": [
+         0.0,
+         0.0
+        ],
+        "anchorMax": [
+         1.0,
+         1.0
+        ],
+        "pivot": [
+         0.5,
+         0.5
+        ],
+        "sizeDelta": [
+         0.0,
+         0.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ],
         "children": [
          {
           "name": "Content_CarryAvailable",
@@ -570,18 +1125,38 @@
             "horizontalFit": 0
            }
           ],
-          "anchorMin": [0.0, 1.0],
-          "anchorMax": [1.0, 1.0],
-          "pivot": [0.5, 1.0],
-          "sizeDelta": [0.0, 0.0],
-          "anchoredPosition": [0.0, 0.0],
+          "anchorMin": [
+           0.0,
+           1.0
+          ],
+          "anchorMax": [
+           1.0,
+           1.0
+          ],
+          "pivot": [
+           0.5,
+           1.0
+          ],
+          "sizeDelta": [
+           0.0,
+           0.0
+          ],
+          "anchoredPosition": [
+           0.0,
+           0.0
+          ],
           "children": [
            {
             "name": "Item_CarryAvailableTemplate",
             "components": [
              {
               "type": "Image",
-              "color": [0.1843, 0.2078, 0.2510, 1.0],
+              "color": [
+               0.1843,
+               0.2078,
+               0.251,
+               1.0
+              ],
               "imageType": 1,
               "raycastTarget": true,
               "preserveAspect": false
@@ -596,11 +1171,26 @@
               "preferredHeight": 64.0
              }
             ],
-            "anchorMin": [0.0, 1.0],
-            "anchorMax": [0.0, 1.0],
-            "pivot": [0.0, 1.0],
-            "sizeDelta": [1000.0, 64.0],
-            "anchoredPosition": [0.0, 0.0],
+            "anchorMin": [
+             0.0,
+             1.0
+            ],
+            "anchorMax": [
+             0.0,
+             1.0
+            ],
+            "pivot": [
+             0.0,
+             1.0
+            ],
+            "sizeDelta": [
+             1000.0,
+             64.0
+            ],
+            "anchoredPosition": [
+             0.0,
+             0.0
+            ],
             "active": false,
             "children": [
              {
@@ -610,16 +1200,36 @@
                 "type": "TextMeshProUGUI",
                 "text": "零件",
                 "fontSize": 22.0,
-                "color": [0.9412, 0.9490, 0.9569, 1.0],
+                "color": [
+                 0.9412,
+                 0.949,
+                 0.9569,
+                 1.0
+                ],
                 "raycastTarget": false,
                 "wordWrap": false
                }
               ],
-              "anchorMin": [0.0, 0.0],
-              "anchorMax": [1.0, 1.0],
-              "pivot": [0.5, 0.5],
-              "sizeDelta": [-24.0, -8.0],
-              "anchoredPosition": [0.0, 0.0]
+              "anchorMin": [
+               0.0,
+               0.0
+              ],
+              "anchorMax": [
+               1.0,
+               1.0
+              ],
+              "pivot": [
+               0.5,
+               0.5
+              ],
+              "sizeDelta": [
+               -24.0,
+               -8.0
+              ],
+              "anchoredPosition": [
+               0.0,
+               0.0
+              ]
              }
             ]
            }
@@ -636,17 +1246,38 @@
     "components": [
      {
       "type": "Image",
-      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "color": [
+       1.0,
+       1.0,
+       1.0,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": false,
-      "preserveAspect": false
+      "preserveAspect": false,
+      "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-001面板.png"
      }
     ],
-    "anchorMin": [0.0, 1.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 1.0],
-    "sizeDelta": [-80.0, 420.0],
-    "anchoredPosition": [0.0, -1180.0],
+    "anchorMin": [
+     0.0,
+     1.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     1.0
+    ],
+    "sizeDelta": [
+     -80.0,
+     420.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     -1180.0
+    ],
     "children": [
      {
       "name": "Txt_PreviewHeading",
@@ -655,33 +1286,73 @@
         "type": "TextMeshProUGUI",
         "text": "盘面预览",
         "fontSize": 26.0,
-        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "color": [
+         0.8784,
+         0.6588,
+         0.3451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 40.0],
-      "anchoredPosition": [0.0, -12.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -12.0
+      ]
      },
      {
       "name": "Panel_PreviewContent",
       "components": [
        {
         "type": "Image",
-        "color": [0.1843, 0.2078, 0.2510, 1.0],
+        "color": [
+         0.1843,
+         0.2078,
+         0.251,
+         1.0
+        ],
         "imageType": 1,
         "raycastTarget": false,
         "preserveAspect": false
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 300.0],
-      "anchoredPosition": [0.0, -56.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       300.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -56.0
+      ]
      },
      {
       "name": "Txt_PreviewSummary",
@@ -690,16 +1361,36 @@
         "type": "TextMeshProUGUI",
         "text": "半径 — · 固定元素 — · 关键件 —",
         "fontSize": 20.0,
-        "color": [0.6784, 0.7059, 0.7451, 1.0],
+        "color": [
+         0.6784,
+         0.7059,
+         0.7451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 0.0],
-      "anchorMax": [1.0, 0.0],
-      "pivot": [0.5, 0.0],
-      "sizeDelta": [-40.0, 44.0],
-      "anchoredPosition": [0.0, 12.0]
+      "anchorMin": [
+       0.0,
+       0.0
+      ],
+      "anchorMax": [
+       1.0,
+       0.0
+      ],
+      "pivot": [
+       0.5,
+       0.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       44.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       12.0
+      ]
      }
     ]
    },
@@ -708,7 +1399,12 @@
     "components": [
      {
       "type": "Image",
-      "color": [0.1843, 0.2078, 0.2510, 1.0],
+      "color": [
+       0.1843,
+       0.2078,
+       0.251,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": true,
       "preserveAspect": false
@@ -719,11 +1415,26 @@
       "interactable": true
      }
     ],
-    "anchorMin": [0.0, 0.0],
-    "anchorMax": [0.0, 0.0],
-    "pivot": [0.0, 0.0],
-    "sizeDelta": [220.0, 80.0],
-    "anchoredPosition": [60.0, 60.0],
+    "anchorMin": [
+     0.0,
+     0.0
+    ],
+    "anchorMax": [
+     0.0,
+     0.0
+    ],
+    "pivot": [
+     0.0,
+     0.0
+    ],
+    "sizeDelta": [
+     220.0,
+     80.0
+    ],
+    "anchoredPosition": [
+     60.0,
+     60.0
+    ],
     "children": [
      {
       "name": "Txt_BackLabel",
@@ -732,16 +1443,36 @@
         "type": "TextMeshProUGUI",
         "text": "返回",
         "fontSize": 26.0,
-        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "color": [
+         0.9412,
+         0.949,
+         0.9569,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 0.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 0.5],
-      "sizeDelta": [-16.0, -8.0],
-      "anchoredPosition": [0.0, 0.0]
+      "anchorMin": [
+       0.0,
+       0.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       0.5
+      ],
+      "sizeDelta": [
+       -16.0,
+       -8.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       0.0
+      ]
      }
     ]
    },
@@ -750,7 +1481,12 @@
     "components": [
      {
       "type": "Image",
-      "color": [0.8784, 0.6588, 0.3451, 1.0],
+      "color": [
+       0.8784,
+       0.6588,
+       0.3451,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": true,
       "preserveAspect": false
@@ -761,11 +1497,26 @@
       "interactable": true
      }
     ],
-    "anchorMin": [1.0, 0.0],
-    "anchorMax": [1.0, 0.0],
-    "pivot": [1.0, 0.0],
-    "sizeDelta": [320.0, 80.0],
-    "anchoredPosition": [-60.0, 60.0],
+    "anchorMin": [
+     1.0,
+     0.0
+    ],
+    "anchorMax": [
+     1.0,
+     0.0
+    ],
+    "pivot": [
+     1.0,
+     0.0
+    ],
+    "sizeDelta": [
+     320.0,
+     80.0
+    ],
+    "anchoredPosition": [
+     -60.0,
+     60.0
+    ],
     "children": [
      {
       "name": "Txt_ConfirmLabel",
@@ -774,16 +1525,36 @@
         "type": "TextMeshProUGUI",
         "text": "确认开始",
         "fontSize": 26.0,
-        "color": [0.0902, 0.1020, 0.1255, 1.0],
+        "color": [
+         0.0902,
+         0.102,
+         0.1255,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 0.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 0.5],
-      "sizeDelta": [-16.0, -8.0],
-      "anchoredPosition": [0.0, 0.0]
+      "anchorMin": [
+       0.0,
+       0.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       0.5
+      ],
+      "sizeDelta": [
+       -16.0,
+       -8.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       0.0
+      ]
      }
     ]
    }

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 3,
+  "form": "MapPageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/MapPage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/MapPageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {
+    "name": "MapPageForm",
+    "components": [
+      {"type":"MapPageForm"},
+      {"type":"Canvas","renderMode":0},
+      {"type":"GraphicRaycaster"},
+      {"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}
+    ],
+    "anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],
+    "children": [
+      {"name":"Panel_Background","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.09,0.102,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+      {"name":"Panel_Map","components":[{"type":"MapPanel"}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,-220],"anchoredPosition":[0,-80],"children":[
+        {"name":"Panel_MapView","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.1,0.12,0.16,0.35],"raycastTarget":false},{"type":"CityMapView"}],"anchorMin":[0,0.45],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+        {"name":"Txt_Track","components":[{"type":"TextMeshProUGUI","text":"当前任务：—","fontSize":24,"color":[0.88,0.66,0.35,1],"raycastTarget":false}],"anchorMin":[0,1],"anchorMax":[1,1],"pivot":[0.5,1],"sizeDelta":[0,56],"anchoredPosition":[0,-12]},
+        {"name":"Panel_Place","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[1,1,1,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,0.46],"pivot":[0.5,0],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+          {"name":"Txt_PlaceLabel","components":[{"type":"TextMeshProUGUI","text":"点击地图节点查看地点","fontSize":30,"color":[0.94,0.95,0.96,1],"raycastTarget":false}],"anchorMin":[0,1],"anchorMax":[1,1],"pivot":[0.5,1],"sizeDelta":[-48,48],"anchoredPosition":[0,-20]},
+          {"name":"Txt_PlaceDesc","components":[{"type":"TextMeshProUGUI","text":"","fontSize":20,"color":[0.68,0.71,0.75,1],"raycastTarget":false}],"anchorMin":[0,1],"anchorMax":[1,1],"pivot":[0.5,1],"sizeDelta":[-48,52],"anchoredPosition":[0,-70]},
+          {"name":"List_Event","components":[{"type":"VerticalLayoutGroup","spacing":8,"childControlWidth":true,"childControlHeight":false}],"anchorMin":[0,0.2],"anchorMax":[1,0.82],"pivot":[0.5,0.5],"sizeDelta":[-48,0],"anchoredPosition":[0,0]},
+          {"name":"Btn_Wait","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0,0],"anchorMax":[0,0],"pivot":[0,0],"sizeDelta":[360,60],"anchoredPosition":[24,20],"children":[{"name":"Txt_WaitLabel","components":[{"type":"TextMeshProUGUI","text":"等待到下一时段","fontSize":24,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]},
+          {"name":"Btn_ConfirmEvent","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[1,0],"anchorMax":[1,0],"pivot":[1,0],"sizeDelta":[360,60],"anchoredPosition":[-24,20],"children":[{"name":"Txt_ConfirmLabel","components":[{"type":"TextMeshProUGUI","text":"开始事件","fontSize":24,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]}
+        ]}
+      ]},
+      {"name":"Panel_LocationConfirm","active":false,"components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-002对话框.png","color":[1,1,1,1]}],"anchorMin":[0.08,0.33],"anchorMax":[0.92,0.67],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+        {"name":"Txt_ConfirmTitle","components":[{"type":"TextMeshProUGUI","text":"确认地点","fontSize":36,"color":[0.94,0.95,0.96,1],"raycastTarget":false}],"anchorMin":[0,0.7],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,0],"anchoredPosition":[0,0]},
+        {"name":"Txt_ConfirmDesc","components":[{"type":"TextMeshProUGUI","text":"是否前往该地点？","fontSize":24,"color":[0.68,0.71,0.75,1],"raycastTarget":false}],"anchorMin":[0,0.35],"anchorMax":[1,0.68],"pivot":[0.5,0.5],"sizeDelta":[-48,0],"anchoredPosition":[0,0]},
+        {"name":"Btn_Confirm","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.08,0.08],"anchorMax":[0.46,0.28],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+        {"name":"Btn_Cancel","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.54,0.08],"anchorMax":[0.92,0.28],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]}
+      ]}
+    ]
+  },
+  "bindings": [
+    {"path":"m_MapPanel","node":"MapPageForm/Panel_Map","kind":"MapPanel"}
+  ],
+  "scalars": [],
+  "formArrays": [],
+  "generatedFrom":"地图与地点确认独立流程页契约（1080×1920）"
+}

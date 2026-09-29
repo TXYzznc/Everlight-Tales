@@ -28,28 +28,63 @@
     "blocksRaycasts": true
    }
   ],
-  "anchorMin": [0.0, 0.0],
-  "anchorMax": [1.0, 1.0],
-  "pivot": [0.5, 0.5],
-  "sizeDelta": [0.0, 0.0],
-  "anchoredPosition": [0.0, 0.0],
+  "anchorMin": [
+   0.0,
+   0.0
+  ],
+  "anchorMax": [
+   1.0,
+   1.0
+  ],
+  "pivot": [
+   0.5,
+   0.5
+  ],
+  "sizeDelta": [
+   0.0,
+   0.0
+  ],
+  "anchoredPosition": [
+   0.0,
+   0.0
+  ],
   "children": [
    {
     "name": "Panel_Background",
     "components": [
      {
       "type": "Image",
-      "color": [0.0902, 0.1020, 0.1255, 1.0],
+      "color": [
+       0.0902,
+       0.102,
+       0.1255,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": false,
       "preserveAspect": false
      }
     ],
-    "anchorMin": [0.0, 0.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 0.5],
-    "sizeDelta": [0.0, 0.0],
-    "anchoredPosition": [0.0, 0.0]
+    "anchorMin": [
+     0.0,
+     0.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     0.5
+    ],
+    "sizeDelta": [
+     0.0,
+     0.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     0.0
+    ]
    },
    {
     "name": "Txt_Title",
@@ -58,33 +93,73 @@
       "type": "TextMeshProUGUI",
       "text": "设置",
       "fontSize": 36.0,
-      "color": [0.9412, 0.9490, 0.9569, 1.0],
+      "color": [
+       0.9412,
+       0.949,
+       0.9569,
+       1.0
+      ],
       "raycastTarget": false,
       "wordWrap": false
      }
     ],
-    "anchorMin": [0.0, 1.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 1.0],
-    "sizeDelta": [-80.0, 80.0],
-    "anchoredPosition": [0.0, -40.0]
+    "anchorMin": [
+     0.0,
+     1.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     1.0
+    ],
+    "sizeDelta": [
+     -80.0,
+     80.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     -40.0
+    ]
    },
    {
     "name": "Panel_Music",
     "components": [
      {
       "type": "Image",
-      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "color": [
+       0.149,
+       0.1686,
+       0.2039,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": false,
       "preserveAspect": false
      }
     ],
-    "anchorMin": [0.0, 1.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 1.0],
-    "sizeDelta": [-80.0, 240.0],
-    "anchoredPosition": [0.0, -140.0],
+    "anchorMin": [
+     0.0,
+     1.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     1.0
+    ],
+    "sizeDelta": [
+     -80.0,
+     240.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     -140.0
+    ],
     "children": [
      {
       "name": "Txt_MusicHeading",
@@ -93,70 +168,153 @@
         "type": "TextMeshProUGUI",
         "text": "音乐音量",
         "fontSize": 26.0,
-        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "color": [
+         0.8784,
+         0.6588,
+         0.3451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 40.0],
-      "anchoredPosition": [0.0, -12.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -12.0
+      ]
      },
      {
       "name": "Sld_Music",
       "components": [
        {
         "type": "Image",
-        "color": [0.1843, 0.2078, 0.2510, 1.0],
+        "color": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ],
         "imageType": 1,
         "raycastTarget": true,
-        "preserveAspect": false
+        "preserveAspect": false,
+        "spritePath": "Assets/Game/Sprites/UI/控件/SHR-031进度条轨道.png"
        },
        {
         "type": "Slider"
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-160.0, 56.0],
-      "anchoredPosition": [0.0, -72.0],
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -160.0,
+       56.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -72.0
+      ],
       "children": [
        {
         "name": "Fill_Music",
         "components": [
          {
           "type": "Image",
-          "color": [0.8784, 0.6588, 0.3451, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": false,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/控件/SHR-032-normal进度条填充.png"
          }
         ],
-        "anchorMin": [0.0, 0.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 0.5],
-        "sizeDelta": [0.0, 0.0],
-        "anchoredPosition": [0.0, 0.0]
+        "anchorMin": [
+         0.0,
+         0.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         0.5
+        ],
+        "sizeDelta": [
+         0.0,
+         0.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ]
        },
        {
         "name": "Handle_Music",
         "components": [
          {
           "type": "Image",
-          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/控件/SHR-033-normal滑块.png"
          }
         ],
-        "anchorMin": [0.0, 0.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.5, 0.5],
-        "sizeDelta": [24.0, 56.0],
-        "anchoredPosition": [0.0, 0.0]
+        "anchorMin": [
+         0.0,
+         0.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.5,
+         0.5
+        ],
+        "sizeDelta": [
+         24.0,
+         56.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ]
        }
       ]
      },
@@ -167,16 +325,36 @@
         "type": "TextMeshProUGUI",
         "text": "80%",
         "fontSize": 22.0,
-        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "color": [
+         0.9412,
+         0.949,
+         0.9569,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [1.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [1.0, 1.0],
-      "sizeDelta": [140.0, 40.0],
-      "anchoredPosition": [-20.0, -72.0]
+      "anchorMin": [
+       1.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       1.0,
+       1.0
+      ],
+      "sizeDelta": [
+       140.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       -20.0,
+       -72.0
+      ]
      }
     ]
    },
@@ -185,17 +363,37 @@
     "components": [
      {
       "type": "Image",
-      "color": [0.1490, 0.1686, 0.2039, 1.0],
+      "color": [
+       0.149,
+       0.1686,
+       0.2039,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": false,
       "preserveAspect": false
      }
     ],
-    "anchorMin": [0.0, 1.0],
-    "anchorMax": [1.0, 1.0],
-    "pivot": [0.5, 1.0],
-    "sizeDelta": [-80.0, 240.0],
-    "anchoredPosition": [0.0, -400.0],
+    "anchorMin": [
+     0.0,
+     1.0
+    ],
+    "anchorMax": [
+     1.0,
+     1.0
+    ],
+    "pivot": [
+     0.5,
+     1.0
+    ],
+    "sizeDelta": [
+     -80.0,
+     240.0
+    ],
+    "anchoredPosition": [
+     0.0,
+     -400.0
+    ],
     "children": [
      {
       "name": "Txt_SfxHeading",
@@ -204,70 +402,153 @@
         "type": "TextMeshProUGUI",
         "text": "音效音量",
         "fontSize": 26.0,
-        "color": [0.8784, 0.6588, 0.3451, 1.0],
+        "color": [
+         0.8784,
+         0.6588,
+         0.3451,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-40.0, 40.0],
-      "anchoredPosition": [0.0, -12.0]
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -40.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -12.0
+      ]
      },
      {
       "name": "Sld_Sfx",
       "components": [
        {
         "type": "Image",
-        "color": [0.1843, 0.2078, 0.2510, 1.0],
+        "color": [
+         1.0,
+         1.0,
+         1.0,
+         1.0
+        ],
         "imageType": 1,
         "raycastTarget": true,
-        "preserveAspect": false
+        "preserveAspect": false,
+        "spritePath": "Assets/Game/Sprites/UI/控件/SHR-031进度条轨道.png"
        },
        {
         "type": "Slider"
        }
       ],
-      "anchorMin": [0.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 1.0],
-      "sizeDelta": [-160.0, 56.0],
-      "anchoredPosition": [0.0, -72.0],
+      "anchorMin": [
+       0.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       1.0
+      ],
+      "sizeDelta": [
+       -160.0,
+       56.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       -72.0
+      ],
       "children": [
        {
         "name": "Fill_Sfx",
         "components": [
          {
           "type": "Image",
-          "color": [0.8784, 0.6588, 0.3451, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": false,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/控件/SHR-032-normal进度条填充.png"
          }
         ],
-        "anchorMin": [0.0, 0.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.0, 0.5],
-        "sizeDelta": [0.0, 0.0],
-        "anchoredPosition": [0.0, 0.0]
+        "anchorMin": [
+         0.0,
+         0.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.0,
+         0.5
+        ],
+        "sizeDelta": [
+         0.0,
+         0.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ]
        },
        {
         "name": "Handle_Sfx",
         "components": [
          {
           "type": "Image",
-          "color": [0.9412, 0.9490, 0.9569, 1.0],
+          "color": [
+           1.0,
+           1.0,
+           1.0,
+           1.0
+          ],
           "imageType": 1,
           "raycastTarget": true,
-          "preserveAspect": false
+          "preserveAspect": false,
+          "spritePath": "Assets/Game/Sprites/UI/控件/SHR-033-normal滑块.png"
          }
         ],
-        "anchorMin": [0.0, 0.0],
-        "anchorMax": [0.0, 1.0],
-        "pivot": [0.5, 0.5],
-        "sizeDelta": [24.0, 56.0],
-        "anchoredPosition": [0.0, 0.0]
+        "anchorMin": [
+         0.0,
+         0.0
+        ],
+        "anchorMax": [
+         0.0,
+         1.0
+        ],
+        "pivot": [
+         0.5,
+         0.5
+        ],
+        "sizeDelta": [
+         24.0,
+         56.0
+        ],
+        "anchoredPosition": [
+         0.0,
+         0.0
+        ]
        }
       ]
      },
@@ -278,16 +559,36 @@
         "type": "TextMeshProUGUI",
         "text": "80%",
         "fontSize": 22.0,
-        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "color": [
+         0.9412,
+         0.949,
+         0.9569,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [1.0, 1.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [1.0, 1.0],
-      "sizeDelta": [140.0, 40.0],
-      "anchoredPosition": [-20.0, -72.0]
+      "anchorMin": [
+       1.0,
+       1.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       1.0,
+       1.0
+      ],
+      "sizeDelta": [
+       140.0,
+       40.0
+      ],
+      "anchoredPosition": [
+       -20.0,
+       -72.0
+      ]
      }
     ]
    },
@@ -296,10 +597,16 @@
     "components": [
      {
       "type": "Image",
-      "color": [0.1843, 0.2078, 0.2510, 1.0],
+      "color": [
+       1.0,
+       1.0,
+       1.0,
+       1.0
+      ],
       "imageType": 1,
       "raycastTarget": true,
-      "preserveAspect": false
+      "preserveAspect": false,
+      "spritePath": "Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png"
      },
      {
       "type": "Button",
@@ -307,11 +614,26 @@
       "interactable": true
      }
     ],
-    "anchorMin": [0.0, 0.0],
-    "anchorMax": [0.0, 0.0],
-    "pivot": [0.0, 0.0],
-    "sizeDelta": [320.0, 80.0],
-    "anchoredPosition": [60.0, 60.0],
+    "anchorMin": [
+     0.0,
+     0.0
+    ],
+    "anchorMax": [
+     0.0,
+     0.0
+    ],
+    "pivot": [
+     0.0,
+     0.0
+    ],
+    "sizeDelta": [
+     320.0,
+     80.0
+    ],
+    "anchoredPosition": [
+     60.0,
+     60.0
+    ],
     "children": [
      {
       "name": "Txt_CloseLabel",
@@ -320,16 +642,36 @@
         "type": "TextMeshProUGUI",
         "text": "关闭",
         "fontSize": 26.0,
-        "color": [0.9412, 0.9490, 0.9569, 1.0],
+        "color": [
+         0.9412,
+         0.949,
+         0.9569,
+         1.0
+        ],
         "raycastTarget": false,
         "wordWrap": false
        }
       ],
-      "anchorMin": [0.0, 0.0],
-      "anchorMax": [1.0, 1.0],
-      "pivot": [0.5, 0.5],
-      "sizeDelta": [-16.0, -8.0],
-      "anchoredPosition": [0.0, 0.0]
+      "anchorMin": [
+       0.0,
+       0.0
+      ],
+      "anchorMax": [
+       1.0,
+       1.0
+      ],
+      "pivot": [
+       0.5,
+       0.5
+      ],
+      "sizeDelta": [
+       -16.0,
+       -8.0
+      ],
+      "anchoredPosition": [
+       0.0,
+       0.0
+      ]
      }
     ]
    }

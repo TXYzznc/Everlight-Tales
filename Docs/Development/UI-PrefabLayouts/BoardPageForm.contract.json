@@ -1,0 +1,1603 @@
+{
+  "schemaVersion": 3,
+  "form": "BoardPageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/BoardPage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/BoardPageForm.cs",
+  "referenceResolution": [
+    1080,
+    1920
+  ],
+  "root": {
+    "name": "BoardPageForm",
+    "components": [
+      {
+        "type": "BoardPageForm"
+      },
+      {
+        "type": "Canvas",
+        "renderMode": 0
+      },
+      {
+        "type": "GraphicRaycaster"
+      },
+      {
+        "type": "CanvasGroup",
+        "alpha": 1.0,
+        "interactable": true,
+        "blocksRaycasts": true
+      }
+    ],
+    "anchorMin": [
+      0,
+      0
+    ],
+    "anchorMax": [
+      1,
+      1
+    ],
+    "pivot": [
+      0.5,
+      0.5
+    ],
+    "sizeDelta": [
+      0,
+      0
+    ],
+    "anchoredPosition": [
+      0,
+      0
+    ],
+    "children": [
+      {
+        "name": "Panel_Background",
+        "components": [
+          {
+            "type": "Image",
+            "color": [
+              0.03,
+              0.04,
+              0.06,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": false,
+            "preserveAspect": false
+          }
+        ],
+        "anchorMin": [
+          0,
+          0
+        ],
+        "anchorMax": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          0,
+          0
+        ],
+        "anchoredPosition": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Txt_EventTitle",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "维修事件",
+            "fontSize": 36,
+            "color": [
+              0.94,
+              0.95,
+              0.96,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          1
+        ],
+        "anchorMax": [
+          0.5,
+          1
+        ],
+        "pivot": [
+          0.5,
+          1
+        ],
+        "sizeDelta": [
+          800,
+          50
+        ],
+        "anchoredPosition": [
+          0,
+          -80
+        ]
+      },
+      {
+        "name": "Txt_HudScore",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "得分 0",
+            "fontSize": 24,
+            "color": [
+              0.88,
+              0.66,
+              0.35,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          1
+        ],
+        "anchorMax": [
+          0.5,
+          1
+        ],
+        "pivot": [
+          0.5,
+          1
+        ],
+        "sizeDelta": [
+          400,
+          70
+        ],
+        "anchoredPosition": [
+          0,
+          -160
+        ]
+      },
+      {
+        "name": "Txt_HudRound",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "第 1 轮",
+            "fontSize": 24,
+            "color": [
+              0.88,
+              0.66,
+              0.35,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          1
+        ],
+        "anchorMax": [
+          0.5,
+          1
+        ],
+        "pivot": [
+          0.5,
+          1
+        ],
+        "sizeDelta": [
+          700,
+          44
+        ],
+        "anchoredPosition": [
+          0,
+          -100
+        ]
+      },
+      {
+        "name": "Txt_HudEnergy",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "能量 0",
+            "fontSize": 24,
+            "color": [
+              0.88,
+              0.66,
+              0.35,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0,
+          0
+        ],
+        "anchorMax": [
+          0,
+          0
+        ],
+        "pivot": [
+          0,
+          0
+        ],
+        "sizeDelta": [
+          320,
+          72
+        ],
+        "anchoredPosition": [
+          35,
+          100
+        ]
+      },
+      {
+        "name": "Panel_BoardFrame",
+        "components": [
+          {
+            "type": "Image",
+            "color": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": false,
+            "preserveAspect": false,
+            "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-001面板.png"
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          760,
+          760
+        ],
+        "anchoredPosition": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Btn_RotateLeft",
+        "components": [
+          {
+            "type": "Image",
+            "spritePath": "Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png",
+            "color": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          },
+          {
+            "type": "Button",
+            "transition": 1,
+            "interactable": true
+          }
+        ],
+        "children": [
+          {
+            "name": "Txt_RotateLeftLabel",
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "左旋",
+                "fontSize": 22,
+                "color": [
+                  0.09,
+                  0.1,
+                  0.125,
+                  1
+                ],
+                "raycastTarget": false,
+                "wordWrap": false
+              }
+            ],
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              -12,
+              -8
+            ],
+            "anchoredPosition": [
+              0,
+              0
+            ]
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0
+        ],
+        "anchorMax": [
+          0.5,
+          0
+        ],
+        "pivot": [
+          0.5,
+          0
+        ],
+        "sizeDelta": [
+          140,
+          80
+        ],
+        "anchoredPosition": [
+          -270,
+          250
+        ]
+      },
+      {
+        "name": "Btn_RotateRight",
+        "components": [
+          {
+            "type": "Image",
+            "spritePath": "Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png",
+            "color": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          },
+          {
+            "type": "Button",
+            "transition": 1,
+            "interactable": true
+          }
+        ],
+        "children": [
+          {
+            "name": "Txt_RotateRightLabel",
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "右旋",
+                "fontSize": 22,
+                "color": [
+                  0.09,
+                  0.1,
+                  0.125,
+                  1
+                ],
+                "raycastTarget": false,
+                "wordWrap": false
+              }
+            ],
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              -12,
+              -8
+            ],
+            "anchoredPosition": [
+              0,
+              0
+            ]
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0
+        ],
+        "anchorMax": [
+          0.5,
+          0
+        ],
+        "pivot": [
+          0.5,
+          0
+        ],
+        "sizeDelta": [
+          140,
+          80
+        ],
+        "anchoredPosition": [
+          280,
+          250
+        ]
+      },
+      {
+        "name": "Btn_Arm",
+        "components": [
+          {
+            "type": "Image",
+            "spritePath": "Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png",
+            "color": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          },
+          {
+            "type": "Button",
+            "transition": 1,
+            "interactable": true
+          }
+        ],
+        "children": [
+          {
+            "name": "Txt_ArmLabel",
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "机械臂",
+                "fontSize": 22,
+                "color": [
+                  0.09,
+                  0.1,
+                  0.125,
+                  1
+                ],
+                "raycastTarget": false,
+                "wordWrap": false
+              }
+            ],
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              -12,
+              -8
+            ],
+            "anchoredPosition": [
+              0,
+              0
+            ]
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0
+        ],
+        "anchorMax": [
+          0.5,
+          0
+        ],
+        "pivot": [
+          0.5,
+          0
+        ],
+        "sizeDelta": [
+          150,
+          80
+        ],
+        "anchoredPosition": [
+          -100,
+          250
+        ]
+      },
+      {
+        "name": "Btn_Tap",
+        "components": [
+          {
+            "type": "Image",
+            "spritePath": "Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png",
+            "color": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          },
+          {
+            "type": "Button",
+            "transition": 1,
+            "interactable": true
+          }
+        ],
+        "children": [
+          {
+            "name": "Txt_TapLabel",
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "拍击",
+                "fontSize": 22,
+                "color": [
+                  0.09,
+                  0.1,
+                  0.125,
+                  1
+                ],
+                "raycastTarget": false,
+                "wordWrap": false
+              }
+            ],
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              -12,
+              -8
+            ],
+            "anchoredPosition": [
+              0,
+              0
+            ]
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0
+        ],
+        "anchorMax": [
+          0.5,
+          0
+        ],
+        "pivot": [
+          0.5,
+          0
+        ],
+        "sizeDelta": [
+          180,
+          90
+        ],
+        "anchoredPosition": [
+          100,
+          245
+        ]
+      },
+      {
+        "name": "Btn_Settle",
+        "components": [
+          {
+            "type": "Image",
+            "spritePath": "Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png",
+            "color": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          },
+          {
+            "type": "Button",
+            "transition": 1,
+            "interactable": true
+          }
+        ],
+        "children": [
+          {
+            "name": "Txt_SettleLabel",
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "结算返回",
+                "fontSize": 22,
+                "color": [
+                  0.09,
+                  0.1,
+                  0.125,
+                  1
+                ],
+                "raycastTarget": false,
+                "wordWrap": false
+              }
+            ],
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              -12,
+              -8
+            ],
+            "anchoredPosition": [
+              0,
+              0
+            ]
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0
+        ],
+        "anchorMax": [
+          0.5,
+          0
+        ],
+        "pivot": [
+          0.5,
+          0
+        ],
+        "sizeDelta": [
+          240,
+          70
+        ],
+        "anchoredPosition": [
+          0,
+          100
+        ]
+      },
+      {
+        "name": "Btn_Pause",
+        "components": [
+          {
+            "type": "Image",
+            "spritePath": "Assets/Game/Sprites/UI/控件/SHR-025-normal图标按钮.png",
+            "color": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          },
+          {
+            "type": "Button",
+            "transition": 1,
+            "interactable": true
+          }
+        ],
+        "children": [
+          {
+            "name": "Txt_PauseLabel",
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "暂停",
+                "fontSize": 22,
+                "color": [
+                  0.09,
+                  0.1,
+                  0.125,
+                  1
+                ],
+                "raycastTarget": false,
+                "wordWrap": false
+              }
+            ],
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              -12,
+              -8
+            ],
+            "anchoredPosition": [
+              0,
+              0
+            ]
+          }
+        ],
+        "anchorMin": [
+          1,
+          1
+        ],
+        "anchorMax": [
+          1,
+          1
+        ],
+        "pivot": [
+          1,
+          1
+        ],
+        "sizeDelta": [
+          100,
+          64
+        ],
+        "anchoredPosition": [
+          -50,
+          -60
+        ]
+      },
+      {
+        "name": "Txt_Result",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "",
+            "fontSize": 24,
+            "color": [
+              0.88,
+              0.66,
+              0.35,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0
+        ],
+        "anchorMax": [
+          0.5,
+          0
+        ],
+        "pivot": [
+          0.5,
+          0
+        ],
+        "sizeDelta": [
+          650,
+          44
+        ],
+        "anchoredPosition": [
+          0,
+          340
+        ]
+      },
+      {
+        "name": "Panel_Pause",
+        "active": false,
+        "components": [
+          {
+            "type": "Image",
+            "color": [
+              0.03,
+              0.04,
+              0.06,
+              0.85
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          },
+          {
+            "type": "Button",
+            "transition": 0,
+            "interactable": true
+          }
+        ],
+        "anchorMin": [
+          0,
+          0
+        ],
+        "anchorMax": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          0,
+          0
+        ],
+        "anchoredPosition": [
+          0,
+          0
+        ],
+        "children": [
+          {
+            "name": "Btn_PauseResume",
+            "components": [
+              {
+                "type": "Image",
+                "spritePath": "Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png",
+                "color": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "imageType": 1,
+                "raycastTarget": true,
+                "preserveAspect": false
+              },
+              {
+                "type": "Button",
+                "transition": 1,
+                "interactable": true
+              }
+            ],
+            "children": [
+              {
+                "name": "Txt_PauseResumeLabel",
+                "components": [
+                  {
+                    "type": "TextMeshProUGUI",
+                    "text": "继续",
+                    "fontSize": 24,
+                    "color": [
+                      0.09,
+                      0.1,
+                      0.125,
+                      1
+                    ],
+                    "raycastTarget": false,
+                    "wordWrap": false
+                  }
+                ],
+                "anchorMin": [
+                  0,
+                  0
+                ],
+                "anchorMax": [
+                  1,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -12,
+                  -8
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              }
+            ],
+            "anchorMin": [
+              0.5,
+              0.5
+            ],
+            "anchorMax": [
+              0.5,
+              0.5
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              320,
+              72
+            ],
+            "anchoredPosition": [
+              0,
+              200
+            ]
+          },
+          {
+            "name": "Btn_PauseSettings",
+            "components": [
+              {
+                "type": "Image",
+                "spritePath": "Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png",
+                "color": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "imageType": 1,
+                "raycastTarget": true,
+                "preserveAspect": false
+              },
+              {
+                "type": "Button",
+                "transition": 1,
+                "interactable": true
+              }
+            ],
+            "children": [
+              {
+                "name": "Txt_PauseSettingsLabel",
+                "components": [
+                  {
+                    "type": "TextMeshProUGUI",
+                    "text": "设置",
+                    "fontSize": 24,
+                    "color": [
+                      0.09,
+                      0.1,
+                      0.125,
+                      1
+                    ],
+                    "raycastTarget": false,
+                    "wordWrap": false
+                  }
+                ],
+                "anchorMin": [
+                  0,
+                  0
+                ],
+                "anchorMax": [
+                  1,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -12,
+                  -8
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              }
+            ],
+            "anchorMin": [
+              0.5,
+              0.5
+            ],
+            "anchorMax": [
+              0.5,
+              0.5
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              320,
+              72
+            ],
+            "anchoredPosition": [
+              0,
+              90
+            ]
+          },
+          {
+            "name": "Btn_PauseRules",
+            "components": [
+              {
+                "type": "Image",
+                "spritePath": "Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png",
+                "color": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "imageType": 1,
+                "raycastTarget": true,
+                "preserveAspect": false
+              },
+              {
+                "type": "Button",
+                "transition": 1,
+                "interactable": true
+              }
+            ],
+            "children": [
+              {
+                "name": "Txt_PauseRulesLabel",
+                "components": [
+                  {
+                    "type": "TextMeshProUGUI",
+                    "text": "规则",
+                    "fontSize": 24,
+                    "color": [
+                      0.09,
+                      0.1,
+                      0.125,
+                      1
+                    ],
+                    "raycastTarget": false,
+                    "wordWrap": false
+                  }
+                ],
+                "anchorMin": [
+                  0,
+                  0
+                ],
+                "anchorMax": [
+                  1,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -12,
+                  -8
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              }
+            ],
+            "anchorMin": [
+              0.5,
+              0.5
+            ],
+            "anchorMax": [
+              0.5,
+              0.5
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              320,
+              72
+            ],
+            "anchoredPosition": [
+              0,
+              -20
+            ]
+          },
+          {
+            "name": "Btn_PauseRetreat",
+            "components": [
+              {
+                "type": "Image",
+                "spritePath": "Assets/Game/Sprites/UI/控件/SHR-024-normal危险按钮.png",
+                "color": [
+                  1,
+                  1,
+                  1,
+                  1
+                ],
+                "imageType": 1,
+                "raycastTarget": true,
+                "preserveAspect": false
+              },
+              {
+                "type": "Button",
+                "transition": 1,
+                "interactable": true
+              }
+            ],
+            "children": [
+              {
+                "name": "Txt_PauseRetreatLabel",
+                "components": [
+                  {
+                    "type": "TextMeshProUGUI",
+                    "text": "放弃",
+                    "fontSize": 24,
+                    "color": [
+                      0.09,
+                      0.1,
+                      0.125,
+                      1
+                    ],
+                    "raycastTarget": false,
+                    "wordWrap": false
+                  }
+                ],
+                "anchorMin": [
+                  0,
+                  0
+                ],
+                "anchorMax": [
+                  1,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -12,
+                  -8
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              }
+            ],
+            "anchorMin": [
+              0.5,
+              0.5
+            ],
+            "anchorMax": [
+              0.5,
+              0.5
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              320,
+              72
+            ],
+            "anchoredPosition": [
+              0,
+              -130
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Txt_LeftPortrait",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "Txt_LeftPortrait",
+            "fontSize": 22,
+            "color": [
+              0.55,
+              0.58,
+              0.64,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": true
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          200,
+          360
+        ],
+        "anchoredPosition": [
+          -430,
+          240
+        ]
+      },
+      {
+        "name": "Txt_RightPortrait",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "Txt_RightPortrait",
+            "fontSize": 22,
+            "color": [
+              0.55,
+              0.58,
+              0.64,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": true
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          200,
+          360
+        ],
+        "anchoredPosition": [
+          430,
+          240
+        ]
+      },
+      {
+        "name": "Panel_FormPicker",
+        "active": false,
+        "components": [
+          {
+            "type": "Image",
+            "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-002对话框.png",
+            "color": [
+              0.09,
+              0.1,
+              0.125,
+              0.98
+            ],
+            "imageType": 1,
+            "raycastTarget": true,
+            "preserveAspect": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          0.5
+        ],
+        "anchorMax": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          560,
+          560
+        ],
+        "anchoredPosition": [
+          0,
+          60
+        ],
+        "children": [
+          {
+            "name": "Txt_FormPickerTitle",
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "形态切换",
+                "fontSize": 30,
+                "color": [
+                  1,
+                  0.85,
+                  0.35,
+                  1
+                ],
+                "raycastTarget": false,
+                "wordWrap": false
+              }
+            ],
+            "anchorMin": [
+              0.5,
+              1
+            ],
+            "anchorMax": [
+              0.5,
+              1
+            ],
+            "pivot": [
+              0.5,
+              1
+            ],
+            "sizeDelta": [
+              480,
+              44
+            ],
+            "anchoredPosition": [
+              0,
+              -36
+            ]
+          },
+          {
+            "name": "List_FormOptions",
+            "components": [],
+            "anchorMin": [
+              0.5,
+              0.5
+            ],
+            "anchorMax": [
+              0.5,
+              0.5
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              480,
+              430
+            ],
+            "anchoredPosition": [
+              0,
+              -40
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Txt_HudRoundTap",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "",
+            "fontSize": 24,
+            "color": [
+              0.88,
+              0.66,
+              0.35,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          1
+        ],
+        "anchorMax": [
+          0.5,
+          1
+        ],
+        "pivot": [
+          0.5,
+          1
+        ],
+        "sizeDelta": [
+          700,
+          44
+        ],
+        "anchoredPosition": [
+          0,
+          -100
+        ]
+      },
+      {
+        "name": "Txt_HudGoals",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "",
+            "fontSize": 24,
+            "color": [
+              0.88,
+              0.66,
+              0.35,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          1
+        ],
+        "anchorMax": [
+          0.5,
+          1
+        ],
+        "pivot": [
+          0.5,
+          1
+        ],
+        "sizeDelta": [
+          800,
+          44
+        ],
+        "anchoredPosition": [
+          0,
+          -140
+        ]
+      },
+      {
+        "name": "Txt_HudArm",
+        "components": [
+          {
+            "type": "TextMeshProUGUI",
+            "text": "",
+            "fontSize": 24,
+            "color": [
+              0.88,
+              0.66,
+              0.35,
+              1
+            ],
+            "raycastTarget": false,
+            "wordWrap": false
+          }
+        ],
+        "anchorMin": [
+          0.5,
+          1
+        ],
+        "anchorMax": [
+          0.5,
+          1
+        ],
+        "pivot": [
+          0.5,
+          1
+        ],
+        "sizeDelta": [
+          320,
+          44
+        ],
+        "anchoredPosition": [
+          0,
+          -200
+        ]
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "path": "_rotateLeft",
+      "node": "BoardPageForm/Btn_RotateLeft",
+      "kind": "Button"
+    },
+    {
+      "path": "_rotateRight",
+      "node": "BoardPageForm/Btn_RotateRight",
+      "kind": "Button"
+    },
+    {
+      "path": "_armButton",
+      "node": "BoardPageForm/Btn_Arm",
+      "kind": "Button"
+    },
+    {
+      "path": "_tapButton",
+      "node": "BoardPageForm/Btn_Tap",
+      "kind": "Button"
+    },
+    {
+      "path": "_settleButton",
+      "node": "BoardPageForm/Btn_Settle",
+      "kind": "Button"
+    },
+    {
+      "path": "_pauseButton",
+      "node": "BoardPageForm/Btn_Pause",
+      "kind": "Button"
+    },
+    {
+      "path": "_resultText",
+      "node": "BoardPageForm/Txt_Result",
+      "kind": "TextMeshProUGUI"
+    },
+    {
+      "path": "_pausePanel",
+      "node": "BoardPageForm/Panel_Pause",
+      "kind": "GameObject"
+    },
+    {
+      "path": "_pauseResume",
+      "node": "BoardPageForm/Panel_Pause/Btn_PauseResume",
+      "kind": "Button"
+    },
+    {
+      "path": "_pauseSettings",
+      "node": "BoardPageForm/Panel_Pause/Btn_PauseSettings",
+      "kind": "Button"
+    },
+    {
+      "path": "_pauseRules",
+      "node": "BoardPageForm/Panel_Pause/Btn_PauseRules",
+      "kind": "Button"
+    },
+    {
+      "path": "_pauseRetreat",
+      "node": "BoardPageForm/Panel_Pause/Btn_PauseRetreat",
+      "kind": "Button"
+    },
+    {
+      "path": "_pauseBackdrop",
+      "node": "BoardPageForm/Panel_Pause",
+      "kind": "Button"
+    },
+    {
+      "kind": "TextMeshProUGUI",
+      "node": "BoardPageForm/Txt_EventTitle",
+      "path": "_eventTitle"
+    },
+    {
+      "kind": "TextMeshProUGUI",
+      "node": "BoardPageForm/Txt_HudScore",
+      "path": "_hudScore"
+    },
+    {
+      "kind": "TextMeshProUGUI",
+      "node": "BoardPageForm/Txt_HudRound",
+      "path": "_hudRound"
+    },
+    {
+      "kind": "TextMeshProUGUI",
+      "node": "BoardPageForm/Txt_HudEnergy",
+      "path": "_hudEnergy"
+    },
+    {
+      "path": "_leftPortrait",
+      "node": "BoardPageForm/Txt_LeftPortrait",
+      "kind": "TextMeshProUGUI"
+    },
+    {
+      "path": "_rightPortrait",
+      "node": "BoardPageForm/Txt_RightPortrait",
+      "kind": "TextMeshProUGUI"
+    },
+    {
+      "node": "BoardPageForm/Panel_FormPicker",
+      "kind": "GameObject",
+      "path": "_formPickerPanel"
+    },
+    {
+      "node": "BoardPageForm/Panel_FormPicker/Txt_FormPickerTitle",
+      "kind": "TextMeshProUGUI",
+      "path": "_formPickerTitle"
+    },
+    {
+      "node": "BoardPageForm/Panel_FormPicker/List_FormOptions",
+      "kind": "RectTransform",
+      "path": "_formPickerList"
+    }
+  ],
+  "scalars": [],
+  "scriptFields": [],
+  "formArrays": {},
+  "generatedFrom": "手写契约（Everlight 盘面页，操作控件静态化）"
+}
