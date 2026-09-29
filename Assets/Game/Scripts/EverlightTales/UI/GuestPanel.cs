@@ -16,10 +16,17 @@ namespace Everlight.Tales.UI
         private RectTransform m_Root;
         private System.Action<int> m_Navigate;
 
+        public void BindStaticLayout()
+        {
+            Transform root = transform.name == "Panel_Guest" ? transform : transform.Find("Panel_Guest");
+            Transform content = root != null ? root.Find("Panel_GuestContent") : null;
+            if (content != null) m_Root = content as RectTransform;
+        }
+
         public void Build(System.Action<int> navigate)
         {
             m_Navigate = navigate;
-            m_Root = UIFactory.Panel(transform, "guest_panel");
+            if (m_Root == null) m_Root = UIFactory.Panel(transform, "guest_panel");
             Refresh();
         }
 

@@ -17,9 +17,22 @@ namespace Everlight.Tales.UI
         private const float RowHeight = 46f;
 
         private RectTransform m_ListRoot;
+        private Transform m_StaticRoot;
+
+        public void BindStaticLayout()
+        {
+            m_StaticRoot = transform.name == "Panel_Archive" ? transform : transform.Find("Panel_Archive");
+            if (m_StaticRoot == null) return;
+            m_ListRoot = m_StaticRoot.Find("Panel_ArchiveList") as RectTransform;
+        }
 
         public void Build()
         {
+            if (m_StaticRoot != null && m_ListRoot != null)
+            {
+                RebuildList();
+                return;
+            }
             var topGo = new GameObject("archive_top", typeof(RectTransform), typeof(Image));
             topGo.transform.SetParent(transform, false);
             var topRt = (RectTransform)topGo.transform;

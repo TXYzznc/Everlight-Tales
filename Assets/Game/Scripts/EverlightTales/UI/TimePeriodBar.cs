@@ -21,8 +21,24 @@ namespace Everlight.Tales.UI
         public static Color NightActive = new Color(0.42f, 0.44f, 0.72f);
         public static Color NightIdle = new Color(0.20f, 0.21f, 0.30f);
 
+        public void BindStaticLayout()
+        {
+            DayPeriodLabel = FindText("Txt_DayPeriod");
+            RemainingLabel = FindText("Txt_Remaining");
+            PeriodCells = new Image[4];
+            for (int i = 0; i < PeriodCells.Length; i++)
+            {
+                Transform cell = transform.Find("Cell_" + i);
+                PeriodCells[i] = cell != null ? cell.GetComponent<Image>() : null;
+            }
+        }
+
         public void Build()
         {
+            if (DayPeriodLabel != null && RemainingLabel != null && PeriodCells != null && PeriodCells.Length == 4)
+            {
+                return;
+            }
             DayPeriodLabel = MakeText("day-period");
             RemainingLabel = MakeText("remaining");
             PeriodCells = new Image[4];
@@ -32,6 +48,12 @@ namespace Everlight.Tales.UI
                 go.transform.SetParent(transform, false);
                 PeriodCells[i] = go.GetComponent<Image>();
             }
+        }
+
+        private TextMeshProUGUI FindText(string path)
+        {
+            Transform target = transform.Find(path);
+            return target != null ? target.GetComponent<TextMeshProUGUI>() : null;
         }
 
         public void Refresh(TimeState time)

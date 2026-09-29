@@ -12,8 +12,8 @@ namespace Everlight.Tales.UI
 {
     /// <summary>
     /// 地图页签面板（b43）：装配时段条 + 五区地图 + 地点事件面板。
-    /// 点地点节点看信息、点「开始事件」进入盘面。程序化构建，不依赖预制体；
-    /// 挂在 MainPageShell 地图页签的内容容器上。
+    /// 点地点节点看信息、点「开始事件」进入盘面。地图壳优先绑定 MainPageShell Prefab，
+    /// 地点节点与事件卡按世界状态动态生成；挂在 MainPageShell 地图页签的内容容器上。
     /// </summary>
     public sealed class MapPanel : MonoBehaviour
     {
@@ -29,6 +29,8 @@ namespace Everlight.Tales.UI
 
         private Button m_WaitButton;
 
+        private GameObject m_EventCardTemplate;
+
         private TextMeshProUGUI m_TrackLabel;
 
         private string m_SelectedPlaceId;
@@ -36,6 +38,39 @@ namespace Everlight.Tales.UI
         private readonly List<PlaceEventEntry> m_CurrentEntries = new List<PlaceEventEntry>();
 
         private bool m_CallShown;
+
+        /// <summary>绑定主页地图的静态 Prefab 布局；地点节点和事件卡仍按数据动态生成。</summary>
+        public void BindStaticLayout()
+        {
+            Transform layout = transform.name == "Panel_Map" ? transform : transform.Find("Panel_Map");
+            if (layout == null) return;
+
+            m_TrackLabel = FindText(layout, "Txt_Track");
+            Transform timeRoot = layout.Find("Panel_TimeBar");
+            if (timeRoot != null)
+            {
+                m_TimeBar = timeRoot.GetComponent<TimePeriodBar>();
+                if (m_TimeBar == null) m_TimeBar = timeRoot.gameObject.AddComponent<TimePeriodBar>();
+                m_TimeBar.BindStaticLayout();
+            }
+            Transform mapRoot = layout.Find("Panel_MapView");
+            m_MapView = mapRoot != null ? mapRoot.GetComponent<CityMapView>() : null;
+            if (m_MapView == null && mapRoot != null)
+            {
+                m_MapView = mapRoot.gameObject.AddComponent<CityMapView>();
+            }
+            if (m_MapView != null && mapRoot != null)
+            {
+                m_MapView.BindNodeTemplates(mapRoot);
+            }
+
+            m_PlaceLabel = FindText(layout, "Panel_Place/Txt_PlaceLabel");
+            m_PlaceDesc = FindText(layout, "Panel_Place/Txt_PlaceDesc");
+            m_EventListRoot = layout.Find("Panel_Place/List_Event") as RectTransform;
+            m_WaitButton = FindComponent<Button>(layout, "Panel_Place/Btn_Wait");
+            Transform template = layout.Find("Panel_Place/List_Event/EventCardTemplate");
+            m_EventCardTemplate = template != null ? template.gameObject : null;
+        }
 
         /// <summary>地点详情面板里的一张事件卡（P1 地图信息层视图模型）。</summary>
         private sealed class PlaceEventEntry
@@ -51,7 +86,7 @@ namespace Everlight.Tales.UI
             public System.Action OnStart;
         }
 
-        /// <summary>程序化构建时段条、地图与地点事件面板。</summary>
+        /// <summary>绑定静态地图壳并构建数据驱动的地点节点与事件内容。</summary>
         public void Build()
         {
             BuildTimeBar();
@@ -104,6 +139,10 @@ namespace Everlight.Tales.UI
 
         private void BuildTrackCard()
         {
+            if (m_TrackLabel != null)
+            {
+                return;
+            }
             m_TrackLabel = MakeText(transform, "track_card", new Vector2(0f, -150f), new Vector2(920f, 36f), 20, TextAlignmentOptions.Center);
             m_TrackLabel.color = new Color(0.88f, 0.66f, 0.35f, 1f);
         }
@@ -138,6 +177,11 @@ namespace Everlight.Tales.UI
 
         private void BuildTimeBar()
         {
+            if (m_TimeBar != null)
+            {
+                m_TimeBar.Build();
+                return;
+            }
             var go = new GameObject("time_bar", typeof(RectTransform));
             go.transform.SetParent(transform, false);
             var rt = (RectTransform)go.transform;
@@ -182,6 +226,12 @@ namespace Everlight.Tales.UI
 
         private void BuildMapView()
         {
+            if (m_MapView != null)
+            {
+                m_MapView.Scale = 110f;
+                m_MapView.ViewportOffset = new Vector2(240f, 200f);
+                return;
+            }
             var go = new GameObject("map_view", typeof(RectTransform));
             go.transform.SetParent(transform, false);
             var rt = (RectTransform)go.transform;
@@ -198,6 +248,12 @@ namespace Everlight.Tales.UI
 
         private void BuildPlacePanel()
         {
+            if (m_PlaceLabel != null && m_PlaceDesc != null && m_EventListRoot != null && m_WaitButton != null)
+            {
+                m_WaitButton.onClick.RemoveListener(OnWaitNextPeriod);
+                m_WaitButton.onClick.AddListener(OnWaitNextPeriod);
+                return;
+            }
             var go = new GameObject("place_panel", typeof(RectTransform));
             go.transform.SetParent(transform, false);
             var rt = (RectTransform)go.transform;
@@ -389,7 +445,9 @@ namespace Everlight.Tales.UI
 
             for (int i = m_EventListRoot.childCount - 1; i >= 0; i--)
             {
-                Destroy(m_EventListRoot.GetChild(i).gameObject);
+                GameObject child = m_EventListRoot.GetChild(i).gameObject;
+                if (child == m_EventCardTemplate) continue;
+                Destroy(child);
             }
         }
 
@@ -404,6 +462,29 @@ namespace Everlight.Tales.UI
                 OnStart = onStart,
             };
             m_CurrentEntries.Add(entry);
+
+            if (m_EventCardTemplate != null)
+            {
+                GameObject tplCard = Instantiate(m_EventCardTemplate, m_EventListRoot);
+                tplCard.name = "event_card";
+                tplCard.SetActive(true);
+                TextMeshProUGUI tplName = FindText(tplCard.transform, "Txt_EventName");
+                TextMeshProUGUI tplMeta = FindText(tplCard.transform, "Txt_EventMeta");
+                if (tplName != null) tplName.text = entry.Name;
+                if (tplMeta != null)
+                {
+                    string tplMetaText = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
+                    if (openPeriods != null && openPeriods.Length > 0) tplMetaText += " · " + BuildPeriodsText(openPeriods);
+                    tplMeta.text = tplMetaText;
+                }
+                Button tplButton = tplCard.GetComponent<Button>();
+                if (tplButton != null)
+                {
+                    var tplCaptured = entry;
+                    tplButton.onClick.AddListener(() => OnEventClicked(tplCaptured));
+                }
+                return;
+            }
 
             var card = new GameObject("event_card", typeof(RectTransform), typeof(Image), typeof(Button));
             card.transform.SetParent(m_EventListRoot, false);
@@ -446,6 +527,18 @@ namespace Everlight.Tales.UI
             }
 
             return sb.ToString();
+        }
+
+        private static T FindComponent<T>(Transform root, string path) where T : Component
+        {
+            Transform target = root.Find(path);
+            return target != null ? target.GetComponent<T>() : null;
+        }
+
+        private static TextMeshProUGUI FindText(Transform root, string path)
+        {
+            Transform target = root.Find(path);
+            return target != null ? target.GetComponent<TextMeshProUGUI>() : null;
         }
 
         private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)

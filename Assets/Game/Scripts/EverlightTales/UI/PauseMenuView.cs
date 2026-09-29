@@ -23,6 +23,11 @@ namespace Everlight.Tales.UI
     public sealed class PauseMenuView : MonoBehaviour
     {
         private GameObject m_Panel;
+        private Button m_Backdrop;
+        private Button m_Resume;
+        private Button m_Settings;
+        private Button m_Rules;
+        private Button m_Retreat;
 
         private Action m_OnRetreat;
 
@@ -31,45 +36,44 @@ namespace Everlight.Tales.UI
 
         public bool RetreatRequested => LastAction == PauseAction.Retreat;
 
-        public void Build(Action onRetreat)
+        public void Build(GameObject panel, Button backdrop, Button resume, Button settings, Button rules, Button retreat, Action onRetreat)
         {
             m_OnRetreat = onRetreat;
-            m_Panel = new GameObject("pause_panel", typeof(RectTransform));
-            m_Panel.transform.SetParent(transform, false);
-            var panelRt = (RectTransform)m_Panel.transform;
-            panelRt.anchorMin = Vector2.zero;
-            panelRt.anchorMax = Vector2.one;
-            panelRt.pivot = new Vector2(0.5f, 0.5f);
-            panelRt.anchoredPosition = Vector2.zero;
-            panelRt.sizeDelta = Vector2.zero;
+            m_Panel = panel;
+            m_Backdrop = backdrop;
+            m_Resume = resume;
+            m_Settings = settings;
+            m_Rules = rules;
+            m_Retreat = retreat;
 
-            // 半透明背景，点背景关闭。
-            var bg = new GameObject("bg", typeof(RectTransform), typeof(Image), typeof(Button));
-            bg.transform.SetParent(m_Panel.transform, false);
-            var bgRt = (RectTransform)bg.transform;
-            bgRt.anchorMin = Vector2.zero;
-            bgRt.anchorMax = Vector2.one;
-            bgRt.sizeDelta = Vector2.zero;
-            bg.GetComponent<Image>().color = new Color(0.03f, 0.04f, 0.06f, 0.85f);
-            bg.GetComponent<Button>().onClick.AddListener(Hide);
+            if (m_Panel == null || m_Backdrop == null || m_Resume == null || m_Settings == null || m_Rules == null || m_Retreat == null)
+            {
+                Debug.LogError("[PauseMenuView] 暂停菜单契约绑定不完整。");
+                return;
+            }
 
-            float y = 200f;
-            MakeButton(m_Panel.transform, new Vector2(0f, y), "继续", Resume);
-            MakeButton(m_Panel.transform, new Vector2(0f, y - 110f), "设置", OpenSettings);
-            MakeButton(m_Panel.transform, new Vector2(0f, y - 220f), "规则", ShowRules);
-            MakeButton(m_Panel.transform, new Vector2(0f, y - 330f), "放弃", Retreat);
+            m_Backdrop.onClick.RemoveListener(Hide);
+            m_Backdrop.onClick.AddListener(Hide);
+            m_Resume.onClick.RemoveListener(Resume);
+            m_Settings.onClick.RemoveListener(OpenSettings);
+            m_Rules.onClick.RemoveListener(ShowRules);
+            m_Retreat.onClick.RemoveListener(Retreat);
+            m_Resume.onClick.AddListener(Resume);
+            m_Settings.onClick.AddListener(OpenSettings);
+            m_Rules.onClick.AddListener(ShowRules);
+            m_Retreat.onClick.AddListener(Retreat);
 
             m_Panel.SetActive(false);
         }
 
         public void Show()
         {
-            m_Panel.SetActive(true);
+            if (m_Panel != null) m_Panel.SetActive(true);
         }
 
         public void Hide()
         {
-            m_Panel.SetActive(false);
+            if (m_Panel != null) m_Panel.SetActive(false);
         }
 
         public void Resume()
@@ -105,31 +109,5 @@ namespace Everlight.Tales.UI
             LastAction = PauseAction.None;
         }
 
-        private static void MakeButton(Transform parent, Vector2 position, string label, Action onClick)
-        {
-            var go = new GameObject("btn_" + label, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = position;
-            rt.sizeDelta = new Vector2(320f, 72f);
-            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.offsetMin = Vector2.zero;
-            labelRt.offsetMax = Vector2.zero;
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 26;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.raycastTarget = false;
-            text.text = label;
-
-            go.GetComponent<Button>().onClick.AddListener(() => onClick?.Invoke());
-        }
     }
 }

@@ -10,9 +10,19 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class ServicePanel : MonoBehaviour
     {
+        private RectTransform m_Root;
+
+        public void BindStaticLayout()
+        {
+            Transform root = transform.name == "Panel_Service" ? transform : transform.Find("Panel_Service");
+            Transform content = root != null ? root.Find("Panel_ServiceContent") : null;
+            if (content != null) m_Root = content as RectTransform;
+        }
+
         public void Build()
         {
-            var root = UIFactory.Panel(transform, "service_panel");
+            RectTransform root = m_Root != null ? m_Root : UIFactory.Panel(transform, "service_panel");
+            m_Root = root;
 
             UIFactory.MakeText(root, "title", new Vector2(0f, 400f), new Vector2(600f, 50f), 30,
                 TextAlignmentOptions.Center, new Color(1f, 0.85f, 0.35f, 1f)).text = "服务";

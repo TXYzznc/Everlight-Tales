@@ -17,6 +17,7 @@ namespace Everlight.Tales.UI
 
         private readonly Button[] m_ZoneButtons = new Button[ZoneNames.Length];
         private RectTransform m_ContentArea;
+        private Transform m_StaticRoot;
         private int m_Zone = -1;
 
         private WorkbenchPanel m_Workbench;
@@ -28,8 +29,32 @@ namespace Everlight.Tales.UI
         /// <summary>跳主壳页签回调（0 地图 / 1 任务），由 MainPageShell 注入。</summary>
         public System.Action<int> OnNavigate;
 
+        public void BindStaticLayout()
+        {
+            m_StaticRoot = transform.name == "Panel_Home" ? transform : transform.Find("Panel_Home");
+            if (m_StaticRoot == null) return;
+            Transform top = m_StaticRoot.Find("Panel_HomeTop");
+            m_ContentArea = m_StaticRoot.Find("Panel_HomeArea") as RectTransform;
+            for (int i = 0; i < m_ZoneButtons.Length; i++)
+            {
+                Transform button = top != null ? top.Find("Btn_Zone_" + i) : null;
+                m_ZoneButtons[i] = button != null ? button.GetComponent<Button>() : null;
+            }
+        }
+
         public void Build()
         {
+            if (m_StaticRoot != null && m_ContentArea != null && m_ZoneButtons[0] != null)
+            {
+                for (int i = 0; i < m_ZoneButtons.Length; i++)
+                {
+                    int index = i;
+                    m_ZoneButtons[i].onClick.RemoveAllListeners();
+                    m_ZoneButtons[i].onClick.AddListener(() => ShowZone(index));
+                }
+                ShowZone(2);
+                return;
+            }
             var topGo = new GameObject("home_top", typeof(RectTransform), typeof(Image));
             topGo.transform.SetParent(transform, false);
             var topRt = (RectTransform)topGo.transform;
@@ -141,7 +166,8 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            m_Workbench = CreateSub<WorkbenchPanel>("workbench_panel");
+            m_Workbench = FindStaticSub<WorkbenchPanel>("Panel_Workbench") ?? CreateSub<WorkbenchPanel>("workbench_panel");
+            m_Workbench.BindStaticLayout();
             m_Workbench.Build();
         }
 
@@ -152,7 +178,8 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            m_Codex = CreateSub<CodexPanel>("codex_panel");
+            m_Codex = FindStaticSub<CodexPanel>("Panel_Codex") ?? CreateSub<CodexPanel>("codex_panel");
+            m_Codex.BindStaticLayout();
             m_Codex.Build();
         }
 
@@ -163,7 +190,8 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            m_Archive = CreateSub<ArchivePanel>("archive_panel");
+            m_Archive = FindStaticSub<ArchivePanel>("Panel_Archive") ?? CreateSub<ArchivePanel>("archive_panel");
+            m_Archive.BindStaticLayout();
             m_Archive.Build();
         }
 
@@ -174,7 +202,8 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            m_Guest = CreateSub<GuestPanel>("guest_panel");
+            m_Guest = FindStaticSub<GuestPanel>("Panel_Guest") ?? CreateSub<GuestPanel>("guest_panel");
+            m_Guest.BindStaticLayout();
             m_Guest.Build(index => OnNavigate?.Invoke(index));
         }
 
@@ -185,7 +214,8 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            m_Service = CreateSub<ServicePanel>("service_panel");
+            m_Service = FindStaticSub<ServicePanel>("Panel_Service") ?? CreateSub<ServicePanel>("service_panel");
+            m_Service.BindStaticLayout();
             m_Service.Build();
         }
 
@@ -200,6 +230,14 @@ namespace Everlight.Tales.UI
             rt.anchoredPosition = Vector2.zero;
             rt.sizeDelta = Vector2.zero;
             return go.AddComponent<T>();
+        }
+
+        private T FindStaticSub<T>(string name) where T : Component
+        {
+            if (m_ContentArea == null) return null;
+            Transform child = m_ContentArea.Find(name);
+            if (child == null) return null;
+            return child.GetComponent<T>() ?? child.gameObject.AddComponent<T>();
         }
 
     }

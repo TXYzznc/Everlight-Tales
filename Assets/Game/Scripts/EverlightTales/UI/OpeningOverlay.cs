@@ -24,6 +24,15 @@ namespace Everlight.Tales.UI
         private Action m_OnComplete;
 
         private bool m_Finished;
+        private bool m_StaticRoot;
+
+        public void BindStaticLayout()
+        {
+            m_StaticRoot = true;
+            m_Subtitle = FindText("Txt_OpeningSubtitle");
+            m_ActionButton = transform.Find("Btn_OpeningAction")?.GetComponent<Button>();
+            m_ActionLabel = m_ActionButton != null ? m_ActionButton.GetComponentInChildren<TextMeshProUGUI>() : null;
+        }
 
         public void Play(IReadOnlyList<PrologueStepConfig> steps, Action onComplete)
         {
@@ -34,6 +43,12 @@ namespace Everlight.Tales.UI
 
         private void BuildUI()
         {
+            if (m_Subtitle != null && m_ActionButton != null)
+            {
+                m_ActionButton.onClick.RemoveListener(Finish);
+                m_ActionButton.onClick.AddListener(Finish);
+                return;
+            }
             var rt = (RectTransform)transform;
             rt.anchorMin = Vector2.zero;
             rt.anchorMax = Vector2.one;
@@ -89,7 +104,14 @@ namespace Everlight.Tales.UI
             Action callback = m_OnComplete;
             m_OnComplete = null;
             callback?.Invoke();
-            Destroy(gameObject);
+            if (m_StaticRoot) gameObject.SetActive(false);
+            else Destroy(gameObject);
+        }
+
+        private TextMeshProUGUI FindText(string path)
+        {
+            Transform target = transform.Find(path);
+            return target != null ? target.GetComponent<TextMeshProUGUI>() : null;
         }
 
         private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)

@@ -6,7 +6,7 @@ using TMPro;
 namespace Everlight.Tales.UI
 {
     /// <summary>
-    /// 六分区 HUD（P1-017）。程序化创建文本组件并绑定会话与轮次状态：
+    /// 六分区 HUD（P1-017）。优先绑定契约中的文本节点；无契约宿主时才创建兼容文本组件：
     /// 顶部左＝轮次与拍数，顶部中＝累计分／目标分，分数下方＝特殊目标清单，
     /// 底部左＝公共维修能量，底部右＝机械臂剩余次数（暂停按钮与冲击柄在盘面页装配）。
     /// 视图只读模型：外部调 <see cref="Refresh"/> 同步。
@@ -25,14 +25,34 @@ namespace Everlight.Tales.UI
         public string EnergyText => m_EnergyText != null ? m_EnergyText.text : null;
         public string ArmText => m_ArmText != null ? m_ArmText.text : null;
 
-        /// <summary>程序化创建六个文本分区（供无预制体的运行时构建与验收）。</summary>
+        /// <summary>绑定契约文本；无契约宿主时保留兼容创建路径。</summary>
         public void Build()
         {
+            BindStaticLayout();
+            if (m_RoundTapText != null && m_ScoreText != null && m_GoalsText != null && m_EnergyText != null && m_ArmText != null)
+            {
+                return;
+            }
             m_RoundTapText = CreateText("hud_round_tap", new Vector2(0f, 420f));
             m_ScoreText = CreateText("hud_score", new Vector2(0f, 380f));
             m_GoalsText = CreateText("hud_goals", new Vector2(0f, 340f));
             m_EnergyText = CreateText("hud_energy", new Vector2(-180f, -420f));
             m_ArmText = CreateText("hud_arm", new Vector2(180f, -420f));
+        }
+
+        private void BindStaticLayout()
+        {
+            m_RoundTapText = FindText("Txt_HudRoundTap");
+            m_ScoreText = FindText("Txt_HudScore");
+            m_GoalsText = FindText("Txt_HudGoals");
+            m_EnergyText = FindText("Txt_HudEnergy");
+            m_ArmText = FindText("Txt_HudArm");
+        }
+
+        private TextMeshProUGUI FindText(string name)
+        {
+            Transform target = transform.Find(name);
+            return target != null ? target.GetComponent<TextMeshProUGUI>() : null;
         }
 
         public void Refresh(SessionState session, LevelState level)

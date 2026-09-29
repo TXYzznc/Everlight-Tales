@@ -12,7 +12,7 @@ namespace Everlight.Tales.UI
     /// <summary>
     /// 三页列表（b44，任务页签）：事件页 / 任务页 / 怪谈页 + 维修费余额 + 任务领奖。
     /// 纯逻辑分组/排序复用 b21 的 EventPageLayout/TaskPageLayout/CasePageLayout，本类只做表现与领奖接线。
-    /// 程序化构建，挂在 MainPageShell 内容容器，切页签时整体显隐。
+    /// 页签壳优先绑定 MainPageShell Prefab，列表行与业务数据动态生成；挂在 MainPageShell 内容容器，切页签时整体显隐。
     /// </summary>
     public sealed class JournalPanel : MonoBehaviour
     {
@@ -28,8 +28,36 @@ namespace Everlight.Tales.UI
 
         private EventKind m_EventFilter;
 
+        private Transform m_StaticRoot;
+
+        public void BindStaticLayout()
+        {
+            m_StaticRoot = transform.name == "Panel_Journal" ? transform : transform.Find("Panel_Journal");
+            if (m_StaticRoot == null) return;
+            Transform top = m_StaticRoot.Find("Panel_JournalTop");
+            m_ListRoot = m_StaticRoot.Find("Panel_JournalList") as RectTransform;
+            m_BalanceLabel = top != null ? top.Find("Txt_Balance")?.GetComponent<TextMeshProUGUI>() : null;
+            for (int i = 0; i < m_SubButtons.Length; i++)
+            {
+                m_SubButtons[i] = top != null ? top.Find("Btn_Sub_" + i)?.GetComponent<Button>() : null;
+                m_SubBadges[i] = top != null ? top.Find("Txt_Badge_" + i)?.GetComponent<TextMeshProUGUI>() : null;
+            }
+        }
+
         public void Build()
         {
+            if (m_StaticRoot != null && m_ListRoot != null && m_BalanceLabel != null && m_SubButtons[0] != null)
+            {
+                for (int i = 0; i < m_SubButtons.Length; i++)
+                {
+                    int index = i;
+                    m_SubButtons[i].onClick.RemoveAllListeners();
+                    m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
+                    if (m_SubBadges[i] != null) m_SubBadges[i].text = string.Empty;
+                }
+                SelectSubTab(0);
+                return;
+            }
             var topGo = new GameObject("journal_top", typeof(RectTransform), typeof(Image));
             topGo.transform.SetParent(transform, false);
             var topRt = (RectTransform)topGo.transform;

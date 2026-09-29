@@ -17,6 +17,29 @@ namespace Everlight.Tales.UI
     {
         public string FormKey => "BoardPage";
 
+        [SerializeField] private Button _rotateLeft;
+        [SerializeField] private Button _rotateRight;
+        [SerializeField] private Button _armButton;
+        [SerializeField] private Button _tapButton;
+        [SerializeField] private Button _settleButton;
+        [SerializeField] private Button _pauseButton;
+        [SerializeField] private TextMeshProUGUI _resultText;
+        [SerializeField] private TextMeshProUGUI _eventTitle;
+        [SerializeField] private TextMeshProUGUI _hudScore;
+        [SerializeField] private TextMeshProUGUI _hudRound;
+        [SerializeField] private TextMeshProUGUI _hudEnergy;
+        [SerializeField] private TextMeshProUGUI _leftPortrait;
+        [SerializeField] private TextMeshProUGUI _rightPortrait;
+        [SerializeField] private GameObject _formPickerPanel;
+        [SerializeField] private TextMeshProUGUI _formPickerTitle;
+        [SerializeField] private RectTransform _formPickerList;
+        [SerializeField] private GameObject _pausePanel;
+        [SerializeField] private Button _pauseBackdrop;
+        [SerializeField] private Button _pauseResume;
+        [SerializeField] private Button _pauseSettings;
+        [SerializeField] private Button _pauseRules;
+        [SerializeField] private Button _pauseRetreat;
+
         private BoardPage m_Page;
 
         private PauseMenuView m_PauseMenu;
@@ -45,11 +68,11 @@ namespace Everlight.Tales.UI
             var settle = new SettleState();
             var game = new BoardGame(evt.Board, settle, evt.Level.Session, evt.Level);
 
-            m_Page = gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game);
+            m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList);
 
-            CreateSettleButton();
-            CreatePauseButton();
+            BindSettleButton();
+            BindPauseButton();
         }
 
         private void BuildTutorialBoard()
@@ -58,32 +81,20 @@ namespace Everlight.Tales.UI
             TutorialStage stage = TutorialSample.RotateAndCollide();
             var game = new BoardGame(stage.Board, stage.Settle, stage.Session, stage.Level);
 
-            m_Page = gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game);
+            m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList);
         }
 
-        private void CreateSettleButton()
+        private void BindSettleButton()
         {
-            var go = new GameObject("btn_settle", typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = new Vector2(0f, -340f);
-            rt.sizeDelta = new Vector2(220f, 48f);
-            go.GetComponent<Image>().color = new Color(0.45f, 0.55f, 0.30f, 1f);
+            if (_settleButton == null)
+            {
+                Debug.LogError("[BoardPageForm] 缺少 Btn_Settle 绑定，无法打开结算入口。");
+                return;
+            }
 
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = new Vector2(220f, 48f);
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 22;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.text = "结算返回";
-
-            go.GetComponent<Button>().onClick.AddListener(OnSettle);
+            _settleButton.onClick.RemoveListener(OnSettle);
+            _settleButton.onClick.AddListener(OnSettle);
         }
 
         private void OnSettle()
@@ -102,33 +113,18 @@ namespace Everlight.Tales.UI
             GF.UI.OpenUIForm(UIViews.SettlementPage);
         }
 
-        private void CreatePauseButton()
+        private void BindPauseButton()
         {
-            var go = new GameObject("btn_pause", typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = new Vector2(-360f, 400f);
-            rt.sizeDelta = new Vector2(96f, 56f);
-            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
+            if (_pauseButton == null)
+            {
+                Debug.LogError("[BoardPageForm] 缺少 Btn_Pause 绑定，无法打开暂停入口。");
+                return;
+            }
 
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.offsetMin = Vector2.zero;
-            labelRt.offsetMax = Vector2.zero;
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 22;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.raycastTarget = false;
-            text.text = "暂停";
-
-            m_PauseMenu = gameObject.AddComponent<PauseMenuView>();
-            m_PauseMenu.Build(OnRetreat);
-            go.GetComponent<Button>().onClick.AddListener(m_PauseMenu.Show);
+            m_PauseMenu = GetComponent<PauseMenuView>() ?? gameObject.AddComponent<PauseMenuView>();
+            m_PauseMenu.Build(_pausePanel, _pauseBackdrop, _pauseResume, _pauseSettings, _pauseRules, _pauseRetreat, OnRetreat);
+            _pauseButton.onClick.RemoveListener(m_PauseMenu.Show);
+            _pauseButton.onClick.AddListener(m_PauseMenu.Show);
         }
 
         private void OnRetreat()

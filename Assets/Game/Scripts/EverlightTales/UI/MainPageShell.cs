@@ -113,9 +113,12 @@ namespace Everlight.Tales.UI
 
         private void ShowOpening()
         {
-            var go = new GameObject("opening_overlay", typeof(RectTransform));
-            go.transform.SetParent(transform, false);
-            var overlay = go.AddComponent<OpeningOverlay>();
+            Transform staticOverlay = FindDescendant(transform, "Panel_OpeningOverlay");
+            GameObject go = staticOverlay != null ? staticOverlay.gameObject : new GameObject("opening_overlay", typeof(RectTransform));
+            if (staticOverlay == null) go.transform.SetParent(transform, false);
+            go.SetActive(true);
+            var overlay = go.GetComponent<OpeningOverlay>() ?? go.AddComponent<OpeningOverlay>();
+            if (staticOverlay != null) overlay.BindStaticLayout();
             overlay.Play(WorldSession.OpeningSteps, () =>
             {
                 WorldSession.Current.OpeningDone = true;
@@ -199,7 +202,10 @@ namespace Everlight.Tales.UI
         {
             if (m_MapPanel == null)
             {
-                m_MapPanel = CreatePanelGo("map_panel").AddComponent<MapPanel>();
+                Transform layout = FindDescendant(transform, "Panel_Map");
+                GameObject panel = layout != null ? layout.gameObject : CreatePanelGo("map_panel");
+                m_MapPanel = panel.GetComponent<MapPanel>() ?? panel.AddComponent<MapPanel>();
+                m_MapPanel.BindStaticLayout();
                 m_MapPanel.Build();
             }
 
@@ -210,7 +216,10 @@ namespace Everlight.Tales.UI
         {
             if (m_Journal == null)
             {
-                m_Journal = CreatePanelGo("journal_panel").AddComponent<JournalPanel>();
+                Transform journalLayout = FindDescendant(transform, "Panel_Journal");
+                GameObject journalObject = journalLayout != null ? journalLayout.gameObject : CreatePanelGo("journal_panel");
+                m_Journal = journalObject.GetComponent<JournalPanel>() ?? journalObject.AddComponent<JournalPanel>();
+                m_Journal.BindStaticLayout();
                 m_Journal.Build();
             }
 
@@ -221,8 +230,11 @@ namespace Everlight.Tales.UI
         {
             if (m_Home == null)
             {
-                m_Home = CreatePanelGo("home_panel").AddComponent<HomePanel>();
+                Transform homeLayout = FindDescendant(transform, "Panel_Home");
+                GameObject homeObject = homeLayout != null ? homeLayout.gameObject : CreatePanelGo("home_panel");
+                m_Home = homeObject.GetComponent<HomePanel>() ?? homeObject.AddComponent<HomePanel>();
                 m_Home.OnNavigate = ShowTab;
+                m_Home.BindStaticLayout();
                 m_Home.Build();
             }
 

@@ -11,7 +11,7 @@ namespace Everlight.Tales.UI
     /// <summary>
     /// 盘面页装配（P1-016）：持有一个 <see cref="BoardGame"/> 并装配盘面视图、六分区 HUD
     /// 与操作按钮（左旋／右旋／冲击柄拍击／机械臂）。按钮把玩家动作转成 BoardGame 操作，
-    /// 操作后刷新视图与 HUD。为便于验收，本页程序化构建 UI，不依赖预制体。
+    /// 操作后刷新视图与 HUD；页面控件与 HUD 优先来自 BoardPageForm 契约，盘面实体与特效按事件数据动态生成。
     /// </summary>
     public sealed class BoardPage : MonoBehaviour
     {
@@ -32,17 +32,50 @@ namespace Everlight.Tales.UI
         private Button m_Tap;
         private Button m_ArmButton;
         private TextMeshProUGUI m_ResultText;
+        private TextMeshProUGUI m_EventTitle;
+        private TextMeshProUGUI m_HudScore;
+        private TextMeshProUGUI m_HudRound;
+        private TextMeshProUGUI m_HudEnergy;
+        private TextMeshProUGUI m_LeftPortrait;
+        private TextMeshProUGUI m_RightPortrait;
 
         private bool m_ArmMode;
 
         private BoardEntity m_SelectedArmEntity;
 
         private GameObject m_FormPicker;
+        private GameObject m_FormPickerRoot;
+        private Transform m_FormPickerContent;
+        private TextMeshProUGUI m_FormPickerTitle;
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
-        public void Bind(BoardGame game)
+        public void Bind(BoardGame game, Button rotateLeft, Button rotateRight, Button armButton,
+            Button tap, TextMeshProUGUI resultText, TextMeshProUGUI eventTitle = null,
+            TextMeshProUGUI hudScore = null, TextMeshProUGUI hudRound = null, TextMeshProUGUI hudEnergy = null,
+            TextMeshProUGUI leftPortrait = null, TextMeshProUGUI rightPortrait = null,
+            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null)
         {
             Game = game;
+            m_RotateLeft = rotateLeft;
+            m_RotateRight = rotateRight;
+            m_ArmButton = armButton;
+            m_Tap = tap;
+            m_ResultText = resultText;
+            m_EventTitle = eventTitle;
+            m_HudScore = hudScore;
+            m_HudRound = hudRound;
+            m_HudEnergy = hudEnergy;
+            m_LeftPortrait = leftPortrait;
+            m_RightPortrait = rightPortrait;
+            m_FormPickerRoot = formPickerPanel;
+            m_FormPickerTitle = formPickerTitle;
+            m_FormPickerContent = formPickerList;
+
+            if (m_RotateLeft == null || m_RotateRight == null || m_ArmButton == null || m_Tap == null || m_ResultText == null)
+            {
+                Debug.LogError("[BoardPage] 操作控件未完整绑定，拒绝运行时创建正式页面控件。");
+                return;
+            }
 
             BoardView = gameObject.AddComponent<HexBoardView>();
             Hud = gameObject.AddComponent<BoardHUD>();
@@ -56,12 +89,10 @@ namespace Everlight.Tales.UI
             ImpactFx.Setup(BoardView, game.Board.BoardRadius);
             ImpactFx.SetGame(game);
 
-            m_RotateLeft = CreateButton("btn_rotate_left", new Vector2(-240f, -250f), "左旋");
-            m_RotateRight = CreateButton("btn_rotate_right", new Vector2(240f, -250f), "右旋");
-            m_ArmButton = CreateButton("btn_arm", new Vector2(-80f, -250f), "机械臂");
-            m_Tap = CreateButton("btn_tap", new Vector2(80f, -250f), "拍击");
-            m_ResultText = CreateText("txt_result", new Vector2(0f, -320f));
-
+            m_RotateLeft.onClick.RemoveListener(OnRotateLeft);
+            m_RotateRight.onClick.RemoveListener(OnRotateRight);
+            m_ArmButton.onClick.RemoveListener(OnArmToggle);
+            m_Tap.onClick.RemoveListener(OnTap);
             m_RotateLeft.onClick.AddListener(OnRotateLeft);
             m_RotateRight.onClick.AddListener(OnRotateRight);
             m_ArmButton.onClick.AddListener(OnArmToggle);
@@ -72,8 +103,10 @@ namespace Everlight.Tales.UI
             BoardView.CellClicked = OnCellClicked;
 
             // 现场立绘占位（盘面两侧，登场短暂出现；正式人物立绘待美术替换）。
-            CreatePortrait(new Vector2(-430f, 240f), "左立绘");
-            CreatePortrait(new Vector2(430f, 240f), "右立绘");
+            if (m_LeftPortrait != null) m_LeftPortrait.text = "左立绘";
+            else CreatePortrait(new Vector2(-430f, 240f), "左立绘");
+            if (m_RightPortrait != null) m_RightPortrait.text = "右立绘";
+            else CreatePortrait(new Vector2(430f, 240f), "右立绘");
         }
 
         /// <summary>左旋一个相位（只改重力方向与盘面旋转动画，不重建盘面）。</summary>
@@ -145,6 +178,13 @@ namespace Everlight.Tales.UI
 
             BoardView.Refresh(Game.Board);
             Hud.Refresh(Game.Session, Game.Level);
+            UpdateContractHud();
+        }
+
+        private void UpdateContractHud()
+        {
+            if (Game == null) return;
+            if (m_EventTitle != null) m_EventTitle.text = "维修事件";
         }
 
         private void OnEntityClicked(BoardEntity entity)
@@ -286,16 +326,29 @@ namespace Everlight.Tales.UI
         {
             ClearFormPicker();
 
-            m_FormPicker = new GameObject("form_picker", typeof(RectTransform), typeof(Image));
-            m_FormPicker.transform.SetParent(transform, false);
-            var rt = (RectTransform)m_FormPicker.transform;
-            rt.anchoredPosition = new Vector2(0f, 60f);
-            rt.sizeDelta = new Vector2(560f, 560f);
-            m_FormPicker.GetComponent<Image>().color = new Color(0.09f, 0.10f, 0.125f, 0.98f);
+            if (m_FormPickerRoot != null)
+            {
+                m_FormPickerRoot.SetActive(true);
+                if (m_FormPickerContent != null)
+                {
+                    for (int i = m_FormPickerContent.childCount - 1; i >= 0; i--) Destroy(m_FormPickerContent.GetChild(i).gameObject);
+                }
+            }
+            else
+            {
+                m_FormPicker = new GameObject("form_picker", typeof(RectTransform), typeof(Image));
+                m_FormPicker.transform.SetParent(transform, false);
+                var rt = (RectTransform)m_FormPicker.transform;
+                rt.anchoredPosition = new Vector2(0f, 60f);
+                rt.sizeDelta = new Vector2(560f, 560f);
+                m_FormPicker.GetComponent<Image>().color = new Color(0.09f, 0.10f, 0.125f, 0.98f);
+                m_FormPickerContent = m_FormPicker.transform;
+            }
 
             PartCodexConfig codex = PartCodexCatalog.Get(host);
             string hostName = codex != null ? codex.Name : host.ToString();
-            AddPickerLabel("形态切换 · " + hostName, new Vector2(0f, 240f), 30);
+            if (m_FormPickerTitle != null) m_FormPickerTitle.text = "形态切换 · " + hostName;
+            else AddPickerLabel("形态切换 · " + hostName, new Vector2(0f, 240f), 30);
 
             // 基础形态 + 已解锁形态（D7：只列已解锁）。
             AddPickerButton(IsCurrentForm(host, null) ? "基础形态（当前）" : "基础形态", new Vector2(0f, 160f), () => ApplyTempForm(host, null));
@@ -356,12 +409,20 @@ namespace Everlight.Tales.UI
                 Destroy(m_FormPicker);
                 m_FormPicker = null;
             }
+            if (m_FormPickerRoot != null)
+            {
+                m_FormPickerRoot.SetActive(false);
+                if (m_FormPickerContent != null)
+                {
+                    for (int i = m_FormPickerContent.childCount - 1; i >= 0; i--) Destroy(m_FormPickerContent.GetChild(i).gameObject);
+                }
+            }
         }
 
         private void AddPickerLabel(string text, Vector2 position, int fontSize)
         {
             var go = new GameObject("picker_label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(m_FormPicker.transform, false);
+            go.transform.SetParent(m_FormPickerContent != null ? m_FormPickerContent : m_FormPicker.transform, false);
             var rt = (RectTransform)go.transform;
             rt.anchoredPosition = position;
             rt.sizeDelta = new Vector2(480f, 44f);
@@ -377,7 +438,7 @@ namespace Everlight.Tales.UI
         private void AddPickerButton(string label, Vector2 position, System.Action onClick)
         {
             var go = new GameObject("picker_btn", typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(m_FormPicker.transform, false);
+            go.transform.SetParent(m_FormPickerContent != null ? m_FormPickerContent : m_FormPicker.transform, false);
             var rt = (RectTransform)go.transform;
             rt.anchoredPosition = position;
             rt.sizeDelta = new Vector2(380f, 56f);
@@ -452,44 +513,5 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private Button CreateButton(string name, Vector2 position, string label)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(transform, false);
-            RectTransform rt = (RectTransform)go.transform;
-            rt.anchoredPosition = position;
-            rt.sizeDelta = new Vector2(120f, 56f);
-            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = new Vector2(120f, 56f);
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 22;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.text = label;
-
-            return go.GetComponent<Button>();
-        }
-
-        private TextMeshProUGUI CreateText(string name, Vector2 position)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(transform, false);
-            RectTransform rt = (RectTransform)go.transform;
-            rt.anchoredPosition = position;
-            rt.sizeDelta = new Vector2(600f, 36f);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 24;
-            text.color = new Color(1f, 0.85f, 0.35f, 1f);
-            text.alignment = TextAlignmentOptions.Center;
-            text.text = string.Empty;
-            return text;
-        }
     }
 }

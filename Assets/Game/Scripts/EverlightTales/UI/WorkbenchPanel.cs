@@ -31,11 +31,41 @@ namespace Everlight.Tales.UI
         private RectTransform m_MaterialsRoot;
         private RectTransform m_LedgerRoot;
 
+        private Transform m_StaticRoot;
+
         private PartType m_SelectedHost;
         private string m_SelectedFormId;
 
+        public void BindStaticLayout()
+        {
+            m_StaticRoot = transform.name == "Panel_Workbench" ? transform : transform.Find("Panel_Workbench");
+            if (m_StaticRoot == null) return;
+            Transform top = m_StaticRoot.Find("Panel_WorkbenchTop");
+            Transform body = m_StaticRoot.Find("Panel_WorkbenchBody");
+            m_FeeLabel = top != null ? top.Find("Txt_Fee")?.GetComponent<TextMeshProUGUI>() : null;
+            for (int i = 0; i < m_SubButtons.Length; i++)
+            {
+                m_SubButtons[i] = top != null ? top.Find("Btn_Sub_" + i)?.GetComponent<Button>() : null;
+            }
+            m_WorkbenchRoot = body != null ? body.Find("Panel_Workbench") as RectTransform : null;
+            m_MaterialsRoot = body != null ? body.Find("Panel_Materials") as RectTransform : null;
+            m_LedgerRoot = body != null ? body.Find("Panel_Ledger") as RectTransform : null;
+        }
+
         public void Build()
         {
+            if (m_StaticRoot != null && m_FeeLabel != null && m_WorkbenchRoot != null && m_MaterialsRoot != null && m_LedgerRoot != null && m_SubButtons[0] != null)
+            {
+                for (int i = 0; i < m_SubButtons.Length; i++)
+                {
+                    int index = i;
+                    m_SubButtons[i].onClick.RemoveAllListeners();
+                    m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
+                }
+                BuildWorkbenchView(m_WorkbenchRoot);
+                SelectSubTab(0);
+                return;
+            }
             var topGo = new GameObject("workbench_top", typeof(RectTransform), typeof(Image));
             topGo.transform.SetParent(transform, false);
             var topRt = (RectTransform)topGo.transform;

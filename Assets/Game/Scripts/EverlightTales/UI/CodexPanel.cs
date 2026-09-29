@@ -20,9 +20,31 @@ namespace Everlight.Tales.UI
         private TextMeshProUGUI m_ProgressLabel;
         private RectTransform m_ListRoot;
         private readonly Button[] m_SubButtons = new Button[3];
+        private Transform m_StaticRoot;
+
+        public void BindStaticLayout()
+        {
+            m_StaticRoot = transform.name == "Panel_Codex" ? transform : transform.Find("Panel_Codex");
+            if (m_StaticRoot == null) return;
+            Transform top = m_StaticRoot.Find("Panel_CodexTop");
+            m_ProgressLabel = top != null ? top.Find("Txt_Progress")?.GetComponent<TextMeshProUGUI>() : null;
+            m_ListRoot = m_StaticRoot.Find("Panel_CodexList") as RectTransform;
+            for (int i = 0; i < m_SubButtons.Length; i++) m_SubButtons[i] = top != null ? top.Find("Btn_Sub_" + i)?.GetComponent<Button>() : null;
+        }
 
         public void Build()
         {
+            if (m_StaticRoot != null && m_ProgressLabel != null && m_ListRoot != null && m_SubButtons[0] != null)
+            {
+                for (int i = 0; i < m_SubButtons.Length; i++)
+                {
+                    int index = i;
+                    m_SubButtons[i].onClick.RemoveAllListeners();
+                    m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
+                }
+                SelectSubTab(0);
+                return;
+            }
             var topGo = new GameObject("codex_top", typeof(RectTransform), typeof(Image));
             topGo.transform.SetParent(transform, false);
             var topRt = (RectTransform)topGo.transform;

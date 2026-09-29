@@ -31,10 +31,24 @@ namespace Everlight.Tales.UI
         public Vector2 ViewportOffset;
 
         private readonly List<CityMapNodeView> _nodes = new List<CityMapNodeView>();
+        private readonly Dictionary<string, GameObject> _templates = new Dictionary<string, GameObject>();
 
         public IReadOnlyList<CityMapNodeView> Nodes => _nodes;
 
         public string SelectedPlaceId { get; private set; }
+
+        public void BindNodeTemplates(Transform root)
+        {
+            _templates.Clear();
+            foreach (Transform child in root)
+            {
+                const string prefix = "NodeTemplate_";
+                if (child.name.StartsWith(prefix, System.StringComparison.Ordinal))
+                {
+                    _templates[child.name.Substring(prefix.Length)] = child.gameObject;
+                }
+            }
+        }
 
         /// <summary>按地图状态重建节点（未发现地点不出现）。</summary>
         public void Build(MapState map)
@@ -75,17 +89,29 @@ namespace Everlight.Tales.UI
 
         private void CreateNode(PlaceState place)
         {
-            var go = new GameObject("node-" + place.Config.Id, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(transform, false);
+            GameObject go;
+            if (_templates.TryGetValue(place.Config.Id, out GameObject template))
+            {
+                go = Instantiate(template, transform);
+                go.SetActive(true);
+                go.name = "node-" + place.Config.Id;
+            }
+            else
+            {
+                go = new GameObject("node-" + place.Config.Id, typeof(RectTransform), typeof(Image), typeof(Button));
+                go.transform.SetParent(transform, false);
+            }
 
-            var image = go.GetComponent<Image>();
+            var image = go.GetComponent<Image>() ?? go.AddComponent<Image>();
             image.color = place.Status == PlaceNodeStatus.KnownLocked ? new Color(0.6f, 0.6f, 0.6f, 0.5f) : Color.white;
 
             var rect = go.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(44f, 44f);
 
             string id = place.Config.Id;
-            go.GetComponent<Button>().onClick.AddListener(() => Select(id));
+            var button = go.GetComponent<Button>() ?? go.AddComponent<Button>();
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => Select(id));
 
             var node = new CityMapNodeView(place, rect);
             _nodes.Add(node);
