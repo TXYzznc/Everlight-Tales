@@ -50,7 +50,9 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
     protected Canvas UICanvas { get; private set; }
 
     private bool isOnEscape;
-    IList<IObjectPool<UIItemObject>> m_ItemPools = null;
+    // 泛型对象池之间不存在协变关系；用清理委托保存各类型池，避免将 IObjectPool<T> 强转为 IObjectPool<UIItemObject>。
+    IList<Action> m_ItemPools = null;
+    IList<Action> m_DestroyItemPools = null;
     /// <summary>
     /// 子UI界面, 会随着父界面关闭而关闭
     /// </summary>
@@ -196,9 +198,7 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
         if (m_ItemPools == null) return;
         foreach (var item in m_ItemPools)
         {
-            item.ReleaseAllUnused();
-            
-            item.UnspawnAll();
+            item();
         }
     }
     private void DestroyAllItemPool()
@@ -207,10 +207,10 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
 
         for (int i = 0; i < m_ItemPools.Count; i++)
         {
-            var item = m_ItemPools[i];
-            GF.ObjectPool.DestroyObjectPool(item);
+            if (m_DestroyItemPools != null && i < m_DestroyItemPools.Count) m_DestroyItemPools[i]();
         }
         m_ItemPools.Clear();
+        m_DestroyItemPools?.Clear();
     }
 
     /// <summary>
@@ -236,8 +236,14 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
         else
         {
             pool = GF.ObjectPool.CreateSingleSpawnObjectPool<T>(itemTempleId, autoReleaseInterval, capacity, expireTime, 0);
-            if (m_ItemPools == null) m_ItemPools = new List<IObjectPool<UIItemObject>>();
-            m_ItemPools.Add((IObjectPool<UIItemObject>)(object)pool);
+            if (m_ItemPools == null) m_ItemPools = new List<Action>();
+            m_ItemPools.Add(() =>
+            {
+                pool.ReleaseAllUnused();
+                pool.UnspawnAll();
+            });
+            if (m_DestroyItemPools == null) m_DestroyItemPools = new List<Action>();
+            m_DestroyItemPools.Add(() => GF.ObjectPool.DestroyObjectPool(pool));
         }
 
         var spawn = pool.Spawn();
@@ -249,6 +255,13 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
         }
         return spawn;
     }
+
+    /// <summary>供页面子面板按契约创建 GF UIItem。</summary>
+    public T SpawnChildItem<T>(GameObject itemTemplate, Transform instanceRoot, float autoReleaseInterval = 5f, int capacity = 50, float expireTime = 50) where T : UIItemObject, new()
+    {
+        return SpawnItem<T>(itemTemplate, instanceRoot, autoReleaseInterval, capacity, expireTime);
+    }
+
     string GetItemPoolId(GameObject itemTemple)
     {
         return Utility.Text.Format("{0}.{1}", gameObject.GetInstanceID(), itemTemple.GetInstanceID());
@@ -291,6 +304,13 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
         pool.ReleaseAllUnused();
         pool.UnspawnAll();
     }
+
+    /// <summary>供页面子面板回收一类 GF UIItem。</summary>
+    public void UnspawnAllChildItem<T>(GameObject itemTemplate) where T : UIItemObject, new()
+    {
+        UnspawnAllItem<T>(itemTemplate);
+    }
+
     /// <summary>
     /// 更新界面中静态文本的多语言文字
     /// </summary>

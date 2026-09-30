@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a0d9bd7855eed74ab019c5f4aa1266a, type: 3}
+  m_Name: FormalButtonLibrary
+  m_EditorClassIdentifier: 
+  _mainNormal: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}
+  _mainHighlighted: {fileID: 21300000, guid: e63e3316f9bcc91448d2f84a70b51c5a, type: 3}
+  _mainPressed: {fileID: 21300000, guid: 8ce717a76cf35564a8ec0069b2e38547, type: 3}
+  _mainDisabled: {fileID: 21300000, guid: b94910662fe15154fa65fe51c9de4940, type: 3}
+  _mainSelected: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}
+  _secondaryNormal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
+  _secondaryHighlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566,
+    type: 3}
+  _secondaryPressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
+  _secondaryDisabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
+  _secondarySelected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
+  _smallNormal: {fileID: 21300000, guid: a3e046b6eb312074991d337ead18eb50, type: 3}
+  _smallHighlighted: {fileID: 21300000, guid: 4d771bd9b5e3c3747941ab2935fdf0f9, type: 3}
+  _smallPressed: {fileID: 21300000, guid: a13af7cbb9f92db4895be8026867d267, type: 3}
+  _smallDisabled: {fileID: 21300000, guid: 0be85ca74d179e24899f736332492224, type: 3}
+  _smallSelected: {fileID: 21300000, guid: a3e046b6eb312074991d337ead18eb50, type: 3}
+  _dangerNormal: {fileID: 21300000, guid: 7551e400b3cacaa4aa25db34e4ccc324, type: 3}
+  _dangerHighlighted: {fileID: 21300000, guid: 13d560ec3dd13d647afc7d43873d4b49, type: 3}
+  _dangerPressed: {fileID: 21300000, guid: 0e0256a885e747f44a475efc0db12bae, type: 3}
+  _dangerDisabled: {fileID: 21300000, guid: 7c7a367376c4da74ebb27c4771388386, type: 3}
+  _dangerSelected: {fileID: 21300000, guid: 7551e400b3cacaa4aa25db34e4ccc324, type: 3}
+  _tabNormal: {fileID: 21300000, guid: 04e159db645e74c4ebefc9f4a45cbb64, type: 3}
+  _tabHighlighted: {fileID: 21300000, guid: 4c0520e76f28db440a1383fb210c9829, type: 3}
+  _tabPressed: {fileID: 21300000, guid: 6917b2fd763fc244dbd9b23a14f48efa, type: 3}
+  _tabDisabled: {fileID: 21300000, guid: 04e159db645e74c4ebefc9f4a45cbb64, type: 3}
+  _tabSelected: {fileID: 21300000, guid: 6917b2fd763fc244dbd9b23a14f48efa, type: 3}
+  _filterNormal: {fileID: 21300000, guid: b5d710e8215a0514e96b0bc9f1deffdb, type: 3}
+  _filterHighlighted: {fileID: 21300000, guid: 2c9e8226a6c55c447a5edf4071c3972f, type: 3}
+  _filterPressed: {fileID: 21300000, guid: c7a96c2afb2617d4e8004d88fcda0f82, type: 3}
+  _filterDisabled: {fileID: 21300000, guid: b5d710e8215a0514e96b0bc9f1deffdb, type: 3}
+  _filterSelected: {fileID: 21300000, guid: c7a96c2afb2617d4e8004d88fcda0f82, type: 3}

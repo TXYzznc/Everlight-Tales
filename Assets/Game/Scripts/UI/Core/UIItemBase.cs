@@ -9,6 +9,7 @@ public class UIItemBase : MonoBehaviour, ISerializeFieldTool
 
     private void Awake()
     {
+        _fields ??= Array.Empty<SerializeFieldData>();
         Array.Clear(_fields, 0, _fields.Length);
         OnInit();
     }

@@ -54,7 +54,10 @@ namespace Everlight.Tales.UI
             var rt = (RectTransform)go.transform;
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
-            go.GetComponent<Image>().color = bg ?? ButtonBlue;
+            Image buttonImage = go.GetComponent<Image>();
+            buttonImage.color = bg ?? ButtonBlue;
+            UISpriteButton spriteButton = UISpriteButton.Attach(go.GetComponent<Button>());
+            spriteButton.ConfigureRole(InferButtonRole(name));
 
             var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
@@ -70,6 +73,17 @@ namespace Everlight.Tales.UI
             text.raycastTarget = false;
 
             return go.GetComponent<Button>();
+        }
+
+        private static UISpriteButtonRole InferButtonRole(string name)
+        {
+            string value = (name ?? string.Empty).ToLowerInvariant();
+            if (value.Contains("filter")) return UISpriteButtonRole.Filter;
+            if (value.Contains("sub_") || value.Contains("zone_") || value.StartsWith("tab_")) return UISpriteButtonRole.Tab;
+            if (value.Contains("delete") || value.Contains("retreat") || value.Contains("danger")) return UISpriteButtonRole.Danger;
+            if (value.Contains("close") || value.Contains("icon")) return UISpriteButtonRole.Small;
+            if (value.Contains("confirm") || value.Contains("start") || value.Contains("claim") || value.Contains("action") || value.Contains("wait")) return UISpriteButtonRole.Main;
+            return UISpriteButtonRole.Secondary;
         }
 
         public static void SetButtonLabel(Button button, string label)

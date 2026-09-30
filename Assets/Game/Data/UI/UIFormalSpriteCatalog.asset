@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1bce5efbdf421740abd4cc7dad431f5, type: 3}
+  m_Name: UIFormalSpriteCatalog
+  m_EditorClassIdentifier: 
+  _entries:
+  - Key: "ICO-008\u4FDD\u7BA1"
+    Sprite: {fileID: 21300000, guid: 695d0fe78663b124e9f589ddf4b1cc32, type: 3}
+  - Key: "ICO-051\u7EF4\u4FEE\u8D39"
+    Sprite: {fileID: 21300000, guid: e96a0575459c2524cb540ecb767f703f, type: 3}
+  - Key: "ICO-052\u94DC\u82AF\u7EBF"
+    Sprite: {fileID: 21300000, guid: 36399d81de578074b9ee05d0e4ade087, type: 3}
+  - Key: "ICO-053\u7CBE\u5BC6\u9F7F\u8F6E"
+    Sprite: {fileID: 21300000, guid: 95e2dc21de31ddf42802922b49dc2516, type: 3}
+  - Key: "ICO-054\u73BB\u7483\u955C\u7247"
+    Sprite: {fileID: 21300000, guid: d766cbc1f09c6824d9fbf5ea0ffe4000, type: 3}
+  - Key: "ICO-055\u6821\u51C6\u7C27\u7247"
+    Sprite: {fileID: 21300000, guid: b35cd3813cabd3d4eaf2ce01babf2b56, type: 3}
+  - Key: "ICO-056\u5B9A\u52BF\u6B8B\u6676"
+    Sprite: {fileID: 21300000, guid: e6b535a31ca0417478b66b77fd1af465, type: 3}
+  - Key: "ICO-058\u56FE\u6837"
+    Sprite: {fileID: 21300000, guid: 032ce6f6d8f6e244b9c19b2f226b8869, type: 3}
+  - Key: "ICO-060\u96F6\u4EF6"
+    Sprite: {fileID: 21300000, guid: ef7621b47e23dab4aba51024fc61d7d2, type: 3}
+  - Key: "ICO-061\u5F62\u6001"
+    Sprite: {fileID: 21300000, guid: be30e91a3cc5aed44a46c8dcc1959094, type: 3}
+  - Key: SHR-005-normal
+    Sprite: {fileID: 21300000, guid: 14ff9019477ba3e46a81de233ca0554c, type: 3}
+  - Key: SHR-005-selected
+    Sprite: {fileID: 21300000, guid: c41c2b5318edd134690875db5bfa477c, type: 3}
+  - Key: SHR-003-normal
+    Sprite: {fileID: 21300000, guid: 3cc06c8fd84841248beb5786e2bef796, type: 3}
+  - Key: SHR-046-normal
+    Sprite: {fileID: 21300000, guid: 874818d3b90ae3a4aa87a6b5e309f6b1, type: 3}
+  - Key: SHR-046-selected
+    Sprite: {fileID: 21300000, guid: 09a8144fdd359ef4888e2f3b3273eeb7, type: 3}
+  - Key: SHR-048-empty-list
+    Sprite: {fileID: 21300000, guid: 2a2e4890c95c98c40af8ea734c555337, type: 3}

@@ -9,3 +9,16 @@
 	5		30	SettlementPage	True	1	True
 	6		50	Settings	True	1	True
 	7		5	SaveSlotPage	True	1	False
+	8		40	MapPage	True	1	True
+	9		40	HomePage	True	1	True
+	10		40	JournalPage	True	1	True
+	11		40	WorkbenchPage	True	1	True
+	12		40	CodexPage	True	1	True
+	13		40	ArchivePage	True	1	True
+	14		40	GuestPage	True	1	True
+	15		40	ServicePage	True	1	True
+	16		30	DialoguePage	True	2	True
+	17		25	ProloguePage	True	3	True
+	18		25	InvestigationPage	True	3	True
+	19		25	RecoveryPage	True	2	True
+	20		25	FeedbackPage	True	2	True

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b0c2169ebff9744c96d1933e54493ce, type: 3}
   m_Name: AppSettings
   m_EditorClassIdentifier:
-  DebugMode: 1
+  DebugMode: 0
   ResourceMode: 1
   CheckVersionUrl: 
-  DesignResolution: {x: 1920, y: 1080}
+  DesignResolution: {x: 1080, y: 1920}
   EncryptAOTDlls: []

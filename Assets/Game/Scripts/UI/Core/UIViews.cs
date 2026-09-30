@@ -10,5 +10,18 @@ public enum UIViews : int
 	PreparationPage = 4,
 	SettlementPage = 5,
 	Settings = 6,
-	SaveSlotPage = 7
+	SaveSlotPage = 7,
+	MapPage = 8,
+	HomePage = 9,
+	JournalPage = 10,
+	WorkbenchPage = 11,
+	CodexPage = 12,
+	ArchivePage = 13,
+	GuestPage = 14,
+	ServicePage = 15,
+	DialoguePage = 16,
+	ProloguePage = 17,
+	InvestigationPage = 18,
+	RecoveryPage = 19,
+	FeedbackPage = 20
 }
