@@ -22,3 +22,8 @@ MonoBehaviour:
       PublicKeyToken=null
     displayName: "Console\u65E5\u5FD7\u5BFC\u51FA"
     description: "\u5BFC\u51FA Unity Console \u5F53\u524D\u65E5\u5FD7\u5230\u672C\u5730\u6587\u4EF6"
+  - typeName: GameViewUiQuickSelectPanel, Builtin.Editor, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    displayName: "Game\u89C6\u56FE UI \u4E2D\u952E\u9009\u4E2D"
+    description: "\u9F20\u6807\u4E2D\u952E\u5728 Game \u89C6\u56FE\u4E2D\u70B9\u51FB
+      UI \u5143\u7D20\uFF0C\u76F4\u63A5\u5728 Hierarchy \u4E2D\u9009\u4E2D\u8BE5\u5BF9\u8C61\uFF08\u5F00\u5173\u53EF\u6301\u4E45\u5316\uFF09"
