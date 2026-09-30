@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 3,
+  "form": "InvestigationPageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/InvestigationPage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/InvestigationPageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {
+    "name": "InvestigationPageForm",
+    "components": [{"type":"InvestigationPageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],
+    "anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],
+    "children":[
+      {"name":"Panel_Investigation","components":[{"type":"InvestigationView"},{"type":"Image","color":[0.03,0.04,0.06,0.97],"raycastTarget":true}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+        {"name":"Txt_Scene","components":[{"type":"TextMeshProUGUI","text":"现场调查","fontSize":30,"color":[0.88,0.66,0.35,1],"alignment":514,"raycastTarget":false}],"anchorMin":[0.08,0.78],"anchorMax":[0.92,0.86],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+        {"name":"Panel_Scene","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.12,0.14,0.18,1],"raycastTarget":true}],"anchorMin":[0.08,0.22],"anchorMax":[0.92,0.72],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+        {"name":"Btn_Finish","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.33,0.08],"anchorMax":[0.67,0.16],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_FinishLabel","components":[{"type":"TextMeshProUGUI","text":"完成调查","fontSize":26,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]}
+      ]}
+    ]
+  },
+  "bindings":[{"path":"m_InvestigationView","node":"InvestigationPageForm/Panel_Investigation","kind":"InvestigationView"}],
+  "scalars":[],"formArrays":[],"generatedFrom":"调查流程页契约（1080×1920）"
+}

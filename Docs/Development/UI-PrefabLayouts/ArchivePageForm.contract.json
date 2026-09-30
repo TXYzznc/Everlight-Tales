@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 3,
+  "form": "ArchivePageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/ArchivePage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/ArchivePageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {
+    "name": "ArchivePageForm",
+    "components": [{"type":"ArchivePageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],
+    "anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],
+    "children":[
+      {"name":"Panel_Background","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.09,0.102,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+      {"name":"Panel_Archive","components":[{"type":"ArchivePanel"}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,-220],"anchoredPosition":[0,-80],"children":[
+        {"name":"Panel_ArchiveTop","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.08,0.10,0.14,0.94]}],"anchorMin":[0,1],"anchorMax":[1,1],"pivot":[0.5,1],"sizeDelta":[0,112],"anchoredPosition":[0,0],"children":[{"name":"Txt_Title","components":[{"type":"TextMeshProUGUI","text":"陈列 / 档案","fontSize":30,"color":[1,0.85,0.35,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[0.5,1],"pivot":[0,0.5],"sizeDelta":[300,-32],"anchoredPosition":[24,0]}]},
+        {"name":"Panel_ArchiveList","components":[{"type":"VerticalLayoutGroup","spacing":8,"childControlWidth":true,"childControlHeight":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,-136],"anchoredPosition":[0,-68]}
+      ]}
+    ]
+  },
+  "bindings":[{"path":"m_ArchivePanel","node":"ArchivePageForm/Panel_Archive","kind":"ArchivePanel"}],
+  "scalars":[],"formArrays":[],"generatedFrom":"保管/档案独立流程页契约（1080×1920）"
+}

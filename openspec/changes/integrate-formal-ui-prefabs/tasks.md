@@ -23,5 +23,5 @@
 - [x] 4.1 Move MainPageShell map shell, map viewport, place panel, event list root, tracking label, and wait button into the MainPageShell Prefab
 - [x] 4.2 Update MapPanel to bind the static map shell while retaining dynamic place nodes and event cards
 - [x] 4.3 Create contracts for CityMap and location/event confirmation
-- [ ] 4.4 Create contracts for task, home, workbench, codex, archive, guest, service, dialogue, investigation, prologue, recovery, and feedback pages
-- [ ] 4.5 Register each Form in GF UI configuration and add page-specific lifecycle tests
+- [x] 4.4 Create contracts for task, home, workbench, codex, archive, guest, service, dialogue, investigation, prologue, recovery, and feedback pages
+- [x] 4.5 Register each Form in GF UI configuration and add page-specific lifecycle tests

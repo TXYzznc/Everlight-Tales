@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 3,
+  "form": "ProloguePageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/ProloguePage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/ProloguePageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {
+    "name": "ProloguePageForm",
+    "components": [{"type":"ProloguePageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],
+    "anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],
+    "children":[
+      {"name":"Panel_OpeningOverlay","components":[{"type":"OpeningOverlay"},{"type":"Image","color":[0.02,0.03,0.05,0.97],"raycastTarget":true}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+        {"name":"Txt_OpeningSubtitle","components":[{"type":"TextMeshProUGUI","text":"序章","fontSize":32,"color":[0.94,0.95,0.96,1],"alignment":514,"raycastTarget":false,"wordWrap":true}],"anchorMin":[0.08,0.36],"anchorMax":[0.92,0.64],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+        {"name":"Btn_OpeningAction","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.36,0.12],"anchorMax":[0.64,0.2],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_ActionLabel","components":[{"type":"TextMeshProUGUI","text":"跳过","fontSize":26,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]}
+      ]}
+    ]
+  },
+  "bindings":[{"path":"m_OpeningOverlay","node":"ProloguePageForm/Panel_OpeningOverlay","kind":"OpeningOverlay"}],
+  "scalars":[],"formArrays":[],"generatedFrom":"序章覆盖层独立流程页契约（1080×1920）"
+}

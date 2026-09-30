@@ -43,6 +43,17 @@
 - 新增独立 `HomePageForm` 契约与 `HomePage.prefab`，固定家园五区导航及加工、图鉴、保管、来客、服务五个内容根节点；各面板继续复用既有业务脚本。
 - 新增独立 `JournalPageForm` 契约与 `JournalPage.prefab`，固定事件/任务/怪谈三分组、维修费余额、角标和列表根节点；列表行与领奖逻辑继续由 `JournalPanel` 驱动。
 - 新增独立 `WorkbenchPageForm` 契约与 `WorkbenchPage.prefab`，固定维修费、加工/材料/账目子页签及三块内容根节点；材料行、形态卡和账目行继续由 `WorkbenchPanel` 动态生成。
+- 新增独立 `CodexPageForm` 契约与 `CodexPage.prefab`，固定收集进度、零件/形态/资料台子页签和列表根节点；图鉴条目继续由 `CodexPanel` 动态刷新。
+- 新增独立 `ArchivePageForm` 契约与 `ArchivePage.prefab`，固定陈列/档案标题和列表根节点；陈列物与拥有物概览继续由 `ArchivePanel` 动态刷新。
+- 新增独立 `GuestPageForm` 契约与 `GuestPage.prefab`，固定来客内容根节点；感谢领取、当天委托和改装入口继续由 `GuestPanel` 动态生成。
+- 新增独立 `ServicePageForm` 契约与 `ServicePage.prefab`，固定服务内容根节点；配装、恢复面板和设置快捷入口继续由 `ServicePanel` 接线。
+- 新增独立 `DialoguePageForm` 契约与 `DialoguePage.prefab`，固定模态遮罩、标题、正文和三组选项按钮；`DialogView` 仅绑定这些静态节点并注入文案与回调。
+- 新增独立 `ProloguePageForm` 契约与 `ProloguePage.prefab`，固定序章全屏背景、字幕和继续/跳过按钮；步骤推进与完成回调继续由 `OpeningOverlay` 驱动。
+- 新增独立 `InvestigationPageForm` 契约与 `InvestigationPage.prefab`，固定调查标题、场景区域和完成按钮；调查热点仍按调查配置动态生成并由 `InvestigationView` 计数确认。
+- 新增独立 `RecoveryPageForm` 契约与 `RecoveryPage.prefab`，固定恢复状态、继续维修和放弃撤退按钮；恢复判定仍由 `RecoveryService`/`WorldSession` 提供。
+- 新增独立 `FeedbackPageForm` 契约与 `FeedbackPage.prefab`，固定反馈输入框、状态提示和提交按钮；反馈提交保持页面层占位行为，后续可接入外部反馈渠道。
+- 新增页面已登记到 `GameData/DataTables/Core/UITable.xlsx`，自动生成 `UIViews` 8–20；GF 分组使用 Default、Dialog、Overlay 三组现有配置。
+- `EverlightUiRegistrationValidator` 已加入编辑器菜单，可审计全部契约、Prefab 根 UIForm/Canvas/Raycaster 和 UITable 对应关系；当前审计结果为 18/18/18 全部通过。页面逐一交互生命周期测试仍作为下一批质量工作保留。
 - 家园页五区导航壳（来客、加工、收藏、保管、服务）已固定到 `Panel_Home` Prefab；各区内容组件仍按数据需要动态装配。
 - 任务页三分组导航壳（事件、任务、怪谈）、维修费余额、角标和列表根节点已固定到 `Panel_Journal` Prefab；列表行与业务数据继续动态生成。
 - 家园内容区的加工、图鉴、保管、来客、服务五个根节点已预置到 `Panel_HomeArea`，各业务面板只负责动态内容和交互绑定。
@@ -56,3 +67,7 @@
 
 - 项目基准效果图 `07_盘面局内.png` 已确认尺寸为 `1080×1920`。
 - Unity Game View 已执行带截图的 PlayMode 观察（job `9920c7ba`），运行期间无 UI/脚本错误并正常退出；后续页面继续沿用同一竖屏基准核对。
+- 已盘点 `Everlight_Tales_UI_Mockups` 全部效果图，图像均为 `1080×1920`；页面与 UIForm 的对应关系记录在 [EverlightTales-UI视觉对照审计.md](EverlightTales-UI视觉对照审计.md)。
+- 最新 PlayMode 截图证据为 `Assets/Screenshots/play-capture-20260929-093556.png`，运行 8 秒、错误数为 0。
+
+资源验收清单：见 [EverlightTales-UI正式素材引用清单.md](EverlightTales-UI正式素材引用清单.md)，其中按 Prefab、节点、GUID、正式素材路径和效果图引用分类列出。

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 3,
+  "form": "RecoveryPageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/RecoveryPage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/RecoveryPageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {"name":"RecoveryPageForm","components":[{"type":"RecoveryPageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+    {"name":"Panel_Background","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.09,0.102,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+    {"name":"Panel_Recovery","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-002对话框.png","color":[1,1,1,1]}],"anchorMin":[0.08,0.32],"anchorMax":[0.92,0.68],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+      {"name":"Txt_Title","components":[{"type":"TextMeshProUGUI","text":"恢复维修尝试","fontSize":36,"color":[0.94,0.95,0.96,1],"alignment":514,"raycastTarget":false}],"anchorMin":[0,0.7],"anchorMax":[1,0.95],"pivot":[0.5,0.5],"sizeDelta":[-48,0],"anchoredPosition":[0,0]},
+      {"name":"Txt_Status","components":[{"type":"TextMeshProUGUI","text":"检测存档中…","fontSize":26,"color":[0.75,0.78,0.82,1],"alignment":514,"raycastTarget":false}],"anchorMin":[0.08,0.4],"anchorMax":[0.92,0.68],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+      {"name":"Btn_Continue","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.08,0.1],"anchorMax":[0.44,0.3],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_Label","components":[{"type":"TextMeshProUGUI","text":"继续维修","fontSize":24,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]},
+      {"name":"Btn_Abandon","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.56,0.1],"anchorMax":[0.92,0.3],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_Label","components":[{"type":"TextMeshProUGUI","text":"放弃并撤退","fontSize":24,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]}
+    ]}
+  ]},
+  "bindings":[{"path":"m_StatusText","node":"RecoveryPageForm/Panel_Recovery/Txt_Status","kind":"TextMeshProUGUI"},{"path":"m_ContinueButton","node":"RecoveryPageForm/Panel_Recovery/Btn_Continue","kind":"Button"},{"path":"m_AbandonButton","node":"RecoveryPageForm/Panel_Recovery/Btn_Abandon","kind":"Button"}],
+  "scalars":[],"formArrays":[],"generatedFrom":"恢复流程页契约（1080×1920）"
+}

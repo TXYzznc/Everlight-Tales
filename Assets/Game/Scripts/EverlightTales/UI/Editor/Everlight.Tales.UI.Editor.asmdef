@@ -3,6 +3,8 @@
     "rootNamespace": "Everlight.Tales.UI.EditorTools",
     "references": [
         "Everlight.Tales.UI",
+        "Everlight.Tales.Meta",
+        "Everlight.Tales.Data",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [

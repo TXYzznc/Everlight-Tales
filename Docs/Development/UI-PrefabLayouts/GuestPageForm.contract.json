@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 3,
+  "form": "GuestPageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/GuestPage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/GuestPageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {
+    "name": "GuestPageForm",
+    "components": [{"type":"GuestPageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],
+    "anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],
+    "children":[
+      {"name":"Panel_Background","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.09,0.102,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+      {"name":"Panel_Guest","components":[{"type":"GuestPanel"}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,-220],"anchoredPosition":[0,-80],"children":[
+        {"name":"Panel_GuestContent","anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,-48],"anchoredPosition":[0,0]}
+      ]}
+    ]
+  },
+  "bindings":[{"path":"m_GuestPanel","node":"GuestPageForm/Panel_Guest","kind":"GuestPanel"}],
+  "scalars":[],"formArrays":[],"generatedFrom":"来客独立流程页契约（1080×1920）"
+}

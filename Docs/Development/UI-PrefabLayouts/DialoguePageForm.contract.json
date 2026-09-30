@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 3,
+  "form": "DialoguePageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/DialoguePage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/DialoguePageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {
+    "name": "DialoguePageForm",
+    "components": [{"type":"DialoguePageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],
+    "anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],
+    "children":[
+      {"name":"Panel_Dim","components":[{"type":"Image","color":[0.02,0.03,0.05,0.75],"raycastTarget":true}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+      {"name":"Panel_Dialog","components":[{"type":"DialogView"},{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-002对话框.png","color":[1,1,1,1]}],"anchorMin":[0.08,0.24],"anchorMax":[0.92,0.76],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+        {"name":"Txt_Title","components":[{"type":"TextMeshProUGUI","text":"对话标题","fontSize":36,"color":[0.94,0.95,0.96,1],"raycastTarget":false}],"anchorMin":[0,0.78],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-64,0],"anchoredPosition":[0,0]},
+        {"name":"Txt_Content","components":[{"type":"TextMeshProUGUI","text":"对话内容","fontSize":26,"color":[0.78,0.8,0.84,1],"raycastTarget":false,"wordWrap":true}],"anchorMin":[0.08,0.40],"anchorMax":[0.92,0.76],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+        {"name":"Button_0","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.08,0.08],"anchorMax":[0.36,0.25],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_Button_0","components":[{"type":"TextMeshProUGUI","text":"确认","fontSize":24,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]},
+        {"name":"Button_1","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.36,0.08],"anchorMax":[0.64,0.25],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_Button_1","components":[{"type":"TextMeshProUGUI","text":"取消","fontSize":24,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]},
+        {"name":"Button_2","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-022-normal次按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.64,0.08],"anchorMax":[0.92,0.25],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_Button_2","components":[{"type":"TextMeshProUGUI","text":"返回","fontSize":24,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]}
+      ]}
+    ]
+  },
+  "bindings":[{"path":"m_DialogView","node":"DialoguePageForm/Panel_Dialog","kind":"DialogView"},{"path":"m_TitleText","node":"DialoguePageForm/Panel_Dialog/Txt_Title","kind":"TextMeshProUGUI"},{"path":"m_ContentText","node":"DialoguePageForm/Panel_Dialog/Txt_Content","kind":"TextMeshProUGUI"}],
+  "scalars":[],
+  "formArrays":[
+    {"path":"m_Buttons","items":[{"node":"DialoguePageForm/Panel_Dialog/Button_0","kind":"Button"},{"node":"DialoguePageForm/Panel_Dialog/Button_1","kind":"Button"},{"node":"DialoguePageForm/Panel_Dialog/Button_2","kind":"Button"}]},
+    {"path":"m_ButtonLabels","items":[{"node":"DialoguePageForm/Panel_Dialog/Button_0/Txt_Button_0","kind":"TextMeshProUGUI"},{"node":"DialoguePageForm/Panel_Dialog/Button_1/Txt_Button_1","kind":"TextMeshProUGUI"},{"node":"DialoguePageForm/Panel_Dialog/Button_2/Txt_Button_2","kind":"TextMeshProUGUI"}]}
+  ],
+  "generatedFrom":"对话模态页契约（1080×1920）"
+}
+

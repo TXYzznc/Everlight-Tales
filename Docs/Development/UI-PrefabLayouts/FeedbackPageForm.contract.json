@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 3,
+  "form": "FeedbackPageForm",
+  "namespace": "Everlight.Tales.UI",
+  "prefabPath": "Assets/Game/Prefabs/UI/FeedbackPage.prefab",
+  "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/FeedbackPageForm.cs",
+  "referenceResolution": [1080, 1920],
+  "root": {"name":"FeedbackPageForm","components":[{"type":"FeedbackPageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+    {"name":"Panel_Background","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.09,0.102,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+    {"name":"Panel_Feedback","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-002对话框.png","color":[1,1,1,1]}],"anchorMin":[0.08,0.24],"anchorMax":[0.92,0.76],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[
+      {"name":"Txt_Title","components":[{"type":"TextMeshProUGUI","text":"反馈","fontSize":38,"color":[0.94,0.95,0.96,1],"alignment":514,"raycastTarget":false}],"anchorMin":[0,0.8],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,0],"anchoredPosition":[0,0]},
+      {"name":"Input_Message","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-003-normal卡片.png","color":[1,1,1,1],"raycastTarget":true},{"type":"TMP_InputField"}],"anchorMin":[0.1,0.35],"anchorMax":[0.9,0.72],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+      {"name":"Txt_Status","components":[{"type":"TextMeshProUGUI","text":"欢迎留下反馈","fontSize":22,"color":[0.68,0.71,0.75,1],"alignment":514,"raycastTarget":false}],"anchorMin":[0.1,0.25],"anchorMax":[0.9,0.35],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
+      {"name":"Btn_Submit","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-021-normal主按钮.png"},{"type":"Button","interactable":true}],"anchorMin":[0.3,0.08],"anchorMax":[0.7,0.19],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],"children":[{"name":"Txt_Label","components":[{"type":"TextMeshProUGUI","text":"提交反馈","fontSize":26,"color":[0.09,0.1,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-16,-8],"anchoredPosition":[0,0]}]}
+    ]}
+  ]},
+  "bindings":[{"path":"m_MessageInput","node":"FeedbackPageForm/Panel_Feedback/Input_Message","kind":"TMP_InputField"},{"path":"m_StatusText","node":"FeedbackPageForm/Panel_Feedback/Txt_Status","kind":"TextMeshProUGUI"},{"path":"m_SubmitButton","node":"FeedbackPageForm/Panel_Feedback/Btn_Submit","kind":"Button"}],
+  "scalars":[],"formArrays":[],"generatedFrom":"反馈流程页契约（1080×1920）"
+}
