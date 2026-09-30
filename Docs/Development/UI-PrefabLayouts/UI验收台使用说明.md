@@ -42,4 +42,4 @@ Unity 菜单：
 
 ## 按钮状态资源
 
-菜单 Game Framework/EverlightTales/UI/接入正式按钮 Sprite Swap 会为 20 个 UIForm 和 Item Prefab 绑定正式按钮 Sprite。按钮使用 Normal、Highlighted、Pressed、Disabled、Selected 状态，运行时由 UISpriteButton 管理，动态 UIFactory.MakeButton 通过 Assets/Resources/UI/FormalButtonLibrary.asset 复用相同资源。页面选中态不再依赖颜色 Tint。
+菜单 Game Framework/EverlightTales/UI/接入正式按钮 Sprite Swap 会为 20 个 UIForm 和 Item Prefab 绑定正式按钮 Sprite。按钮使用 Normal、Highlighted、Pressed、Disabled、Selected 状态，运行时和静态界面统一使用 Unity Button 的 Sprite Swap；动态按钮由 UIFactory 创建 Button 并设置 SpriteState。页面选中态使用 Button.Select() 驱动 Selected Sprite，不再依赖颜色 Tint。

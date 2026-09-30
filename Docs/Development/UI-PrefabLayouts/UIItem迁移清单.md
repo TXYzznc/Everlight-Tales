@@ -1,5 +1,9 @@
 # Everlight UIItem 迁移清单
 
+## 项目级强制规则
+
+运行时需要生成的可见 UI 对象必须有对应 Prefab。重复数据对象放在 `Assets/Game/Prefabs/UI/Item` 并通过 GF UIItem 对象池创建；页面的列表根节点、筛选栏、按钮组等稳定布局必须直接存在于页面 UIForm Prefab。业务代码只能绑定和刷新既有节点，不能用 `new GameObject`、`AddComponent` 或运行时克隆临时拼出页面结构。
+
 ## 已完成
 
 | UIItem | 预制体 | 使用页面 | 运行时创建入口 |
@@ -12,7 +16,7 @@
 | `WorkbenchHostItem` / `WorkbenchFormItem` / `WorkbenchMaterialItem` / `WorkbenchLedgerItem` | `Assets/Game/Prefabs/UI/Item/` | `WorkbenchPage` | `WorkbenchPanel.RebuildWorkbench()`、`RebuildMaterials()`、`RebuildLedger()` |
 | `MapEventItem` | `Assets/Game/Prefabs/UI/Item/MapEventItem.prefab` | `MapPage` | `MapPanel.AddEventEntry()`，地点事件按当前地点数据动态创建 |
 | `JournalItem` | `Assets/Game/Prefabs/UI/Item/JournalItem.prefab` | `JournalPage` | `JournalPanel.AddCard()`，事件/任务/怪谈详情卡按数据动态创建 |
-| `DialogueChoiceItem` | `Assets/Game/Prefabs/UI/Item/DialogueChoiceItem.prefab` | `DialoguePage` | `DialoguePanel.AddChoice()`，运行时从 Resources 对应正式 Item 资源实例化 |
+| `DialogueChoiceItem` | `Assets/Game/Prefabs/UI/Item/DialogueChoiceItem.prefab` | `DialoguePage` | `DialoguePanel.AddChoice()`，运行时使用页面脚本序列化的正式 Item Prefab 实例化 |
 | `InvestigationHotspotItem` | `Assets/Game/Prefabs/UI/Item/InvestigationHotspotItem.prefab` | `InvestigationPage` | `InvestigationView.AddHotspot()`，调查热点按场景数据动态创建 |
 | `GuestDelegationItem` | `Assets/Game/Prefabs/UI/Item/GuestDelegationItem.prefab` | `GuestPage` | `GuestPanel.BuildDelegations()`，当天委托按供应数据动态创建 |
 
