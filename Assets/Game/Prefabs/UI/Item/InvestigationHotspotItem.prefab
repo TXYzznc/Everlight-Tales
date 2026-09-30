@@ -148,7 +148,6 @@ GameObject:
   - component: {fileID: 8955527887210199967}
   - component: {fileID: 2812467821781694157}
   - component: {fileID: 909072546280601317}
-  - component: {fileID: 1364276793983256372}
   m_Layer: 0
   m_Name: InvestigationHotspotItem
   m_TagString: Untagged
@@ -275,22 +274,3 @@ MonoBehaviour:
   _ring: {fileID: 8955527887210199967}
   _label: {fileID: 2992090625105210601}
   _button: {fileID: 2812467821781694157}
---- !u!114 &1364276793983256372
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2452065800547565623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 8955527887210199967}
-  _button: {fileID: 2812467821781694157}
-  _normal: {fileID: 21300000, guid: 3cc06c8fd84841248beb5786e2bef796, type: 3}
-  _highlighted: {fileID: 21300000, guid: de79cf4390fbd944f909a34443607737, type: 3}
-  _pressed: {fileID: 21300000, guid: 1c67499ffc8231643ae782fa08ed42ff, type: 3}
-  _disabled: {fileID: 21300000, guid: 12de3907e1765e84dbe5e9b46b19c187, type: 3}
-  _selected: {fileID: 21300000, guid: 99deba62dcb91ac40af720b7fd9a56c5, type: 3}

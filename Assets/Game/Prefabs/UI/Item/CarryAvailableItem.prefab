@@ -149,7 +149,6 @@ GameObject:
   - component: {fileID: 2948266504567859997}
   - component: {fileID: 2252510517275480706}
   - component: {fileID: 7628865085070788997}
-  - component: {fileID: 7344963674992328489}
   m_Layer: 5
   m_Name: CarryAvailableItem
   m_TagString: Untagged
@@ -295,22 +294,3 @@ MonoBehaviour:
   _fields: []
   _label: {fileID: 8198180717515483836}
   _button: {fileID: 2948266504567859997}
---- !u!114 &7344963674992328489
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2828710567491895453}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 193317745318942859}
-  _button: {fileID: 2948266504567859997}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}

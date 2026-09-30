@@ -167,7 +167,6 @@ GameObject:
   - component: {fileID: 9168295344180607724}
   - component: {fileID: 5868581376398702258}
   - component: {fileID: 3329893822973206586}
-  - component: {fileID: 4320418477310580287}
   m_Layer: 5
   m_Name: Btn_Settle
   m_TagString: Untagged
@@ -278,25 +277,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4320418477310580287
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 133289721541219266}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 5868581376398702258}
-  _button: {fileID: 3329893822973206586}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &296377755908700347
 GameObject:
   m_ObjectHideFlags: 0
@@ -984,7 +964,6 @@ GameObject:
   - component: {fileID: 6796886750038851340}
   - component: {fileID: 8897765843466960983}
   - component: {fileID: 3442502606025708682}
-  - component: {fileID: 4484510836286749432}
   m_Layer: 5
   m_Name: Btn_PauseResume
   m_TagString: Untagged
@@ -1095,25 +1074,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4484510836286749432
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1582824958383081570}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 8897765843466960983}
-  _button: {fileID: 3442502606025708682}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &1690513733852704080
 GameObject:
   m_ObjectHideFlags: 0
@@ -1126,7 +1086,6 @@ GameObject:
   - component: {fileID: 4693827771247601956}
   - component: {fileID: 8241116427167475267}
   - component: {fileID: 8508320299618041172}
-  - component: {fileID: 8798994981596092583}
   m_Layer: 5
   m_Name: Btn_PauseSettings
   m_TagString: Untagged
@@ -1237,25 +1196,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &8798994981596092583
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1690513733852704080}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 8241116427167475267}
-  _button: {fileID: 8508320299618041172}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &1872371729303458602
 GameObject:
   m_ObjectHideFlags: 0
@@ -2635,7 +2575,6 @@ GameObject:
   - component: {fileID: 3834824812663382105}
   - component: {fileID: 7231811691212453515}
   - component: {fileID: 3186177671277136642}
-  - component: {fileID: 4534981845209851247}
   m_Layer: 5
   m_Name: Btn_PauseRetreat
   m_TagString: Untagged
@@ -2746,25 +2685,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4534981845209851247
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4549653381841556189}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 7231811691212453515}
-  _button: {fileID: 3186177671277136642}
-  _normal: {fileID: 21300000, guid: 7551e400b3cacaa4aa25db34e4ccc324, type: 3}
-  _highlighted: {fileID: 21300000, guid: 13d560ec3dd13d647afc7d43873d4b49, type: 3}
-  _pressed: {fileID: 21300000, guid: 0e0256a885e747f44a475efc0db12bae, type: 3}
-  _disabled: {fileID: 21300000, guid: 7c7a367376c4da74ebb27c4771388386, type: 3}
-  _selected: {fileID: 21300000, guid: 7551e400b3cacaa4aa25db34e4ccc324, type: 3}
 --- !u!1 &4553781699424235301
 GameObject:
   m_ObjectHideFlags: 0
@@ -3047,7 +2967,6 @@ GameObject:
   - component: {fileID: 537856601324104835}
   - component: {fileID: 4721831674389632305}
   - component: {fileID: 5234370958084994180}
-  - component: {fileID: 4930536022271864741}
   m_Layer: 5
   m_Name: Btn_RotateLeft
   m_TagString: Untagged
@@ -3158,25 +3077,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4930536022271864741
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4967271239990476776}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 4721831674389632305}
-  _button: {fileID: 5234370958084994180}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &4988059647462589704
 GameObject:
   m_ObjectHideFlags: 0
@@ -3324,7 +3224,6 @@ GameObject:
   - component: {fileID: 6595384959734984289}
   - component: {fileID: 4528810479177843523}
   - component: {fileID: 4398654866469523117}
-  - component: {fileID: 491318556626042776}
   m_Layer: 5
   m_Name: Btn_Pause
   m_TagString: Untagged
@@ -3435,25 +3334,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &491318556626042776
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5228780747448377074}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 4528810479177843523}
-  _button: {fileID: 4398654866469523117}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &5464948383966726721
 GameObject:
   m_ObjectHideFlags: 0
@@ -3466,7 +3346,6 @@ GameObject:
   - component: {fileID: 2820837939450956558}
   - component: {fileID: 4553402419392910531}
   - component: {fileID: 8270409566723807448}
-  - component: {fileID: 6127844672052895411}
   m_Layer: 5
   m_Name: Panel_Pause
   m_TagString: Untagged
@@ -3580,25 +3459,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &6127844672052895411
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5464948383966726721}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 4553402419392910531}
-  _button: {fileID: 8270409566723807448}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &5521873862317661203
 GameObject:
   m_ObjectHideFlags: 0
@@ -3686,7 +3546,6 @@ GameObject:
   - component: {fileID: 1660249035178988441}
   - component: {fileID: 3533544236137276185}
   - component: {fileID: 2721462198640121801}
-  - component: {fileID: 5579817955930265777}
   m_Layer: 5
   m_Name: Btn_PauseRules
   m_TagString: Untagged
@@ -3797,25 +3656,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &5579817955930265777
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5565492955063663759}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 3533544236137276185}
-  _button: {fileID: 2721462198640121801}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &5903258216284139245
 GameObject:
   m_ObjectHideFlags: 0
@@ -3963,7 +3803,6 @@ GameObject:
   - component: {fileID: 4026162057098049261}
   - component: {fileID: 8948291431569376398}
   - component: {fileID: 6098812461790321336}
-  - component: {fileID: 6168407038286264209}
   m_Layer: 5
   m_Name: Btn_RotateRight
   m_TagString: Untagged
@@ -4074,25 +3913,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &6168407038286264209
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5963018067272754389}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 8948291431569376398}
-  _button: {fileID: 6098812461790321336}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &6267024463640251260
 GameObject:
   m_ObjectHideFlags: 0
@@ -4105,7 +3925,6 @@ GameObject:
   - component: {fileID: 5433364663461915748}
   - component: {fileID: 2146804655818331503}
   - component: {fileID: 2460059404628117330}
-  - component: {fileID: 8521843037040927921}
   m_Layer: 5
   m_Name: Btn_Tap
   m_TagString: Untagged
@@ -4216,25 +4035,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &8521843037040927921
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6267024463640251260}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 2146804655818331503}
-  _button: {fileID: 2460059404628117330}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &6421408638443263174
 GameObject:
   m_ObjectHideFlags: 0
@@ -4702,7 +4502,6 @@ GameObject:
   - component: {fileID: 619461330998459523}
   - component: {fileID: 5091450070731103379}
   - component: {fileID: 6296179378383081282}
-  - component: {fileID: 2963237991955578561}
   m_Layer: 5
   m_Name: Btn_Arm
   m_TagString: Untagged
@@ -4813,25 +4612,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &2963237991955578561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9110296293445495631}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 5091450070731103379}
-  _button: {fileID: 6296179378383081282}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &9182458445886803014
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,6 +15,9 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class DialoguePanel : MonoBehaviour
     {
+        [SerializeField] private GameObject m_ChoiceTemplate;
+
+        public void SetChoiceTemplate(GameObject template) { m_ChoiceTemplate = template; }
         private DialogueService m_Service;
 
         private TextMeshProUGUI m_PortraitLabel;
@@ -117,7 +120,7 @@ namespace Everlight.Tales.UI
 
         private void AddChoice(int index, string label)
         {
-            GameObject template = Resources.Load<GameObject>("UI/Item/DialogueChoiceItem");
+            GameObject template = m_ChoiceTemplate;
             if (template != null)
             {
                 GameObject instance = Instantiate(template, m_ChoiceRoot);
@@ -163,7 +166,7 @@ namespace Everlight.Tales.UI
             text.text = label;
 
             int captured = index;
-            UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Secondary);
+            go.GetComponent<Button>().transition = Selectable.Transition.SpriteSwap;
             go.GetComponent<Button>().onClick.AddListener(() =>
             {
                 m_Service?.Choose(captured);

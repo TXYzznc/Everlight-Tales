@@ -378,7 +378,6 @@ GameObject:
   - component: {fileID: 463345401327153271}
   - component: {fileID: 6272211501323647642}
   - component: {fileID: 795791986236266566}
-  - component: {fileID: 920417118287890965}
   m_Layer: 5
   m_Name: Btn_Submit
   m_TagString: Untagged
@@ -489,25 +488,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &920417118287890965
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3180976604225906252}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 6272211501323647642}
-  _button: {fileID: 795791986236266566}
-  _normal: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
-  _highlighted: {fileID: 21300000, guid: 157fc105cb9b31940b4fd44a31962566, type: 3}
-  _pressed: {fileID: 21300000, guid: c4cbc0f17a1103b4eb3fb18844aba745, type: 3}
-  _disabled: {fileID: 21300000, guid: 911b4f2e05428cb498c57571a8601649, type: 3}
-  _selected: {fileID: 21300000, guid: f6b32dfa902ee5d4abe360dbcc6838d7, type: 3}
 --- !u!1 &3214078111755552908
 GameObject:
   m_ObjectHideFlags: 0

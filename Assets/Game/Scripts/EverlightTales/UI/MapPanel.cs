@@ -600,7 +600,9 @@ namespace Everlight.Tales.UI
             text.alignment = TextAlignmentOptions.Center;
             text.text = label;
 
-            return UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Secondary)?.GetComponent<Button>();
+            Button button = go.GetComponent<Button>();
+            button.transition = Selectable.Transition.SpriteSwap;
+            return button;
         }
     }
 }

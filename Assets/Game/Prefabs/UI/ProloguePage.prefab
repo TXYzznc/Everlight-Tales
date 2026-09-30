@@ -162,7 +162,6 @@ GameObject:
   - component: {fileID: 6879415880853290438}
   - component: {fileID: 5610921661612342373}
   - component: {fileID: 7877877877810304657}
-  - component: {fileID: 5209105209857680803}
   m_Layer: 5
   m_Name: Btn_OpeningAction
   m_TagString: Untagged
@@ -273,25 +272,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &5209105209857680803
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3642886775537234251}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 5610921661612342373}
-  _button: {fileID: 7877877877810304657}
-  _normal: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}
-  _highlighted: {fileID: 21300000, guid: e63e3316f9bcc91448d2f84a70b51c5a, type: 3}
-  _pressed: {fileID: 21300000, guid: 8ce717a76cf35564a8ec0069b2e38547, type: 3}
-  _disabled: {fileID: 21300000, guid: b94910662fe15154fa65fe51c9de4940, type: 3}
-  _selected: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}
 --- !u!1 &4750394069369374403
 GameObject:
   m_ObjectHideFlags: 0

@@ -29,6 +29,20 @@ namespace Everlight.Tales.UI
         /// <summary>跳主壳页签回调（0 地图 / 1 任务），由 MainPageShell 注入。</summary>
         public System.Action<int> OnNavigate;
 
+        private GameObject m_WorkbenchHostItemTemplate;
+        private GameObject m_WorkbenchFormItemTemplate;
+        private GameObject m_WorkbenchMaterialItemTemplate;
+        private GameObject m_WorkbenchLedgerItemTemplate;
+
+        public void SetWorkbenchItemTemplates(GameObject host, GameObject form, GameObject material, GameObject ledger)
+        {
+            m_WorkbenchHostItemTemplate = host;
+            m_WorkbenchFormItemTemplate = form;
+            m_WorkbenchMaterialItemTemplate = material;
+            m_WorkbenchLedgerItemTemplate = ledger;
+            if (m_Workbench != null) m_Workbench.SetItemTemplates(host, form, material, ledger);
+        }
+
         public void BindStaticLayout()
         {
             m_StaticRoot = transform.name == "Panel_Home" ? transform : transform.Find("Panel_Home");
@@ -100,8 +114,7 @@ namespace Everlight.Tales.UI
             m_Zone = index;
             for (int i = 0; i < m_ZoneButtons.Length; i++)
             {
-                UISpriteButton spriteButton = m_ZoneButtons[i] == null ? null : m_ZoneButtons[i].GetComponent<UISpriteButton>();
-                if (spriteButton != null) spriteButton.SetSelected(i == index);
+                UIFactory.SetSelected(m_ZoneButtons[i], i == index);
             }
 
             switch (index)
@@ -168,6 +181,7 @@ namespace Everlight.Tales.UI
             }
 
             m_Workbench = FindStaticSub<WorkbenchPanel>("Panel_Workbench") ?? CreateSub<WorkbenchPanel>("workbench_panel");
+            m_Workbench.SetItemTemplates(m_WorkbenchHostItemTemplate, m_WorkbenchFormItemTemplate, m_WorkbenchMaterialItemTemplate, m_WorkbenchLedgerItemTemplate);
             m_Workbench.BindStaticLayout();
             m_Workbench.Build();
         }

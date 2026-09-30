@@ -110,7 +110,7 @@ namespace Everlight.Tales.UI
 
             string id = place.Config.Id;
             var button = go.GetComponent<Button>() ?? go.AddComponent<Button>();
-            UISpriteButton.ConfigureButton(button, UISpriteButtonRole.Icon);
+            button.transition = Selectable.Transition.SpriteSwap;
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(() => Select(id));
 

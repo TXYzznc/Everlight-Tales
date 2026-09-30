@@ -43,6 +43,14 @@ namespace Everlight.Tales.UI
         private PartType m_SelectedHost;
         private string m_SelectedFormId;
 
+        public void SetItemTemplates(GameObject host, GameObject form, GameObject material, GameObject ledger)
+        {
+            _hostItemTemplate = host;
+            _formItemTemplate = form;
+            _materialItemTemplate = material;
+            _ledgerItemTemplate = ledger;
+        }
+
         public void BindStaticLayout()
         {
             ResolveItemTemplates();
@@ -81,10 +89,8 @@ namespace Everlight.Tales.UI
 
         private void ResolveItemTemplates()
         {
-            if (_hostItemTemplate == null) _hostItemTemplate = Resources.Load<GameObject>("UI/Item/WorkbenchHostItem");
-            if (_formItemTemplate == null) _formItemTemplate = Resources.Load<GameObject>("UI/Item/WorkbenchFormItem");
-            if (_materialItemTemplate == null) _materialItemTemplate = Resources.Load<GameObject>("UI/Item/WorkbenchMaterialItem");
-            if (_ledgerItemTemplate == null) _ledgerItemTemplate = Resources.Load<GameObject>("UI/Item/WorkbenchLedgerItem");
+            if (_hostItemTemplate == null || _formItemTemplate == null || _materialItemTemplate == null || _ledgerItemTemplate == null)
+                Debug.LogError("[WorkbenchPanel] UIItem 模板未绑定，请在 WorkbenchPage.prefab 中绑定 Assets/Game/Prefabs/UI/Item 下的正式预制体。");
         }
 
         public void Build()
@@ -165,8 +171,7 @@ namespace Everlight.Tales.UI
             m_SubTab = index;
             for (int i = 0; i < m_SubButtons.Length; i++)
             {
-                UISpriteButton spriteButton = m_SubButtons[i] == null ? null : m_SubButtons[i].GetComponent<UISpriteButton>();
-                if (spriteButton != null) spriteButton.SetSelected(i == index);
+                UIFactory.SetSelected(m_SubButtons[i], i == index);
             }
 
             m_WorkbenchRoot.gameObject.SetActive(index == 0);
@@ -597,7 +602,9 @@ namespace Everlight.Tales.UI
             rt.sizeDelta = new Vector2(-40f, height);
             go.GetComponent<Image>().color = bg ?? UIFactory.ButtonBlue;
             AttachLabel(go.transform, label, fontSize);
-            return UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Main)?.GetComponent<Button>();
+            Button button = go.GetComponent<Button>();
+            button.transition = Selectable.Transition.SpriteSwap;
+            return button;
         }
 
         private static Button MakeLeftButton(RectTransform parent, string name, float x, float y, Vector2 size, string label, int fontSize, Color? bg = null)
@@ -612,7 +619,9 @@ namespace Everlight.Tales.UI
             rt.sizeDelta = size;
             go.GetComponent<Image>().color = bg ?? UIFactory.ButtonBlue;
             AttachLabel(go.transform, label, fontSize);
-            return UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Secondary)?.GetComponent<Button>();
+            Button button = go.GetComponent<Button>();
+            button.transition = Selectable.Transition.SpriteSwap;
+            return button;
         }
 
         private static void AttachLabel(Transform parent, string label, int fontSize)

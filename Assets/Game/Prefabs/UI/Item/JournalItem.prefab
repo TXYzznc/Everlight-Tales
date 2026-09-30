@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 4647272458256164469}
   - component: {fileID: 5092575649706041026}
   - component: {fileID: 5992114603163562853}
-  - component: {fileID: 596557007004533628}
   m_Layer: 0
   m_Name: Action
   m_TagString: Untagged
@@ -77,7 +76,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 2
 --- !u!114 &5992114603163562853
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -123,25 +122,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &596557007004533628
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2273240236038606154}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 5092575649706041026}
-  _button: {fileID: 5992114603163562853}
-  _normal: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}
-  _highlighted: {fileID: 21300000, guid: e63e3316f9bcc91448d2f84a70b51c5a, type: 3}
-  _pressed: {fileID: 21300000, guid: 8ce717a76cf35564a8ec0069b2e38547, type: 3}
-  _disabled: {fileID: 21300000, guid: b94910662fe15154fa65fe51c9de4940, type: 3}
-  _selected: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}
 --- !u!1 &3590919281047831060
 GameObject:
   m_ObjectHideFlags: 0
@@ -230,7 +210,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -365,7 +345,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -425,7 +405,6 @@ GameObject:
   - component: {fileID: 4217960707755555791}
   - component: {fileID: 1070594068070548290}
   - component: {fileID: 477688819807406379}
-  - component: {fileID: 2539480877545138025}
   m_Layer: 0
   m_Name: JournalItem
   m_TagString: Untagged
@@ -492,7 +471,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 2
 --- !u!114 &1070594068070548290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -555,25 +534,6 @@ MonoBehaviour:
   _detail: {fileID: 4870430082845618466}
   _actionLabel: {fileID: 9180041071806013513}
   _button: {fileID: 1070594068070548290}
---- !u!114 &2539480877545138025
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4170102506408782789}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 4217960707755555791}
-  _button: {fileID: 1070594068070548290}
-  _normal: {fileID: 21300000, guid: 14ff9019477ba3e46a81de233ca0554c, type: 3}
-  _highlighted: {fileID: 21300000, guid: bc3ae64b5a3065643a839c1441d3aded, type: 3}
-  _pressed: {fileID: 21300000, guid: c41c2b5318edd134690875db5bfa477c, type: 3}
-  _disabled: {fileID: 21300000, guid: 14ff9019477ba3e46a81de233ca0554c, type: 3}
-  _selected: {fileID: 21300000, guid: c41c2b5318edd134690875db5bfa477c, type: 3}
 --- !u!1 &4846807570815346986
 GameObject:
   m_ObjectHideFlags: 0
@@ -662,7 +622,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2

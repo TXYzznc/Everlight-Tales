@@ -148,7 +148,6 @@ GameObject:
   - component: {fileID: 3568857785745242397}
   - component: {fileID: 336474631539346252}
   - component: {fileID: 23395067069103926}
-  - component: {fileID: 6256361540899464714}
   m_Layer: 0
   m_Name: DialogueChoiceItem
   m_TagString: Untagged
@@ -274,22 +273,3 @@ MonoBehaviour:
   _fields: []
   _label: {fileID: 5443239595085899672}
   _button: {fileID: 336474631539346252}
---- !u!114 &6256361540899464714
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7701815591754479951}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 3568857785745242397}
-  _button: {fileID: 336474631539346252}
-  _normal: {fileID: 21300000, guid: 3cc06c8fd84841248beb5786e2bef796, type: 3}
-  _highlighted: {fileID: 21300000, guid: de79cf4390fbd944f909a34443607737, type: 3}
-  _pressed: {fileID: 21300000, guid: 1c67499ffc8231643ae782fa08ed42ff, type: 3}
-  _disabled: {fileID: 21300000, guid: 12de3907e1765e84dbe5e9b46b19c187, type: 3}
-  _selected: {fileID: 21300000, guid: 99deba62dcb91ac40af720b7fd9a56c5, type: 3}

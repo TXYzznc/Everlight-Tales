@@ -73,8 +73,7 @@ namespace Everlight.Tales.UI
             _subTab = index;
             for (int i = 0; i < _subButtons.Length; i++)
             {
-                UISpriteButton spriteButton = _subButtons[i] == null ? null : _subButtons[i].GetComponent<UISpriteButton>();
-                if (spriteButton != null) spriteButton.SetSelected(i == index);
+                UIFactory.SetSelected(_subButtons[i], i == index);
             }
             if (_partRoot != null) _partRoot.gameObject.SetActive(index == 0);
             if (_formRoot != null) _formRoot.gameObject.SetActive(index == 1);

@@ -14,6 +14,9 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class InvestigationView : MonoBehaviour
     {
+        [SerializeField] private GameObject m_HotspotTemplate;
+
+        public void SetHotspotTemplate(GameObject template) { m_HotspotTemplate = template; }
         /// <summary>一个可点击调查热点。</summary>
         public sealed class Hotspot
         {
@@ -116,7 +119,7 @@ namespace Everlight.Tales.UI
 
         private void AddHotspot(RectTransform sceneRt, Hotspot hotspot)
         {
-            GameObject template = Resources.Load<GameObject>("UI/Item/InvestigationHotspotItem");
+            GameObject template = m_HotspotTemplate;
             if (template != null)
             {
                 GameObject instance = Instantiate(template, sceneRt);
@@ -239,7 +242,9 @@ namespace Everlight.Tales.UI
             text.raycastTarget = false;
             text.text = label;
 
-            return UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Secondary)?.GetComponent<Button>();
+            Button button = go.GetComponent<Button>();
+            button.transition = Selectable.Transition.SpriteSwap;
+            return button;
         }
     }
 }

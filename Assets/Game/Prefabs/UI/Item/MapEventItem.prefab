@@ -148,7 +148,6 @@ GameObject:
   - component: {fileID: 3484381406971616330}
   - component: {fileID: 3530185365421985835}
   - component: {fileID: 3558592491019720174}
-  - component: {fileID: 6031031262941999810}
   m_Layer: 0
   m_Name: MapEventItem
   m_TagString: Untagged
@@ -276,25 +275,6 @@ MonoBehaviour:
   _title: {fileID: 3034278971251616126}
   _meta: {fileID: 6791412111713363603}
   _button: {fileID: 3530185365421985835}
---- !u!114 &6031031262941999810
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6809934219059477439}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 3484381406971616330}
-  _button: {fileID: 3530185365421985835}
-  _normal: {fileID: 21300000, guid: 14ff9019477ba3e46a81de233ca0554c, type: 3}
-  _highlighted: {fileID: 21300000, guid: bc3ae64b5a3065643a839c1441d3aded, type: 3}
-  _pressed: {fileID: 21300000, guid: c41c2b5318edd134690875db5bfa477c, type: 3}
-  _disabled: {fileID: 21300000, guid: 14ff9019477ba3e46a81de233ca0554c, type: 3}
-  _selected: {fileID: 21300000, guid: c41c2b5318edd134690875db5bfa477c, type: 3}
 --- !u!1 &8277024937551848427
 GameObject:
   m_ObjectHideFlags: 0

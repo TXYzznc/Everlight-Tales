@@ -25,10 +25,18 @@ namespace Everlight.Tales.UI
 
         [Header("Top Bar")]
         [SerializeField] private Button m_BackButton = null;
+        [SerializeField] private Button m_SettingsButton = null;
 
         [Header("Tabs")]
         [SerializeField] private Button[] m_TabButtons = null;
         [SerializeField] private Graphic[] m_TabSelectedIndicators = null;
+
+        [Header("Dynamic Item Templates")]
+        [SerializeField] private GameObject m_JournalItemTemplate = null;
+        [SerializeField] private GameObject m_WorkbenchHostItemTemplate = null;
+        [SerializeField] private GameObject m_WorkbenchFormItemTemplate = null;
+        [SerializeField] private GameObject m_WorkbenchMaterialItemTemplate = null;
+        [SerializeField] private GameObject m_WorkbenchLedgerItemTemplate = null;
 
         private int m_CurrentTab = -1;
 
@@ -56,6 +64,11 @@ namespace Everlight.Tales.UI
             if (m_BackButton != null)
             {
                 m_BackButton.onClick.AddListener(OnBackClicked);
+            }
+
+            if (m_SettingsButton != null)
+            {
+                m_SettingsButton.onClick.AddListener(OpenSettings);
             }
 
             for (int i = 0; i < (m_TabButtons != null ? m_TabButtons.Length : 0); i++)
@@ -146,8 +159,16 @@ namespace Everlight.Tales.UI
             OnClickClose();
         }
 
+        private void OpenSettings()
+        {
+            // 设置保持为独立 GF UIForm，不参与底部主流程页签切换。
+            Debug.Log("[UI诊断][MainPageShell] 顶部设置按钮打开独立 Settings UIForm");
+            GF.UI.OpenUIForm(UIViews.Settings);
+        }
+
         private void OnTabClicked(int index)
         {
+            Debug.Log("[UI诊断][MainPageShell] 点击页签 index=" + index + ", current=" + m_CurrentTab + ", journal=" + (m_Journal != null ? m_Journal.GetInstanceID().ToString() : "null"));
             SelectTab(index);
             ShowTab(index);
         }
@@ -272,14 +293,21 @@ namespace Everlight.Tales.UI
                 m_Journal = journalObject.GetComponent<JournalPanel>() ?? journalObject.AddComponent<JournalPanel>();
             }
 
+            Debug.Log("[UI诊断][MainPageShell] BuildJournal panel=" + (m_Journal != null ? m_Journal.GetInstanceID().ToString() : "null") + ", object=" + (m_JournalObject != null ? m_JournalObject.name : "null") + ", template=" + (m_JournalItemTemplate != null ? m_JournalItemTemplate.name : "null"));
+            m_Journal.SetItemTemplate(m_JournalItemTemplate);
+            Debug.Log("[UI诊断][MainPageShell] BuildJournal template assigned");
+
             if (!m_JournalBuilt)
             {
                 m_Journal.BindStaticLayout();
+                Debug.Log("[UI诊断][MainPageShell] BuildJournal BindStaticLayout done");
                 m_Journal.Build();
+                Debug.Log("[UI诊断][MainPageShell] BuildJournal Build done");
                 m_JournalBuilt = true;
             }
 
             m_Journal.Refresh();
+            Debug.Log("[UI诊断][MainPageShell] BuildJournal Refresh done");
         }
 
         private void BuildHome()
@@ -292,6 +320,7 @@ namespace Everlight.Tales.UI
             }
 
             m_Home.OnNavigate = ShowTab;
+            m_Home.SetWorkbenchItemTemplates(m_WorkbenchHostItemTemplate, m_WorkbenchFormItemTemplate, m_WorkbenchMaterialItemTemplate, m_WorkbenchLedgerItemTemplate);
 
             if (!m_HomeBuilt)
             {
@@ -330,10 +359,9 @@ namespace Everlight.Tales.UI
 
                 if (m_TabButtons[i] != null)
                 {
-                    // 选中项不可重复点击，构成可辨识的选中表现之一。
-                    m_TabButtons[i].interactable = !selected;
-                    UISpriteButton spriteButton = m_TabButtons[i].GetComponent<UISpriteButton>();
-                    if (spriteButton != null) spriteButton.SetSelected(selected);
+                    // 选中 Sprite 由 Button.SpriteState.Selected 管理；保持按钮可交互，避免 Select() 被忽略。
+                    m_TabButtons[i].interactable = true;
+                    UIFactory.SetSelected(m_TabButtons[i], selected);
                 }
 
                 if (m_TabSelectedIndicators != null

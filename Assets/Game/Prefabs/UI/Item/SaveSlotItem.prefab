@@ -528,7 +528,6 @@ GameObject:
   - component: {fileID: 3481252978201701620}
   - component: {fileID: 4463858300149620760}
   - component: {fileID: 8913042875069166283}
-  - component: {fileID: 9073770996355719019}
   m_Layer: 5
   m_Name: Btn_Delete
   m_TagString: Untagged
@@ -639,25 +638,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &9073770996355719019
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5333689547629773095}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 4463858300149620760}
-  _button: {fileID: 8913042875069166283}
-  _normal: {fileID: 21300000, guid: 7551e400b3cacaa4aa25db34e4ccc324, type: 3}
-  _highlighted: {fileID: 21300000, guid: 13d560ec3dd13d647afc7d43873d4b49, type: 3}
-  _pressed: {fileID: 21300000, guid: 0e0256a885e747f44a475efc0db12bae, type: 3}
-  _disabled: {fileID: 21300000, guid: 7c7a367376c4da74ebb27c4771388386, type: 3}
-  _selected: {fileID: 21300000, guid: 7551e400b3cacaa4aa25db34e4ccc324, type: 3}
 --- !u!1 &8870598920134217120
 GameObject:
   m_ObjectHideFlags: 0
@@ -670,7 +650,6 @@ GameObject:
   - component: {fileID: 7609259869963364439}
   - component: {fileID: 2726317778317093453}
   - component: {fileID: 359256783662500220}
-  - component: {fileID: 5296903037299909698}
   m_Layer: 5
   m_Name: Btn_Action
   m_TagString: Untagged
@@ -781,22 +760,3 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &5296903037299909698
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8870598920134217120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 43dfbf430480a0b46991e6c48ac4d53f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _image: {fileID: 2726317778317093453}
-  _button: {fileID: 359256783662500220}
-  _normal: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}
-  _highlighted: {fileID: 21300000, guid: e63e3316f9bcc91448d2f84a70b51c5a, type: 3}
-  _pressed: {fileID: 21300000, guid: 8ce717a76cf35564a8ec0069b2e38547, type: 3}
-  _disabled: {fileID: 21300000, guid: b94910662fe15154fa65fe51c9de4940, type: 3}
-  _selected: {fileID: 21300000, guid: 10f293aa1d431094ab7492bc5247d270, type: 3}

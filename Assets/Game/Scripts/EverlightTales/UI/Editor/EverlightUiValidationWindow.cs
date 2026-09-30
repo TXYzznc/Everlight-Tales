@@ -204,6 +204,7 @@ namespace Everlight.Tales.Editor
             EverlightUiItemPrefabGenerator.NormalizeAllUiPrefabs();
         }
 
+        [MenuItem("Game Framework/EverlightTales/UI/验证主页路由", priority = 2026)]
         public static void RunMainShellRoutingCheck()
         {
             if (!EditorApplication.isPlaying)
