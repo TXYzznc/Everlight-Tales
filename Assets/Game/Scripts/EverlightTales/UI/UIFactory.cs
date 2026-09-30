@@ -17,6 +17,28 @@ namespace Everlight.Tales.UI
         public static readonly Color ButtonGreen = new Color(0.26f, 0.52f, 0.34f, 1f);
         public static readonly Color ButtonGrey = new Color(0.28f, 0.28f, 0.30f, 1f);
 
+        /// <summary>
+        /// 设置页签/筛选按钮的语义选中视觉。Button.SelectedSprite 仍由 Button 组件配置，
+        /// 这里把它同步到目标 Image，避免内部控件抢占 EventSystem 选中对象后丢失页签选中态。
+        /// </summary>
+        public static void SetSelected(Button button, bool selected)
+        {
+            if (button == null) return;
+            Image image = button.targetGraphic as Image;
+            if (image == null) image = button.GetComponent<Image>();
+            if (image == null) return;
+            SpriteState state = button.spriteState;
+            if (selected && state.selectedSprite != null)
+            {
+                image.sprite = state.selectedSprite;
+            }
+            else if (!selected && state.disabledSprite != null)
+            {
+                // 本项目正式按钮把 Disabled Sprite 配置为 normal Sprite，用于稳定恢复未选中态。
+                image.sprite = state.disabledSprite;
+            }
+        }
+
         /// <summary>全屏拉伸子面板（挂在 Content 容器下）。</summary>
         public static RectTransform Panel(Transform parent, string name)
         {
@@ -56,8 +78,7 @@ namespace Everlight.Tales.UI
             rt.sizeDelta = size;
             Image buttonImage = go.GetComponent<Image>();
             buttonImage.color = bg ?? ButtonBlue;
-            UISpriteButton spriteButton = UISpriteButton.Attach(go.GetComponent<Button>());
-            spriteButton.ConfigureRole(InferButtonRole(name));
+            go.GetComponent<Button>().transition = Selectable.Transition.SpriteSwap;
 
             var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(go.transform, false);
@@ -73,17 +94,6 @@ namespace Everlight.Tales.UI
             text.raycastTarget = false;
 
             return go.GetComponent<Button>();
-        }
-
-        private static UISpriteButtonRole InferButtonRole(string name)
-        {
-            string value = (name ?? string.Empty).ToLowerInvariant();
-            if (value.Contains("filter")) return UISpriteButtonRole.Filter;
-            if (value.Contains("sub_") || value.Contains("zone_") || value.StartsWith("tab_")) return UISpriteButtonRole.Tab;
-            if (value.Contains("delete") || value.Contains("retreat") || value.Contains("danger")) return UISpriteButtonRole.Danger;
-            if (value.Contains("close") || value.Contains("icon")) return UISpriteButtonRole.Small;
-            if (value.Contains("confirm") || value.Contains("start") || value.Contains("claim") || value.Contains("action") || value.Contains("wait")) return UISpriteButtonRole.Main;
-            return UISpriteButtonRole.Secondary;
         }
 
         public static void SetButtonLabel(Button button, string label)

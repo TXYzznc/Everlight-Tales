@@ -18,6 +18,7 @@ namespace Everlight.Tales.UI.EditorTools
         public static void BindFirstBatch()
         {
             BindPrefab("Assets/Game/Prefabs/UI/MainPageShell.prefab");
+            BindPrefab("Assets/Game/Prefabs/UI/JournalPage.prefab");
             BindPrefab("Assets/Game/Prefabs/UI/DialogView.prefab");
             // BoardPage 的主要控件目前由 BoardPageForm/BoardPage 运行时装配，
             // 本轮不向领域逻辑注入资源查找；下一批迁移到契约后再绑定。
@@ -31,13 +32,17 @@ namespace Everlight.Tales.UI.EditorTools
             GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
             try
             {
-                if (prefabPath.EndsWith("MainPageShell.prefab", StringComparison.Ordinal))
+                if (prefabPath.EndsWith("MainPageShell.prefab", StringComparison.Ordinal)
+                    || prefabPath.EndsWith("JournalPage.prefab", StringComparison.Ordinal))
                 {
-                    EnsureMapLayout(root);
-                    EnsureHomeLayout(root);
+                    if (prefabPath.EndsWith("MainPageShell.prefab", StringComparison.Ordinal))
+                    {
+                        EnsureMapLayout(root);
+                        EnsureHomeLayout(root);
+                        EnsureOpeningLayout(root);
+                        EnsureTabIcons(root);
+                    }
                     EnsureJournalLayout(root);
-                    EnsureOpeningLayout(root);
-                    EnsureTabIcons(root);
                 }
 
                 int count = 0;
@@ -390,10 +395,12 @@ namespace Everlight.Tales.UI.EditorTools
         private static void EnsureJournalLayout(GameObject root)
         {
             Transform content = FindDescendant(root.transform, "Content");
-            if (content == null) return;
-            Transform journal = FindDescendant(content, "Panel_Journal");
+            Transform journal = content != null
+                ? FindDescendant(content, "Panel_Journal")
+                : FindDescendant(root.transform, "Panel_Journal");
             if (journal == null)
             {
+                if (content == null) return;
                 GameObject panel = CreateRect("Panel_Journal", content);
                 Stretch(panel.GetComponent<RectTransform>());
                 panel.AddComponent<CanvasGroup>().blocksRaycasts = true;
@@ -417,11 +424,109 @@ namespace Everlight.Tales.UI.EditorTools
                     AddText(top.transform, "Txt_Badge_" + i, "", 20f, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(36f, 26f), new Vector2(-376f + i * 150f, -6f), new Color(0.88f, 0.66f, 0.35f, 1f));
                 }
             }
-            if (journal.Find("Panel_JournalList") == null)
+            Transform list = journal.Find("Panel_JournalList");
+            if (list == null)
             {
-                GameObject list = CreateRect("Panel_JournalList", journal);
-                SetRect(list.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), new Vector2(0f, -96f), new Vector2(0f, -48f));
+                GameObject listObject = CreateRect("Panel_JournalList", journal);
+                SetRect(listObject.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), new Vector2(0f, -96f), new Vector2(0f, -48f));
+                list = listObject.transform;
             }
+            EnsureJournalListContainers(list);
+        }
+
+        private static void EnsureJournalListContainers(Transform list)
+        {
+            if (list == null) return;
+            Transform filterRoot = list.Find("JournalFilterRoot");
+            if (filterRoot == null)
+            {
+                GameObject filter = CreateRect("JournalFilterRoot", list);
+                SetRect(filter.GetComponent<RectTransform>(), new Vector2(0f, 1f), Vector2.one, new Vector2(0.5f, 1f), new Vector2(0f, 88f), Vector2.zero);
+                filterRoot = filter.transform;
+            }
+
+            string[] names = { "全部", "维修", "处置", "生活", "调查", "怪谈" };
+            for (int i = 0; i < names.Length; i++)
+            {
+                string buttonName = "Btn_Filter_" + i;
+                if (filterRoot.Find(buttonName) != null) continue;
+                GameObject button = CreateRect(buttonName, filterRoot);
+                SetRect(button.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(84f, 44f), new Vector2(-430f + i * 90f, -12f));
+                Image image = button.AddComponent<Image>();
+                image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-029-normal筛选片.png");
+                image.type = Image.Type.Sliced;
+                image.color = Color.white;
+                Button buttonComponent = button.AddComponent<Button>();
+                buttonComponent.targetGraphic = image;
+                AddText(button.transform, "Txt_Label", names[i], 20f, Vector2.zero, Vector2.one, new Vector2(-8f, -8f), Vector2.zero, Color.white);
+            }
+
+            Transform entriesRoot = list.Find("JournalEntriesRoot");
+            if (entriesRoot == null)
+            {
+                GameObject entries = CreateRect("JournalEntriesRoot", list);
+                SetRect(entries.GetComponent<RectTransform>(), new Vector2(0f, 1f), Vector2.one, new Vector2(0.5f, 1f), new Vector2(0f, -104f), new Vector2(0f, -104f));
+                entriesRoot = entries.transform;
+            }
+            EnsureJournalSections(entriesRoot);
+        }
+
+        private static void EnsureJournalSections(Transform root)
+        {
+            if (root == null) return;
+            VerticalLayoutGroup group = root.GetComponent<VerticalLayoutGroup>() ?? root.gameObject.AddComponent<VerticalLayoutGroup>();
+            // 两个 ScrollRect 的位置由 Prefab 中的 RectTransform 固定，避免运行时布局计算改变设计稿位置。
+            group.enabled = false;
+
+            EnsureJournalHeader(root, "Txt_ActionableHeader", "—— 可处理 ——", 0f);
+            EnsureJournalScroll(root, "Scroll_Actionable", "Content_Actionable", -52f);
+            EnsureJournalHeader(root, "Txt_DeferredHeader", "—— 未到开放时段 / 本段已错过 ——", -330f);
+            EnsureJournalScroll(root, "Scroll_Deferred", "Content_Deferred", -382f);
+        }
+
+        private static void EnsureJournalHeader(Transform root, string name, string value, float y)
+        {
+            Transform existing = root.Find(name);
+            GameObject header = existing != null ? existing.gameObject : CreateRect(name, root);
+            SetRect(header.GetComponent<RectTransform>(), new Vector2(0f, 1f), Vector2.one, new Vector2(0.5f, 1f), new Vector2(0f, 44f), new Vector2(0f, y));
+            LayoutElement layout = header.GetComponent<LayoutElement>() ?? header.AddComponent<LayoutElement>();
+            layout.preferredHeight = 44f;
+            if (header.transform.Find("Txt_Label") == null) AddText(header.transform, "Txt_Label", value, 26f, Vector2.zero, Vector2.one, new Vector2(-24f, 0f), Vector2.zero, new Color(1f, 0.85f, 0.35f, 1f));
+            TMPro.TextMeshProUGUI label = header.transform.Find("Txt_Label")?.GetComponent<TMPro.TextMeshProUGUI>();
+            if (label != null) { label.enableWordWrapping = false; label.overflowMode = TMPro.TextOverflowModes.Ellipsis; }
+        }
+
+        private static void EnsureJournalScroll(Transform root, string scrollName, string contentName, float y)
+        {
+            Transform existing = root.Find(scrollName);
+            GameObject scrollObject = existing != null ? existing.gameObject : CreateRect(scrollName, root);
+            SetRect(scrollObject.GetComponent<RectTransform>(), new Vector2(0f, 1f), Vector2.one, new Vector2(0.5f, 1f), new Vector2(0f, 270f), new Vector2(0f, y));
+            LayoutElement scrollLayout = scrollObject.GetComponent<LayoutElement>() ?? scrollObject.AddComponent<LayoutElement>();
+            scrollLayout.preferredHeight = 270f;
+            scrollLayout.flexibleWidth = 1f;
+            ScrollRect scroll = scrollObject.GetComponent<ScrollRect>() ?? scrollObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+
+            Transform existingViewport = scrollObject.transform.Find("Viewport");
+            GameObject viewport = existingViewport != null ? existingViewport.gameObject : CreateRect("Viewport", scrollObject.transform);
+            SetRect(viewport.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            if (viewport.GetComponent<RectMask2D>() == null) viewport.AddComponent<RectMask2D>();
+            Transform existingContent = viewport.transform.Find(contentName);
+            GameObject content = existingContent != null ? existingContent.gameObject : CreateRect(contentName, viewport.transform);
+            SetRect(content.GetComponent<RectTransform>(), new Vector2(0f, 1f), Vector2.one, new Vector2(0.5f, 1f), new Vector2(0f, 0f), Vector2.zero);
+            VerticalLayoutGroup contentLayout = content.GetComponent<VerticalLayoutGroup>() ?? content.AddComponent<VerticalLayoutGroup>();
+            contentLayout.spacing = 6f;
+            contentLayout.childControlWidth = true;
+            contentLayout.childControlHeight = true;
+            contentLayout.childForceExpandWidth = true;
+            contentLayout.childForceExpandHeight = false;
+            ContentSizeFitter fitter = content.GetComponent<ContentSizeFitter>() ?? content.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scroll.viewport = viewport.GetComponent<RectTransform>();
+            scroll.content = content.GetComponent<RectTransform>();
         }
 
         private static GameObject CreateRect(string name, Transform parent)

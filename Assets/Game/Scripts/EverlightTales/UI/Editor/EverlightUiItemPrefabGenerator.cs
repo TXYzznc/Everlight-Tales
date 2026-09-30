@@ -75,8 +75,6 @@ namespace Everlight.Tales.Editor
             string form = CreateWorkbenchItem("WorkbenchFormItem", "SHR-005-normal列表行");
             string material = CreateWorkbenchItem("WorkbenchMaterialItem", "SHR-005-normal列表行");
             string ledger = CreateWorkbenchItem("WorkbenchLedgerItem", "SHR-005-normal列表行");
-            EnsureFolder("Assets/Resources"); EnsureFolder("Assets/Resources/UI"); EnsureFolder("Assets/Resources/UI/Item");
-            CopyRuntimeItem(host); CopyRuntimeItem(form); CopyRuntimeItem(material); CopyRuntimeItem(ledger);
             BindWorkbenchPage(host, form, material, ledger, catalog);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -99,7 +97,6 @@ namespace Everlight.Tales.Editor
         {
             EnsureFolder(ItemDir);
             string item = CreateJournalItem();
-            EnsureFolder("Assets/Resources"); EnsureFolder("Assets/Resources/UI"); EnsureFolder("Assets/Resources/UI/Item"); CopyRuntimeItem(item);
             BindJournalPage(item);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -110,26 +107,17 @@ namespace Everlight.Tales.Editor
         public static void GenerateDialogueChoiceItem()
         {
             EnsureFolder(ItemDir);
-            EnsureFolder("Assets/Resources");
-            EnsureFolder("Assets/Resources/UI");
-            EnsureFolder("Assets/Resources/UI/Item");
-            string source = CreateDialogueChoiceItem();
-            string runtime = "Assets/Resources/UI/Item/DialogueChoiceItem.prefab";
-            if (File.Exists(runtime)) AssetDatabase.DeleteAsset(runtime);
-            AssetDatabase.CopyAsset(source, runtime);
+            CreateDialogueChoiceItem();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成对话选项 Item，并复制到运行时资源目录。");
+            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成对话选项 Item。");
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/第二批动态 Item/生成调查热点 Item", priority = 2029)]
         public static void GenerateInvestigationHotspotItem()
         {
-            EnsureFolder(ItemDir); EnsureFolder("Assets/Resources"); EnsureFolder("Assets/Resources/UI"); EnsureFolder("Assets/Resources/UI/Item");
-            string source = CreateInvestigationHotspotItem();
-            string runtime = "Assets/Resources/UI/Item/InvestigationHotspotItem.prefab";
-            if (File.Exists(runtime)) AssetDatabase.DeleteAsset(runtime);
-            AssetDatabase.CopyAsset(source, runtime); AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
+            EnsureFolder(ItemDir); CreateInvestigationHotspotItem();
+            AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
             Debug.Log("[EverlightUiItemPrefabGenerator] 已生成调查热点 Item。");
         }
 
@@ -386,12 +374,26 @@ namespace Everlight.Tales.Editor
 
         private static void BindJournalPage(string item)
         {
-            GameObject root = PrefabUtility.LoadPrefabContents(JournalPage);
+            BindJournalPrefab("Assets/Game/Prefabs/UI/MainPageShell.prefab", item);
+            BindJournalPrefab(JournalPage, item);
+        }
+
+        private static void BindJournalPrefab(string prefabPath, string item)
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
             try
             {
+                Component shell = FindComponentByType(root, "MainPageShell");
+                if (shell != null)
+                {
+                    SetRef(shell, "m_JournalItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(item));
+                }
                 Component panel = FindComponentByType(root, "JournalPanel");
-                SetRef(panel, "_itemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(item));
-                PrefabUtility.SaveAsPrefabAsset(root, JournalPage);
+                if (panel != null)
+                {
+                    SetRef(panel, "_itemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(item));
+                }
+                PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
         }
@@ -406,13 +408,6 @@ namespace Everlight.Tales.Editor
                 PrefabUtility.SaveAsPrefabAsset(root, GuestPage);
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
-
-        private static void CopyRuntimeItem(string source)
-        {
-            string target = "Assets/Resources/UI/Item/" + Path.GetFileName(source);
-            if (File.Exists(target)) AssetDatabase.DeleteAsset(target);
-            AssetDatabase.CopyAsset(source, target);
         }
 
         private static Component FindComponentByType(GameObject root, string typeName)
@@ -569,6 +564,7 @@ namespace Everlight.Tales.Editor
             return CreateItemVisual(path, "JournalItem", "SHR-005-normal列表行", (root, background) =>
             {
                 if (root.GetComponent<Button>() == null) root.AddComponent<Button>();
+                background.pixelsPerUnitMultiplier = 2f;
                 foreach (string childName in new[] { "Txt_Id", "Icon", "StateFrame", "Txt_State", "Txt_Source", "Txt_Value" })
                 {
                     Transform child = root.transform.Find(childName);
