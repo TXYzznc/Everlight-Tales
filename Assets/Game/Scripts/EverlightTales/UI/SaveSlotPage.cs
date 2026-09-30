@@ -1,6 +1,4 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Everlight.Tales.UI
 {
@@ -17,13 +15,6 @@ namespace Everlight.Tales.UI
         {
             base.OnInit(userData);
 
-            Slot1Button.onClick.AddListener(() => EnterSlot(1));
-            Slot2Button.onClick.AddListener(() => EnterSlot(2));
-            Slot3Button.onClick.AddListener(() => EnterSlot(3));
-
-            Slot1Delete.onClick.AddListener(() => DeleteSlot(1));
-            Slot2Delete.onClick.AddListener(() => DeleteSlot(2));
-            Slot3Delete.onClick.AddListener(() => DeleteSlot(3));
         }
 
         protected override void OnOpen(object userData)
@@ -55,28 +46,28 @@ namespace Everlight.Tales.UI
 
         private void RefreshSlots()
         {
-            RefreshSlot(1, Slot1Text, Slot1Label, Slot1Delete);
-            RefreshSlot(2, Slot2Text, Slot2Label, Slot2Delete);
-            RefreshSlot(3, Slot3Text, Slot3Label, Slot3Delete);
-        }
-
-        private static void RefreshSlot(int slot, TMP_Text text, TMP_Text label, Button delete)
-        {
-            SaveSlotInfo info = SaveSlotService.Read(slot);
-            if (text != null)
+            if (SlotItemTemplate == null || SlotsRoot == null)
             {
-                text.text = info.HasSave ? info.Summary : "空存档位";
+                Debug.LogError("[SaveSlotPage] SaveSlotItem 模板或容器未绑定。", this);
+                return;
             }
 
-            if (label != null)
+            UnspawnAllItem<SaveSlotItemObject>(SlotItemTemplate);
+            for (int slot = 1; slot <= SaveSlotService.MaxSlots; slot++)
             {
-                label.text = info.HasSave ? "继续" : "新档";
-            }
-
-            if (delete != null)
-            {
-                delete.gameObject.SetActive(info.HasSave);
+                SaveSlotItemObject item = SpawnItem<SaveSlotItemObject>(SlotItemTemplate, SlotsRoot);
+                RectTransform rect = item.gameObject.transform as RectTransform;
+                if (rect != null)
+                {
+                    rect.anchorMin = new Vector2(0f, 1f);
+                    rect.anchorMax = new Vector2(1f, 1f);
+                    rect.pivot = new Vector2(0.5f, 1f);
+                    rect.anchoredPosition = new Vector2(0f, -(slot - 1) * 200f);
+                    rect.sizeDelta = new Vector2(-80f, 180f);
+                }
+                item.Bind(slot, SaveSlotService.Read(slot), EnterSlot, DeleteSlot);
             }
         }
     }
 }
+

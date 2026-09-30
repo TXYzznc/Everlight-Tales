@@ -7,6 +7,7 @@ using Everlight.Tales.Meta;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Events;
 
 namespace Everlight.Tales.UI
 {
@@ -31,6 +32,8 @@ namespace Everlight.Tales.UI
 
         private GameObject m_EventCardTemplate;
 
+        [SerializeField] private GameObject _eventItemTemplate;
+
         private TextMeshProUGUI m_TrackLabel;
 
         private string m_SelectedPlaceId;
@@ -38,6 +41,8 @@ namespace Everlight.Tales.UI
         private readonly List<PlaceEventEntry> m_CurrentEntries = new List<PlaceEventEntry>();
 
         private bool m_CallShown;
+
+        private UIFormBase m_Form;
 
         /// <summary>绑定主页地图的静态 Prefab 布局；地点节点和事件卡仍按数据动态生成。</summary>
         public void BindStaticLayout()
@@ -70,6 +75,8 @@ namespace Everlight.Tales.UI
             m_WaitButton = FindComponent<Button>(layout, "Panel_Place/Btn_Wait");
             Transform template = layout.Find("Panel_Place/List_Event/EventCardTemplate");
             m_EventCardTemplate = template != null ? template.gameObject : null;
+            m_Form = GetComponentInParent<UIFormBase>();
+            if (m_Form == null) m_Form = FindObjectOfType<UIFormBase>();
         }
 
         /// <summary>地点详情面板里的一张事件卡（P1 地图信息层视图模型）。</summary>
@@ -443,10 +450,15 @@ namespace Everlight.Tales.UI
                 return;
             }
 
+            if (m_Form != null && _eventItemTemplate != null)
+            {
+                m_Form.UnspawnAllChildItem<MapEventItemObject>(_eventItemTemplate);
+            }
             for (int i = m_EventListRoot.childCount - 1; i >= 0; i--)
             {
                 GameObject child = m_EventListRoot.GetChild(i).gameObject;
                 if (child == m_EventCardTemplate) continue;
+                if (child.GetComponent<UIItemBase>() != null) continue;
                 Destroy(child);
             }
         }
@@ -462,6 +474,16 @@ namespace Everlight.Tales.UI
                 OnStart = onStart,
             };
             m_CurrentEntries.Add(entry);
+
+            if (m_Form != null && _eventItemTemplate != null)
+            {
+                string itemMeta = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
+                if (openPeriods != null && openPeriods.Length > 0) itemMeta += " · " + BuildPeriodsText(openPeriods);
+                PlaceEventEntry itemCaptured = entry;
+                MapEventItemObject item = m_Form.SpawnChildItem<MapEventItemObject>(_eventItemTemplate, m_EventListRoot);
+                item.Bind(entry.Name, itemMeta, () => OnEventClicked(itemCaptured));
+                return;
+            }
 
             if (m_EventCardTemplate != null)
             {
@@ -578,7 +600,7 @@ namespace Everlight.Tales.UI
             text.alignment = TextAlignmentOptions.Center;
             text.text = label;
 
-            return go.GetComponent<Button>();
+            return UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Secondary)?.GetComponent<Button>();
         }
     }
 }

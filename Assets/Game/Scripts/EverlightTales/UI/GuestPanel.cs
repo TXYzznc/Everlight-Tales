@@ -15,12 +15,16 @@ namespace Everlight.Tales.UI
     {
         private RectTransform m_Root;
         private System.Action<int> m_Navigate;
+        [SerializeField] private GameObject _delegationItemTemplate;
+        private UIFormBase _form;
 
         public void BindStaticLayout()
         {
             Transform root = transform.name == "Panel_Guest" ? transform : transform.Find("Panel_Guest");
             Transform content = root != null ? root.Find("Panel_GuestContent") : null;
             if (content != null) m_Root = content as RectTransform;
+            _form = GetComponentInParent<UIFormBase>();
+            if (_form == null) _form = FindObjectOfType<UIFormBase>();
         }
 
         public void Build(System.Action<int> navigate)
@@ -37,9 +41,13 @@ namespace Everlight.Tales.UI
                 return;
             }
 
+            if (_form != null && _delegationItemTemplate != null) _form.UnspawnAllChildItem<GuestDelegationItemObject>(_delegationItemTemplate);
+
             for (int i = m_Root.childCount - 1; i >= 0; i--)
             {
-                Destroy(m_Root.GetChild(i).gameObject);
+                Transform child = m_Root.GetChild(i);
+                if (child.GetComponent<UIItemBase>() != null) continue;
+                Destroy(child.gameObject);
             }
 
             UIFactory.MakeText(m_Root, "title", new Vector2(0f, 400f), new Vector2(600f, 50f), 30,
@@ -123,17 +131,20 @@ namespace Everlight.Tales.UI
                 }
 
                 string name = supply.Template != null ? supply.Template.Name : supply.InstanceId;
-                UIFactory.MakeText(m_Root, "delegation_" + count, new Vector2(0f, y), new Vector2(560f, 40f), 24,
-                    TextAlignmentOptions.Left, new Color(0.92f, 0.92f, 0.92f, 1f)).text = "· " + name;
-
-                Button go = UIFactory.MakeButton(m_Root, "btn_delegation_" + count, new Vector2(300f, y), new Vector2(180f, 52f),
-                    "去处理", 22, UIFactory.ButtonBlue);
                 string targetName = name;
-                go.onClick.AddListener(() =>
+                if (_form != null && _delegationItemTemplate != null)
                 {
-                    GlobalUI.ShowToast("前往地图处理：" + targetName);
-                    m_Navigate?.Invoke(0);
-                });
+                    GuestDelegationItemObject item = _form.SpawnChildItem<GuestDelegationItemObject>(_delegationItemTemplate, m_Root);
+                    RectTransform itemRect = item.gameObject.transform as RectTransform;
+                    if (itemRect != null) { itemRect.anchoredPosition = new Vector2(0f, y); itemRect.sizeDelta = new Vector2(-24f, 56f); }
+                    item.Bind("· " + name, () => { GlobalUI.ShowToast("前往地图处理：" + targetName); m_Navigate?.Invoke(0); });
+                }
+                else
+                {
+                    UIFactory.MakeText(m_Root, "delegation_" + count, new Vector2(0f, y), new Vector2(560f, 40f), 24, TextAlignmentOptions.Left, new Color(0.92f, 0.92f, 0.92f, 1f)).text = "· " + name;
+                    Button go = UIFactory.MakeButton(m_Root, "btn_delegation_" + count, new Vector2(300f, y), new Vector2(180f, 52f), "去处理", 22, UIFactory.ButtonBlue);
+                    go.onClick.AddListener(() => { GlobalUI.ShowToast("前往地图处理：" + targetName); m_Navigate?.Invoke(0); });
+                }
 
                 count++;
                 y -= 68;

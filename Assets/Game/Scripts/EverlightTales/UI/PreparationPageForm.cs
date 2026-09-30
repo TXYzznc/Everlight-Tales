@@ -180,15 +180,8 @@ namespace Everlight.Tales.UI
 
         private void BuildAvailableList(CarrySelection carry)
         {
-            // 清空既有列表项（模板本身保留、不销毁）。
-            for (int i = AvailableContent.childCount - 1; i >= 0; i--)
-            {
-                Transform child = AvailableContent.GetChild(i);
-                if (child.gameObject != AvailableItemTemplate)
-                {
-                    Destroy(child.gameObject);
-                }
-            }
+            // 通过 GF UIItem 对象池回收并重新生成，模板本身位于独立 Item Prefab。
+            UnspawnAllItem<CarryAvailableItemObject>(AvailableItemTemplate);
 
             foreach (PartType part in carry.Available)
             {
@@ -197,20 +190,8 @@ namespace Everlight.Tales.UI
                     continue;
                 }
 
-                GameObject item = Instantiate(AvailableItemTemplate, AvailableContent, false);
-                item.SetActive(true);
-
-                var label = item.GetComponentInChildren<TextMeshProUGUI>();
-                if (label != null)
-                {
-                    label.text = PartName(part);
-                }
-
-                var button = item.GetComponent<Button>();
-                if (button != null)
-                {
-                    button.onClick.AddListener(() => OnAvailableClicked(part));
-                }
+                CarryAvailableItemObject item = SpawnItem<CarryAvailableItemObject>(AvailableItemTemplate, AvailableContent);
+                item.Bind(part, PartName(part), OnAvailableClicked);
             }
         }
 

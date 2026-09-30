@@ -38,6 +38,13 @@ namespace Everlight.Tales.UI
 
         private HomePanel m_Home;
 
+        private GameObject m_MapObject;
+        private GameObject m_JournalObject;
+        private GameObject m_HomeObject;
+        private bool m_MapBuilt;
+        private bool m_JournalBuilt;
+        private bool m_HomeBuilt;
+
         private RectTransform m_Content;
 
         private OpeningOverlay m_Opening;
@@ -74,6 +81,10 @@ namespace Everlight.Tales.UI
                 WorldSession.LoadOrNew(WorldSession.DemoSeed);
             }
             m_Content = FindContent();
+
+            // Prefab 中的三个内容面板默认可能都是 active。先缓存并关闭非当前面板，
+            // 避免透明/空面板覆盖 Journal 页签的按钮命中区域。
+            CacheContentPanels();
 
             SelectTab(0);
             ShowTab(0);
@@ -186,15 +197,50 @@ namespace Everlight.Tales.UI
             {
                 m_MapPanel.gameObject.SetActive(index == 0);
             }
+            else if (m_MapObject != null)
+            {
+                m_MapObject.SetActive(index == 0);
+            }
 
             if (m_Journal != null)
             {
                 m_Journal.gameObject.SetActive(index == 1);
             }
+            else if (m_JournalObject != null)
+            {
+                m_JournalObject.SetActive(index == 1);
+            }
 
             if (m_Home != null)
             {
                 m_Home.gameObject.SetActive(index == 2 || index == 3);
+            }
+            else if (m_HomeObject != null)
+            {
+                m_HomeObject.SetActive(index == 2 || index == 3);
+            }
+        }
+
+        private void CacheContentPanels()
+        {
+            m_MapObject = FindDescendant(transform, "Panel_Map")?.gameObject;
+            m_JournalObject = FindDescendant(transform, "Panel_Journal")?.gameObject;
+            m_HomeObject = FindDescendant(transform, "Panel_Home")?.gameObject;
+
+            if (m_MapObject != null)
+            {
+                m_MapPanel = m_MapObject.GetComponent<MapPanel>();
+                m_MapObject.SetActive(false);
+            }
+            if (m_JournalObject != null)
+            {
+                m_Journal = m_JournalObject.GetComponent<JournalPanel>();
+                m_JournalObject.SetActive(false);
+            }
+            if (m_HomeObject != null)
+            {
+                m_Home = m_HomeObject.GetComponent<HomePanel>();
+                m_HomeObject.SetActive(false);
             }
         }
 
@@ -202,11 +248,16 @@ namespace Everlight.Tales.UI
         {
             if (m_MapPanel == null)
             {
-                Transform layout = FindDescendant(transform, "Panel_Map");
+                Transform layout = m_MapObject != null ? m_MapObject.transform : FindDescendant(transform, "Panel_Map");
                 GameObject panel = layout != null ? layout.gameObject : CreatePanelGo("map_panel");
                 m_MapPanel = panel.GetComponent<MapPanel>() ?? panel.AddComponent<MapPanel>();
+            }
+
+            if (!m_MapBuilt)
+            {
                 m_MapPanel.BindStaticLayout();
                 m_MapPanel.Build();
+                m_MapBuilt = true;
             }
 
             m_MapPanel.Refresh();
@@ -216,11 +267,16 @@ namespace Everlight.Tales.UI
         {
             if (m_Journal == null)
             {
-                Transform journalLayout = FindDescendant(transform, "Panel_Journal");
+                Transform journalLayout = m_JournalObject != null ? m_JournalObject.transform : FindDescendant(transform, "Panel_Journal");
                 GameObject journalObject = journalLayout != null ? journalLayout.gameObject : CreatePanelGo("journal_panel");
                 m_Journal = journalObject.GetComponent<JournalPanel>() ?? journalObject.AddComponent<JournalPanel>();
+            }
+
+            if (!m_JournalBuilt)
+            {
                 m_Journal.BindStaticLayout();
                 m_Journal.Build();
+                m_JournalBuilt = true;
             }
 
             m_Journal.Refresh();
@@ -230,12 +286,18 @@ namespace Everlight.Tales.UI
         {
             if (m_Home == null)
             {
-                Transform homeLayout = FindDescendant(transform, "Panel_Home");
+                Transform homeLayout = m_HomeObject != null ? m_HomeObject.transform : FindDescendant(transform, "Panel_Home");
                 GameObject homeObject = homeLayout != null ? homeLayout.gameObject : CreatePanelGo("home_panel");
                 m_Home = homeObject.GetComponent<HomePanel>() ?? homeObject.AddComponent<HomePanel>();
-                m_Home.OnNavigate = ShowTab;
+            }
+
+            m_Home.OnNavigate = ShowTab;
+
+            if (!m_HomeBuilt)
+            {
                 m_Home.BindStaticLayout();
                 m_Home.Build();
+                m_HomeBuilt = true;
             }
 
             m_Home.Refresh();
@@ -270,13 +332,15 @@ namespace Everlight.Tales.UI
                 {
                     // 选中项不可重复点击，构成可辨识的选中表现之一。
                     m_TabButtons[i].interactable = !selected;
+                    UISpriteButton spriteButton = m_TabButtons[i].GetComponent<UISpriteButton>();
+                    if (spriteButton != null) spriteButton.SetSelected(selected);
                 }
 
                 if (m_TabSelectedIndicators != null
                     && i < m_TabSelectedIndicators.Length
                     && m_TabSelectedIndicators[i] != null)
                 {
-                    m_TabSelectedIndicators[i].color = selected ? SelectedColor : UnselectedColor;
+                    m_TabSelectedIndicators[i].color = Color.white;
                 }
             }
         }

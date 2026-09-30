@@ -17,6 +17,7 @@ namespace Everlight.Tales.UI
             {
                 m_WorkbenchPanel.BindStaticLayout();
                 m_WorkbenchPanel.Build();
+                m_WorkbenchPanel.Refresh();
             }
         }
     }

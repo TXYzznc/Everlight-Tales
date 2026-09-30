@@ -116,21 +116,27 @@ namespace Everlight.Tales.UI
         private void BuildChoices(WorldSession session)
         {
             IReadOnlyList<RewardOption> options = session.DrawRewardChoice();
-            for (int i = 0; i < ChoiceButtons.Length; i++)
+            if (RewardChoiceItemTemplate == null)
             {
-                if (i < options.Count)
-                {
-                    ChoiceButtons[i].gameObject.SetActive(true);
-                    ChoiceLabels[i].text = options[i].Label;
+                Debug.LogError("[SettlementPageForm] RewardChoiceItem 模板未绑定。", this);
+                return;
+            }
 
-                    RewardOption option = options[i];
-                    ChoiceButtons[i].onClick.RemoveAllListeners();
-                    ChoiceButtons[i].onClick.AddListener(() => OnChoose(option));
-                }
-                else
+            UnspawnAllItem<RewardChoiceItemObject>(RewardChoiceItemTemplate);
+            for (int i = 0; i < options.Count; i++)
+            {
+                RewardOption option = options[i];
+                RewardChoiceItemObject item = SpawnItem<RewardChoiceItemObject>(RewardChoiceItemTemplate, RewardChoices);
+                RectTransform rect = item.gameObject.transform as RectTransform;
+                if (rect != null)
                 {
-                    ChoiceButtons[i].gameObject.SetActive(false);
+                    rect.anchorMin = new Vector2(0f, 1f);
+                    rect.anchorMax = new Vector2(1f, 1f);
+                    rect.pivot = new Vector2(0.5f, 1f);
+                    rect.anchoredPosition = new Vector2(0f, -i * 72f);
+                    rect.sizeDelta = new Vector2(-32f, 64f);
                 }
+                item.Bind(option.Label, () => OnChoose(option));
             }
         }
 

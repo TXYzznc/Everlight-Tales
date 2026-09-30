@@ -1,139 +1,189 @@
+using System.Collections.Generic;
 using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine;
 
 namespace Everlight.Tales.UI
 {
-    /// <summary>
-    /// 陈列/档案区（b28，P4-009）：家园「保管」区。
-    /// 只读展示已完成事件/怪谈留下的陈列物 + 拥有物五类概览，不产生属性或维护负担。
-    /// 挂在 HomePanel 内容区，切区显隐。
-    /// </summary>
+    /// <summary>保管区五类动态 Item 渲染器。页面只持有模板和容器，数据行由 GF 对象池创建。</summary>
     public sealed class ArchivePanel : MonoBehaviour
     {
-        private const float TopBarHeight = 96f;
-        private const float RowHeight = 46f;
+        [SerializeField] private GameObject _displayItemTemplate;
+        [SerializeField] private GameObject _ownedItemTemplate;
+        [SerializeField] private GameObject _materialItemTemplate;
+        [SerializeField] private GameObject _blueprintItemTemplate;
+        [SerializeField] private GameObject _summaryItemTemplate;
+        [SerializeField] private RectTransform _displayRoot;
+        [SerializeField] private RectTransform _ownedRoot;
+        [SerializeField] private RectTransform _materialRoot;
+        [SerializeField] private RectTransform _blueprintRoot;
+        [SerializeField] private RectTransform _summaryRoot;
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
 
-        private RectTransform m_ListRoot;
-        private Transform m_StaticRoot;
+        private Transform _staticRoot;
+        private UIFormBase _form;
+        private bool _bound;
 
         public void BindStaticLayout()
         {
-            m_StaticRoot = transform.name == "Panel_Archive" ? transform : transform.Find("Panel_Archive");
-            if (m_StaticRoot == null) return;
-            m_ListRoot = m_StaticRoot.Find("Panel_ArchiveList") as RectTransform;
+            _staticRoot = transform.name == "Panel_Archive" ? transform : transform.Find("Panel_Archive");
+            if (_staticRoot == null) return;
+            Transform list = _staticRoot.Find("Panel_ArchiveList");
+            if (list != null)
+            {
+                _displayRoot = list.Find("Content_Display") as RectTransform;
+                _ownedRoot = list.Find("Content_Owned") as RectTransform;
+                _materialRoot = list.Find("Content_Material") as RectTransform;
+                _blueprintRoot = list.Find("Content_Blueprint") as RectTransform;
+                _summaryRoot = list.Find("Content_Summary") as RectTransform;
+            }
+            _form = GetComponentInParent<UIFormBase>();
+            _bound = _form != null && _displayItemTemplate != null && _ownedItemTemplate != null && _materialItemTemplate != null
+                && _blueprintItemTemplate != null && _summaryItemTemplate != null && _displayRoot != null && _ownedRoot != null
+                && _materialRoot != null && _blueprintRoot != null && _summaryRoot != null;
         }
 
         public void Build()
         {
-            if (m_StaticRoot != null && m_ListRoot != null)
+            if (!_bound) BindStaticLayout();
+            if (!_bound)
             {
-                RebuildList();
+                Debug.LogWarning("[ArchivePanel] 当前宿主未提供 ArchivePage 的完整 Item 容器，跳过该宿主刷新。", this);
                 return;
             }
-            var topGo = new GameObject("archive_top", typeof(RectTransform), typeof(Image));
-            topGo.transform.SetParent(transform, false);
-            var topRt = (RectTransform)topGo.transform;
-            topRt.anchorMin = new Vector2(0f, 1f);
-            topRt.anchorMax = new Vector2(1f, 1f);
-            topRt.pivot = new Vector2(0.5f, 1f);
-            topRt.anchoredPosition = Vector2.zero;
-            topRt.sizeDelta = new Vector2(0f, TopBarHeight);
-            topGo.GetComponent<Image>().color = UIFactory.BgDark;
-
-            UIFactory.MakeText(topGo.transform, "title", new Vector2(24f, -24f), new Vector2(300f, 36f), 28, TextAlignmentOptions.Left, new Color(1f, 0.85f, 0.35f, 1f)).text = "陈列 / 档案";
-
-            var listGo = new GameObject("archive_list", typeof(RectTransform));
-            listGo.transform.SetParent(transform, false);
-            var listRt = (RectTransform)listGo.transform;
-            listRt.anchorMin = new Vector2(0f, 0f);
-            listRt.anchorMax = new Vector2(1f, 1f);
-            listRt.pivot = new Vector2(0.5f, 0.5f);
-            listRt.anchoredPosition = new Vector2(0f, -TopBarHeight * 0.5f);
-            listRt.sizeDelta = new Vector2(0f, -TopBarHeight);
-            m_ListRoot = listRt;
-
-            RebuildList();
+            Refresh();
         }
 
         public void Refresh()
         {
-            RebuildList();
+            if (!_bound || WorldSession.Current == null) return;
+            WorldState world = WorldSession.Current.World;
+            RebuildDisplay(world);
+            RebuildOwned(world);
+            RebuildMaterials(world);
+            RebuildBlueprints(world);
+            RebuildSummary(world);
         }
 
-        private void RebuildList()
+        private void RebuildDisplay(WorldState world)
         {
-            for (int i = m_ListRoot.childCount - 1; i >= 0; i--)
-            {
-                Destroy(m_ListRoot.GetChild(i).gameObject);
-            }
-
-            WorldSession session = WorldSession.Current;
-            if (session == null)
-            {
-                return;
-            }
-
-            WorldState world = session.World;
-
-            float y = -18f;
-            y = AddHeader(y, "陈列物");
+            ClearItems<ArchiveItemObject>(_displayItemTemplate, _displayRoot);
             if (world.DisplayItems.Count == 0)
             {
-                y = AddRow(y, "（尚无陈列物，完成维修/怪谈后陆续出现）", new Color(0.5f, 0.5f, 0.52f, 1f));
+                SetEmpty(_displayRoot, "尚无陈列物");
+                return;
             }
-            else
+            SetEmpty(_displayRoot, null);
+            foreach (DisplayItem item in world.DisplayItems)
             {
-                foreach (DisplayItem item in world.DisplayItems)
-                {
-                    y = AddRow(y, "◆ " + item.Name + "（第 " + item.ObtainedDay + " 天 · " + KindLabel(item.Kind) + "）");
-                }
+                ArchiveItemObject view = _form.SpawnChildItem<ArchiveItemObject>(_displayItemTemplate, _displayRoot);
+                view.Bind(item.Name, "第 " + item.ObtainedDay + " 天 · " + KindLabel(item.Kind), "", Icon("ICO-008保管"), Color.white, true);
             }
+        }
 
-            y = AddHeader(y, "拥有物");
-            y = AddRow(y, "维修费  " + world.RepairFee);
-            y = AddHeader(y, "材料");
-            foreach (MaterialConfig m in MaterialCatalog.All())
+        private void RebuildOwned(WorldState world)
+        {
+            ClearItems<ArchiveItemObject>(_ownedItemTemplate, _ownedRoot);
+            SetEmpty(_ownedRoot, null);
+            ArchiveItemObject fee = _form.SpawnChildItem<ArchiveItemObject>(_ownedItemTemplate, _ownedRoot);
+            fee.Bind("维修费", "拥有物与已解锁形态", world.RepairFee.ToString(), Icon("ICO-051维修费"), Color.white);
+            foreach (PartType part in world.OwnedParts)
             {
-                int count = TotalMaterial(world.Materials, m);
-                y = AddRow(y, "· " + m.Name + " ×" + count, count > 0 ? Color.white : new Color(0.5f, 0.5f, 0.52f, 1f));
+                ArchiveItemObject view = _form.SpawnChildItem<ArchiveItemObject>(_ownedItemTemplate, _ownedRoot);
+                PartCodexConfig config = PartCodexCatalog.Get(part);
+                view.Bind(config != null ? config.Name : part.ToString(), "永久零件", "已拥有", Icon("ICO-060零件"), Color.white);
             }
+        }
 
-            y = AddHeader(y, "图样");
+        private void RebuildMaterials(WorldState world)
+        {
+            ClearItems<ArchiveItemObject>(_materialItemTemplate, _materialRoot);
+            SetEmpty(_materialRoot, null);
+            foreach (MaterialConfig material in MaterialCatalog.All())
+            {
+                int count = TotalMaterial(world.Materials, material);
+                Color color = count > 0 ? Color.white : new Color(0.5f, 0.5f, 0.52f, 1f);
+                ArchiveItemObject view = _form.SpawnChildItem<ArchiveItemObject>(_materialItemTemplate, _materialRoot);
+                view.Bind(material.Name, material.IsTypedByCase ? "类型化材料" : "材料库存", "×" + count, Icon(MaterialIconKey(material.Id)), color);
+            }
+        }
+
+        private void RebuildBlueprints(WorldState world)
+        {
+            ClearItems<ArchiveItemObject>(_blueprintItemTemplate, _blueprintRoot);
             if (world.Blueprints.Count == 0)
             {
-                y = AddRow(y, "（无）", new Color(0.5f, 0.5f, 0.52f, 1f));
+                SetEmpty(_blueprintRoot, "暂无图样");
+                return;
             }
-            else
+            SetEmpty(_blueprintRoot, null);
+            foreach (string blueprint in world.Blueprints)
             {
-                foreach (string bp in world.Blueprints)
-                {
-                    y = AddRow(y, "· " + bp);
-                }
+                ArchiveItemObject view = _form.SpawnChildItem<ArchiveItemObject>(_blueprintItemTemplate, _blueprintRoot);
+                view.Bind(blueprint, "已取得图样", "已解锁", Icon("ICO-058图样"), Color.white);
             }
+        }
 
-            y = AddRow(y, "永久零件与形态  " + world.OwnedParts.Count + " 零件 / " + world.UnlockedForms.Count + " 形态");
-            y = AddRow(y, "纪念物与档案  " + world.DisplayItems.Count);
+        private void RebuildSummary(WorldState world)
+        {
+            ClearItems<ArchiveItemObject>(_summaryItemTemplate, _summaryRoot);
+            SetEmpty(_summaryRoot, null);
+            ArchiveItemObject holdings = _form.SpawnChildItem<ArchiveItemObject>(_summaryItemTemplate, _summaryRoot);
+            holdings.Bind("永久零件与形态", "收集汇总", world.OwnedParts.Count + " 零件 / " + world.UnlockedForms.Count + " 形态", Icon("ICO-008保管"), Color.white);
+            ArchiveItemObject display = _form.SpawnChildItem<ArchiveItemObject>(_summaryItemTemplate, _summaryRoot);
+            display.Bind("纪念物与档案", "陈列物总数", world.DisplayItems.Count.ToString(), Icon("ICO-008保管"), Color.white);
+        }
+
+        private void ClearItems<T>(GameObject template, RectTransform root) where T : UIItemObject, new()
+        {
+            if (template != null) _form.UnspawnAllChildItem<T>(template);
+            if (root != null) SetEmpty(root, null);
+        }
+
+        private static void SetEmpty(RectTransform root, string message)
+        {
+            if (root == null) return;
+            Transform empty = root.Find("EmptyState");
+            if (empty == null && message != null)
+            {
+                GameObject go = new GameObject("EmptyState", typeof(RectTransform), typeof(TextMeshProUGUI));
+                go.transform.SetParent(root, false);
+                empty = go.transform;
+                RectTransform rect = (RectTransform)empty;
+                rect.anchorMin = new Vector2(0f, 1f); rect.anchorMax = new Vector2(1f, 1f); rect.pivot = new Vector2(0.5f, 1f);
+                rect.anchoredPosition = new Vector2(0f, -18f); rect.sizeDelta = new Vector2(-40f, 64f);
+                TextMeshProUGUI text = go.GetComponent<TextMeshProUGUI>();
+                text.font = UIFactory.BuiltinFont; text.fontSize = 24; text.alignment = TextAlignmentOptions.Center; text.color = new Color(0.5f, 0.5f, 0.52f, 1f);
+            }
+            if (empty != null)
+            {
+                empty.gameObject.SetActive(message != null);
+                TextMeshProUGUI text = empty.GetComponent<TextMeshProUGUI>();
+                if (text != null && message != null) text.text = "（" + message + "）";
+            }
+        }
+
+        private Sprite Icon(string key) => _spriteCatalog != null ? _spriteCatalog.Get(key) : null;
+
+        private static string MaterialIconKey(string id)
+        {
+            switch (id)
+            {
+                case "MT-001": return "ICO-052铜芯线";
+                case "MT-002": return "ICO-053精密齿轮";
+                case "MT-003": return "ICO-054玻璃镜片";
+                case "MT-004": return "ICO-055校准簧片";
+                case "MT-005": return "ICO-056定势残晶";
+                default: return "ICO-057异常纹样";
+            }
         }
 
         private static int TotalMaterial(MaterialBackpack backpack, MaterialConfig material)
         {
-            if (!material.IsTypedByCase)
-            {
-                return backpack.GetCount(material.Id);
-            }
-
             int total = 0;
             foreach (MaterialStack stack in backpack.Stacks)
-            {
-                if (stack.MaterialId == material.Id)
-                {
-                    total += stack.Count;
-                }
-            }
-
+                if (stack.MaterialId == material.Id) total += stack.Count;
             return total;
         }
 
@@ -146,31 +196,6 @@ namespace Everlight.Tales.UI
                 case DisplayKind.CaseMemento: return "纪念";
                 default: return "维修";
             }
-        }
-
-        private float AddHeader(float y, string title)
-        {
-            return AddRow(y - 6f, "—— " + title + " ——", new Color(1f, 0.85f, 0.35f, 1f));
-        }
-
-        private float AddRow(float y, string label, Color? color = null)
-        {
-            var go = new GameObject("row", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(m_ListRoot, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-40f, RowHeight);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = 24;
-            text.color = color ?? new Color(0.92f, 0.92f, 0.92f, 1f);
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = label;
-            return y - RowHeight;
         }
     }
 }

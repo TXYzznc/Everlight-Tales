@@ -13,29 +13,9 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed partial class SaveSlotPage
     {
-        [SerializeField] private TMP_Text _slot1Text;
-        public TMP_Text Slot1Text => _slot1Text;
-        [SerializeField] private Button _slot1Button;
-        public Button Slot1Button => _slot1Button;
-        [SerializeField] private TMP_Text _slot1Label;
-        public TMP_Text Slot1Label => _slot1Label;
-        [SerializeField] private Button _slot1Delete;
-        public Button Slot1Delete => _slot1Delete;
-        [SerializeField] private TMP_Text _slot2Text;
-        public TMP_Text Slot2Text => _slot2Text;
-        [SerializeField] private Button _slot2Button;
-        public Button Slot2Button => _slot2Button;
-        [SerializeField] private TMP_Text _slot2Label;
-        public TMP_Text Slot2Label => _slot2Label;
-        [SerializeField] private Button _slot2Delete;
-        public Button Slot2Delete => _slot2Delete;
-        [SerializeField] private TMP_Text _slot3Text;
-        public TMP_Text Slot3Text => _slot3Text;
-        [SerializeField] private Button _slot3Button;
-        public Button Slot3Button => _slot3Button;
-        [SerializeField] private TMP_Text _slot3Label;
-        public TMP_Text Slot3Label => _slot3Label;
-        [SerializeField] private Button _slot3Delete;
-        public Button Slot3Delete => _slot3Delete;
+        [SerializeField] private GameObject _slotItemTemplate;
+        public GameObject SlotItemTemplate => _slotItemTemplate;
+        [SerializeField] private RectTransform _slotsRoot;
+        public RectTransform SlotsRoot => _slotsRoot;
     }
 }

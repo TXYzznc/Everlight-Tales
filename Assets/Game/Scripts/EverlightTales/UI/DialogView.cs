@@ -24,6 +24,14 @@ namespace Everlight.Tales.UI
             m_ResultConsumed = false;
         }
 
+        public void BindStaticLayout(TextMeshProUGUI title, TextMeshProUGUI content, Button[] buttons, TextMeshProUGUI[] labels)
+        {
+            m_TitleText = title;
+            m_ContentText = content;
+            m_Buttons = buttons ?? new Button[0];
+            m_ButtonLabels = labels ?? new TextMeshProUGUI[0];
+        }
+
         /// <summary>由 GlobalUI 经 OpenCallback 调用，设置标题/内容/按钮。</summary>
         public void Setup(string title, string content, (string tag, string label)[] buttons)
         {

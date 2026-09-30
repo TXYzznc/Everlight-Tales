@@ -117,6 +117,25 @@ namespace Everlight.Tales.UI
 
         private void AddChoice(int index, string label)
         {
+            GameObject template = Resources.Load<GameObject>("UI/Item/DialogueChoiceItem");
+            if (template != null)
+            {
+                GameObject instance = Instantiate(template, m_ChoiceRoot);
+                instance.name = "choice_" + index;
+                RectTransform itemRect = instance.transform as RectTransform;
+                itemRect.anchorMin = new Vector2(0f, 1f);
+                itemRect.anchorMax = new Vector2(1f, 1f);
+                itemRect.pivot = new Vector2(0.5f, 1f);
+                itemRect.sizeDelta = new Vector2(0f, 56f);
+                itemRect.anchoredPosition = new Vector2(0f, -index * 62f);
+                int capturedItemIndex = index;
+                instance.GetComponent<DialogueChoiceItem>()?.Bind(label, () =>
+                {
+                    m_Service?.Choose(capturedItemIndex);
+                    Refresh();
+                });
+                return;
+            }
             var go = new GameObject("choice_" + index, typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(m_ChoiceRoot, false);
             var rt = (RectTransform)go.transform;
@@ -144,6 +163,7 @@ namespace Everlight.Tales.UI
             text.text = label;
 
             int captured = index;
+            UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Secondary);
             go.GetComponent<Button>().onClick.AddListener(() =>
             {
                 m_Service?.Choose(captured);

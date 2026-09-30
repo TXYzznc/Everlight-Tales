@@ -17,6 +17,13 @@ namespace Everlight.Tales.Procedure
         private static bool s_Subscribed;
         private static bool s_Opened;
 
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            s_Subscribed = false;
+            s_Opened = false;
+        }
+
         /// <summary>业务启动 Procedure 在进入入口场景前调用一次，登记场景加载完成回调。</summary>
         public static void EnsureSubscribed()
         {
@@ -37,10 +44,20 @@ namespace Everlight.Tales.Procedure
             }
 
             // Home 加载完成时，框架预加载（UITable/UIGroupTable）已就绪，UI 系统可用。
-            // 先打开标题页（存档选择），选档后由 SaveSlotPage 打开主页壳。
+            // 验证模式直接注入完整数据并打开目标页；正常模式仍从存档选择开始。
             s_Opened = true;
             SceneManager.sceneLoaded -= OnSceneLoaded;
-            GF.UI.OpenUIForm(UIViews.SaveSlotPage);
+            System.Type validationType = System.Type.GetType("Everlight.Tales.UI.UIValidationHarness, Everlight.Tales.UI");
+            bool validationEnabled = validationType != null
+                && (bool)validationType.GetProperty("Enabled").GetValue(null, null);
+            if (validationEnabled)
+            {
+                validationType.GetMethod("Start").Invoke(null, null);
+            }
+            else
+            {
+                GF.UI.OpenUIForm(UIViews.SaveSlotPage);
+            }
         }
     }
 }

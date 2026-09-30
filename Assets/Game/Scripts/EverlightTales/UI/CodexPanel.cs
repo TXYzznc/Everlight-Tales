@@ -1,183 +1,141 @@
 using System.Collections.Generic;
 using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 namespace Everlight.Tales.UI
 {
-    /// <summary>
-    /// 图鉴（b44，图鉴页签）：零件 P / 怪谈形态 M 三态只读查阅 + 收集进度。
-    /// 纯逻辑复用 b27 CodexLayout，本类只做表现渲染。挂在 MainPageShell 内容容器，切页签显隐。
-    /// </summary>
+    /// <summary>图鉴三页动态 Item 渲染器。</summary>
     public sealed class CodexPanel : MonoBehaviour
     {
-        private const float TopBarHeight = 96f;
-        private const float RowHeight = 46f;
+        [SerializeField] private GameObject _partItemTemplate;
+        [SerializeField] private GameObject _formItemTemplate;
+        [SerializeField] private GameObject _caseItemTemplate;
+        [SerializeField] private RectTransform _partRoot;
+        [SerializeField] private RectTransform _formRoot;
+        [SerializeField] private RectTransform _caseRoot;
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
 
-        private int m_SubTab;
-        private TextMeshProUGUI m_ProgressLabel;
-        private RectTransform m_ListRoot;
-        private readonly Button[] m_SubButtons = new Button[3];
-        private Transform m_StaticRoot;
+        private int _subTab;
+        private TextMeshProUGUI _progressLabel;
+        private readonly Button[] _subButtons = new Button[3];
+        private Transform _staticRoot;
+        private UIFormBase _form;
+        private bool _bound;
 
         public void BindStaticLayout()
         {
-            m_StaticRoot = transform.name == "Panel_Codex" ? transform : transform.Find("Panel_Codex");
-            if (m_StaticRoot == null) return;
-            Transform top = m_StaticRoot.Find("Panel_CodexTop");
-            m_ProgressLabel = top != null ? top.Find("Txt_Progress")?.GetComponent<TextMeshProUGUI>() : null;
-            m_ListRoot = m_StaticRoot.Find("Panel_CodexList") as RectTransform;
-            for (int i = 0; i < m_SubButtons.Length; i++) m_SubButtons[i] = top != null ? top.Find("Btn_Sub_" + i)?.GetComponent<Button>() : null;
+            _staticRoot = transform.name == "Panel_Codex" ? transform : transform.Find("Panel_Codex");
+            if (_staticRoot == null) return;
+            Transform top = _staticRoot.Find("Panel_CodexTop");
+            Transform list = _staticRoot.Find("Panel_CodexList");
+            _progressLabel = top != null ? top.Find("Txt_Progress")?.GetComponent<TextMeshProUGUI>() : null;
+            for (int i = 0; i < _subButtons.Length; i++) _subButtons[i] = top != null ? top.Find("Btn_Sub_" + i)?.GetComponent<Button>() : null;
+            if (list != null)
+            {
+                _partRoot = list.Find("PartScroll") as RectTransform;
+                _formRoot = list.Find("FormScroll") as RectTransform;
+                _caseRoot = list.Find("CaseScroll") as RectTransform;
+            }
+            _form = GetComponentInParent<UIFormBase>();
+            _bound = _form != null && _partItemTemplate != null && _formItemTemplate != null && _caseItemTemplate != null
+                && _partRoot != null && _formRoot != null && _caseRoot != null;
         }
 
         public void Build()
         {
-            if (m_StaticRoot != null && m_ProgressLabel != null && m_ListRoot != null && m_SubButtons[0] != null)
+            if (!_bound) BindStaticLayout();
+            if (!_bound)
             {
-                for (int i = 0; i < m_SubButtons.Length; i++)
-                {
-                    int index = i;
-                    m_SubButtons[i].onClick.RemoveAllListeners();
-                    m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
-                }
-                SelectSubTab(0);
+                Debug.LogWarning("[CodexPanel] 当前宿主未提供 CodexPage 的完整 Item 容器，跳过该宿主刷新。", this);
                 return;
             }
-            var topGo = new GameObject("codex_top", typeof(RectTransform), typeof(Image));
-            topGo.transform.SetParent(transform, false);
-            var topRt = (RectTransform)topGo.transform;
-            topRt.anchorMin = new Vector2(0f, 1f);
-            topRt.anchorMax = new Vector2(1f, 1f);
-            topRt.pivot = new Vector2(0.5f, 1f);
-            topRt.anchoredPosition = Vector2.zero;
-            topRt.sizeDelta = new Vector2(0f, TopBarHeight);
-            topGo.GetComponent<Image>().color = UIFactory.BgDark;
-
-            m_ProgressLabel = UIFactory.MakeText(topGo.transform, "progress", new Vector2(-24f, -24f), new Vector2(260f, 36f), 26, TextAlignmentOptions.Right);
-
-            string[] names = { "零件 P", "形态 M", "资料台" };
-            for (int i = 0; i < names.Length; i++)
+            for (int i = 0; i < _subButtons.Length; i++)
             {
                 int index = i;
-                m_SubButtons[i] = UIFactory.MakeButton(topGo.transform, "sub_" + names[i], new Vector2(-430f + i * 150f, -24f), new Vector2(140f, 56f), names[i], 26);
-                m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
+                _subButtons[i].onClick.RemoveAllListeners();
+                _subButtons[i].onClick.AddListener(() => SelectSubTab(index));
             }
-
-            var listGo = new GameObject("codex_list", typeof(RectTransform));
-            listGo.transform.SetParent(transform, false);
-            var listRt = (RectTransform)listGo.transform;
-            listRt.anchorMin = new Vector2(0f, 0f);
-            listRt.anchorMax = new Vector2(1f, 1f);
-            listRt.pivot = new Vector2(0.5f, 0.5f);
-            listRt.anchoredPosition = new Vector2(0f, -TopBarHeight * 0.5f);
-            listRt.sizeDelta = new Vector2(0f, -TopBarHeight);
-            m_ListRoot = listRt;
-
             SelectSubTab(0);
         }
 
         public void Refresh()
         {
-            WorldSession session = WorldSession.Current;
-            if (session == null)
-            {
-                return;
-            }
-
-            m_ProgressLabel.text = "已拥有 " + CodexLayout.OwnedCount(session.World) + "/" + CodexLayout.TotalCount;
+            if (!_bound || WorldSession.Current == null) return;
+            _progressLabel.text = "已拥有 " + CodexLayout.OwnedCount(WorldSession.Current.World) + "/" + CodexLayout.TotalCount;
             RebuildList();
         }
 
         private void SelectSubTab(int index)
         {
-            m_SubTab = index;
-            for (int i = 0; i < m_SubButtons.Length; i++)
+            _subTab = index;
+            for (int i = 0; i < _subButtons.Length; i++)
             {
-                m_SubButtons[i].image.color = i == index ? UIFactory.ButtonGreen : UIFactory.ButtonBlue;
+                UISpriteButton spriteButton = _subButtons[i] == null ? null : _subButtons[i].GetComponent<UISpriteButton>();
+                if (spriteButton != null) spriteButton.SetSelected(i == index);
             }
-
+            if (_partRoot != null) _partRoot.gameObject.SetActive(index == 0);
+            if (_formRoot != null) _formRoot.gameObject.SetActive(index == 1);
+            if (_caseRoot != null) _caseRoot.gameObject.SetActive(index == 2);
             RebuildList();
         }
 
         private void RebuildList()
         {
-            for (int i = m_ListRoot.childCount - 1; i >= 0; i--)
-            {
-                Destroy(m_ListRoot.GetChild(i).gameObject);
-            }
+            if (WorldSession.Current == null) return;
+            WorldState world = WorldSession.Current.World;
+            if (_subTab == 0) RebuildEntries(CodexLayout.Parts(world), _partItemTemplate, _partRoot, false);
+            else if (_subTab == 1) RebuildEntries(CodexLayout.Forms(world), _formItemTemplate, _formRoot, true);
+            else RebuildCases(world);
+        }
 
-            WorldSession session = WorldSession.Current;
-            if (session == null)
-            {
-                return;
-            }
-
-            if (m_SubTab == 2)
-            {
-                RebuildCaseList(session);
-                return;
-            }
-
-            IReadOnlyList<CodexEntry> entries = m_SubTab == 0
-                ? CodexLayout.Parts(session.World)
-                : CodexLayout.Forms(session.World);
-
-            float y = -18f;
+        private void RebuildEntries(IReadOnlyList<CodexEntry> entries, GameObject template, RectTransform root, bool form)
+        {
+            _form.UnspawnAllChildItem<CodexItemObject>(template);
             foreach (CodexEntry entry in entries)
             {
-                y = AddEntry(y, entry);
+                CodexItemObject view = _form.SpawnChildItem<CodexItemObject>(template, root);
+                Color color = entry.State == CodexState.Owned ? new Color(0.92f, 0.92f, 0.92f, 1f)
+                    : entry.State == CodexState.Known ? new Color(0.55f, 0.62f, 0.70f, 1f)
+                    : new Color(0.38f, 0.38f, 0.40f, 1f);
+                string state = entry.State == CodexState.Owned ? (form ? "已解锁" : "已拥有") : entry.State == CodexState.Known ? "已知未拥有" : "？？？";
+                string source = entry.State == CodexState.Unknown ? "" : entry.SourceHint;
+                view.Bind(entry.Id, CodexLayout.DisplayName(entry), state, source, Icon(form ? "ICO-061形态" : "ICO-060零件"), Frame(entry.State), color, entry.State != CodexState.Unknown);
             }
         }
 
-        private void RebuildCaseList(WorldSession session)
+        private void RebuildCases(WorldState world)
         {
-            float y = -18f;
+            _form.UnspawnAllChildItem<CodexItemObject>(_caseItemTemplate);
             int shown = 0;
-            foreach (CaseState c in session.World.Cases)
+            foreach (CaseState c in world.Cases)
             {
-                if (c.Kind == CaseStateKind.NotTriggered)
-                {
-                    continue;
-                }
-
+                if (c.Kind == CaseStateKind.NotTriggered) continue;
                 shown++;
-                y = AddCaseLine(y, "◆ " + c.Config.Name + "（" + c.Config.Batch + " · " + CaseKindText(c.Kind) + "）", new Color(0.92f, 0.92f, 0.92f, 1f));
-                if (!string.IsNullOrEmpty(c.Config.Source))
-                {
-                    y = AddCaseLine(y, "     来源：" + c.Config.Source, new Color(0.6f, 0.6f, 0.62f, 1f), 20);
-                }
-                if (!string.IsNullOrEmpty(c.Config.FirstPlace))
-                {
-                    y = AddCaseLine(y, "     首现地点：" + c.Config.FirstPlace, new Color(0.6f, 0.6f, 0.62f, 1f), 20);
-                }
+                CodexItemObject view = _form.SpawnChildItem<CodexItemObject>(_caseItemTemplate, _caseRoot);
+                view.Bind(c.Config.Batch, c.Config.Name, CaseKindText(c.Kind), c.Config.Source + (string.IsNullOrEmpty(c.Config.FirstPlace) ? "" : " · " + c.Config.FirstPlace), Icon("ICO-008保管"), null, Color.white, true);
             }
-
-            if (shown == 0)
-            {
-                AddCaseLine(y, "（尚无已触发的怪谈档案）", new Color(0.5f, 0.5f, 0.52f, 1f));
-            }
+            if (shown == 0) SetEmpty(_caseRoot, "尚无已触发的怪谈档案");
+            else SetEmpty(_caseRoot, null);
         }
 
-        private float AddCaseLine(float y, string line, Color color, int fontSize = 24)
+        private Sprite Icon(string key) => _spriteCatalog != null ? _spriteCatalog.Get(key) : null;
+        private Sprite Frame(CodexState state) => _spriteCatalog != null ? _spriteCatalog.Get(state == CodexState.Owned ? "SHR-046-selected" : "SHR-046-normal") : null;
+
+        private static void SetEmpty(RectTransform root, string message)
         {
-            var go = new GameObject("case_row", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(m_ListRoot, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-40f, RowHeight);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = fontSize;
-            text.color = color;
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = line;
-            return y - RowHeight;
+            if (root == null) return;
+            Transform empty = root.Find("EmptyState");
+            if (empty == null && message != null)
+            {
+                GameObject go = new GameObject("EmptyState", typeof(RectTransform), typeof(TextMeshProUGUI)); go.transform.SetParent(root, false);
+                RectTransform rect = (RectTransform)go.transform; rect.anchorMin = new Vector2(0f, 1f); rect.anchorMax = new Vector2(1f, 1f); rect.pivot = new Vector2(0.5f, 1f); rect.anchoredPosition = new Vector2(0f, -18f); rect.sizeDelta = new Vector2(-40f, 64f);
+                TextMeshProUGUI text = go.GetComponent<TextMeshProUGUI>(); text.font = UIFactory.BuiltinFont; text.fontSize = 24; text.alignment = TextAlignmentOptions.Center; text.color = new Color(0.5f, 0.5f, 0.52f, 1f);
+                empty = go.transform;
+            }
+            if (empty != null) { empty.gameObject.SetActive(message != null); var text = empty.GetComponent<TextMeshProUGUI>(); if (text != null && message != null) text.text = "（" + message + "）"; }
         }
 
         private static string CaseKindText(CaseStateKind kind)
@@ -192,51 +150,6 @@ namespace Everlight.Tales.UI
                 case CaseStateKind.Revisited: return "已回访";
                 default: return "未触发";
             }
-        }
-
-        private float AddEntry(float y, CodexEntry entry)
-        {
-            string line;
-            Color color;
-
-            switch (entry.State)
-            {
-                case CodexState.Owned:
-                    line = entry.Id + "  " + entry.Name + (entry.Category == CodexCategory.Part ? "（已拥有）" : "（已解锁）");
-                    color = new Color(0.92f, 0.92f, 0.92f, 1f);
-                    break;
-                case CodexState.Known:
-                    line = entry.Id + "  " + entry.Name + "（已知未拥有）";
-                    color = new Color(0.55f, 0.62f, 0.70f, 1f);
-                    break;
-                default:
-                    line = entry.Id + "  " + CodexLayout.DisplayName(entry);
-                    color = new Color(0.38f, 0.38f, 0.40f, 1f);
-                    break;
-            }
-
-            if (entry.State != CodexState.Unknown && !string.IsNullOrEmpty(entry.SourceHint))
-            {
-                line += "  ·" + entry.SourceHint;
-            }
-
-            var go = new GameObject("entry", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(m_ListRoot, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-40f, RowHeight);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = 24;
-            text.color = color;
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = line;
-
-            return y - RowHeight;
         }
     }
 }

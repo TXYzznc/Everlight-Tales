@@ -23,9 +23,7 @@ namespace Everlight.Tales.UI
         public RectTransform RewardChoices => _rewardChoices;
         [SerializeField] private Button _backToMap;
         public Button BackToMap => _backToMap;
-        [SerializeField] private Button[] _choiceButtons;
-        public Button[] ChoiceButtons => _choiceButtons;
-        [SerializeField] private TMP_Text[] _choiceLabels;
-        public TMP_Text[] ChoiceLabels => _choiceLabels;
+        [SerializeField] private GameObject _rewardChoiceItemTemplate;
+        public GameObject RewardChoiceItemTemplate => _rewardChoiceItemTemplate;
     }
 }

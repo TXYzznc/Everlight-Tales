@@ -22,6 +22,7 @@ namespace Everlight.Tales.UI
         private int m_SubTab;
         private TextMeshProUGUI m_BalanceLabel;
         private RectTransform m_ListRoot;
+        private RectTransform m_FilterRoot;
         private readonly Button[] m_SubButtons = new Button[3];
 
         private readonly TextMeshProUGUI[] m_SubBadges = new TextMeshProUGUI[3];
@@ -30,12 +31,26 @@ namespace Everlight.Tales.UI
 
         private Transform m_StaticRoot;
 
+        [SerializeField] private GameObject _itemTemplate;
+        private UIFormBase _form;
+
         public void BindStaticLayout()
         {
+            if (_itemTemplate == null) _itemTemplate = Resources.Load<GameObject>("UI/Item/JournalItem");
             m_StaticRoot = transform.name == "Panel_Journal" ? transform : transform.Find("Panel_Journal");
             if (m_StaticRoot == null) return;
+            _form = GetComponentInParent<UIFormBase>();
+            if (_form == null) _form = FindObjectOfType<UIFormBase>();
             Transform top = m_StaticRoot.Find("Panel_JournalTop");
-            m_ListRoot = m_StaticRoot.Find("Panel_JournalList") as RectTransform;
+            RectTransform staticList = m_StaticRoot.Find("Panel_JournalList") as RectTransform;
+            m_ListRoot = staticList;
+            LayoutGroup staticLayout = staticList != null ? staticList.GetComponent<LayoutGroup>() : null;
+            if (staticLayout != null) staticLayout.enabled = false;
+            if (staticList != null)
+            {
+                m_FilterRoot = EnsureRoot(staticList, "JournalFilterRoot", true);
+                m_ListRoot = EnsureRoot(staticList, "JournalEntriesRoot", false);
+            }
             m_BalanceLabel = top != null ? top.Find("Txt_Balance")?.GetComponent<TextMeshProUGUI>() : null;
             for (int i = 0; i < m_SubButtons.Length; i++)
             {
@@ -94,6 +109,7 @@ namespace Everlight.Tales.UI
             listRt.anchoredPosition = new Vector2(0f, -TopBarHeight * 0.5f);
             listRt.sizeDelta = new Vector2(0f, -TopBarHeight);
             m_ListRoot = listRt;
+            m_FilterRoot = listRt;
 
             SelectSubTab(0);
         }
@@ -118,7 +134,8 @@ namespace Everlight.Tales.UI
             m_SubTab = index;
             for (int i = 0; i < m_SubButtons.Length; i++)
             {
-                m_SubButtons[i].image.color = i == index ? UIFactory.ButtonGreen : UIFactory.ButtonBlue;
+                UISpriteButton spriteButton = m_SubButtons[i] == null ? null : m_SubButtons[i].GetComponent<UISpriteButton>();
+                if (spriteButton != null) spriteButton.SetSelected(i == index);
             }
 
             RebuildList();
@@ -126,7 +143,9 @@ namespace Everlight.Tales.UI
 
         private void RebuildList()
         {
+            if (_form != null && _itemTemplate != null) _form.UnspawnAllChildItem<JournalItemObject>(_itemTemplate);
             ClearChildren(m_ListRoot);
+            if (m_FilterRoot != null && m_FilterRoot != m_ListRoot) ClearChildren(m_FilterRoot);
 
             WorldSession session = WorldSession.Current;
             if (session == null)
@@ -201,14 +220,32 @@ namespace Everlight.Tales.UI
             for (int i = 0; i < names.Length; i++)
             {
                 int index = i;
-                Button btn = UIFactory.MakeButton(m_ListRoot, "filter_" + names[i], new Vector2(-430f + i * 90f, -12f), new Vector2(84f, 44f), names[i], 20);
-                btn.image.color = m_EventFilter == kinds[i] ? UIFactory.ButtonGreen : UIFactory.ButtonBlue;
+                RectTransform filterRoot = m_FilterRoot != null ? m_FilterRoot : m_ListRoot;
+                Button btn = UIFactory.MakeButton(filterRoot, "filter_" + names[i], new Vector2(-430f + i * 90f, -12f), new Vector2(84f, 44f), names[i], 20);
+                UISpriteButton filterSpriteButton = btn.GetComponent<UISpriteButton>();
+                if (filterSpriteButton != null) filterSpriteButton.SetSelected(m_EventFilter == kinds[i]);
                 btn.onClick.AddListener(() =>
                 {
                     m_EventFilter = kinds[index];
                     RebuildList();
                 });
             }
+        }
+
+        private static RectTransform EnsureRoot(RectTransform parent, string name, bool filter)
+        {
+            Transform existing = parent.Find(name);
+            GameObject go = existing != null ? existing.gameObject : new GameObject(name, typeof(RectTransform));
+            if (existing == null) go.transform.SetParent(parent, false);
+            RectTransform rt = go.transform as RectTransform;
+            rt.anchorMin = filter ? new Vector2(0f, 1f) : new Vector2(0f, 1f);
+            rt.anchorMax = filter ? new Vector2(1f, 1f) : new Vector2(1f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = filter ? new Vector2(0f, 0f) : new Vector2(0f, -104f);
+            rt.sizeDelta = filter ? new Vector2(0f, 88f) : new Vector2(0f, -104f);
+            LayoutGroup layout = rt.GetComponent<LayoutGroup>();
+            if (layout != null) layout.enabled = false;
+            return rt;
         }
 
         private void BuildEventPage(WorldSession session)
@@ -435,6 +472,7 @@ namespace Everlight.Tales.UI
             btnText.text = label;
             btnText.raycastTarget = false;
 
+            UISpriteButton.ConfigureButton(btnGo.GetComponent<Button>(), UISpriteButtonRole.Filter);
             btnGo.GetComponent<Button>().onClick.AddListener(onClick);
         }
 
@@ -554,6 +592,15 @@ namespace Everlight.Tales.UI
 
         private float AddCard(float y, string label, string detail, Color color, int fontSize = 26)
         {
+            if (_form != null && _itemTemplate != null)
+            {
+                string captured = detail;
+                JournalItemObject item = _form.SpawnChildItem<JournalItemObject>(_itemTemplate, m_ListRoot);
+                RectTransform itemRect = item.gameObject.transform as RectTransform;
+                if (itemRect != null) { itemRect.anchoredPosition = new Vector2(0f, y); itemRect.sizeDelta = new Vector2(-24f, RowHeight); }
+                item.Bind(label, detail, color, () => GlobalUI.ShowDialog("详情", captured));
+                return y - RowHeight - 6f;
+            }
             var card = new GameObject("card", typeof(RectTransform), typeof(Image), typeof(Button));
             card.transform.SetParent(m_ListRoot, false);
             var rt = (RectTransform)card.transform;
@@ -579,8 +626,8 @@ namespace Everlight.Tales.UI
             text.raycastTarget = false;
             text.text = label;
 
-            string captured = detail;
-            card.GetComponent<Button>().onClick.AddListener(() => GlobalUI.ShowDialog("详情", captured));
+            string fallbackCaptured = detail;
+            card.GetComponent<Button>().onClick.AddListener(() => GlobalUI.ShowDialog("详情", fallbackCaptured));
             return y - RowHeight - 6f;
         }
 
@@ -669,9 +716,14 @@ namespace Everlight.Tales.UI
 
         private static void ClearChildren(RectTransform root)
         {
+            if (root == null) return;
             for (int i = root.childCount - 1; i >= 0; i--)
             {
-                Destroy(root.GetChild(i).gameObject);
+                Transform child = root.GetChild(i);
+                // GF UnspawnAllChildItem 只回收对象池实例并保留其 GameObject；
+                // 不能在这里 Destroy，否则下一次切回任务页会从对象池取到已销毁对象。
+                if (child.GetComponent<UIItemBase>() != null) continue;
+                Destroy(child.gameObject);
             }
         }
     }

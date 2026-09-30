@@ -36,6 +36,16 @@ namespace Everlight.Tales.UI
 
         private int m_ConfirmedCount;
 
+        private RectTransform m_StaticSceneRoot;
+        private Button m_StaticFinishButton;
+
+        public void BindStaticLayout()
+        {
+            m_SceneLabel = transform.Find("Txt_Scene")?.GetComponent<TextMeshProUGUI>();
+            m_StaticSceneRoot = transform.Find("Panel_Scene") as RectTransform;
+            m_StaticFinishButton = transform.Find("Btn_Finish")?.GetComponent<Button>();
+        }
+
         /// <summary>创建全屏调查面板；全部热点确认后回调并自毁。</summary>
         public static InvestigationView Show(string sceneName, IReadOnlyList<Hotspot> hotspots, Action onComplete)
         {
@@ -64,24 +74,32 @@ namespace Everlight.Tales.UI
             rt.anchoredPosition = Vector2.zero;
             rt.sizeDelta = Vector2.zero;
 
-            var bg = gameObject.AddComponent<Image>();
-            bg.color = new Color(0.03f, 0.04f, 0.06f, 0.97f);
-            bg.raycastTarget = true;
+            Image bg = GetComponent<Image>();
+            if (bg == null)
+            {
+                bg = gameObject.AddComponent<Image>();
+                bg.color = new Color(0.03f, 0.04f, 0.06f, 0.97f);
+                bg.raycastTarget = true;
+            }
 
-            m_SceneLabel = MakeText(transform, "scene", new Vector2(0f, 340f), new Vector2(920f, 44f), 28, TextAlignmentOptions.Center);
+            if (m_SceneLabel == null) m_SceneLabel = MakeText(transform, "scene", new Vector2(0f, 340f), new Vector2(920f, 44f), 28, TextAlignmentOptions.Center);
             m_SceneLabel.color = new Color(0.88f, 0.66f, 0.35f, 1f);
             m_SceneLabel.text = sceneName ?? "现场调查";
 
             // 场景占位（中央大块）。
-            var sceneGo = new GameObject("scene_placeholder", typeof(RectTransform), typeof(Image));
-            sceneGo.transform.SetParent(transform, false);
-            var sceneRt = (RectTransform)sceneGo.transform;
-            sceneRt.anchorMin = new Vector2(0.5f, 0.5f);
-            sceneRt.anchorMax = new Vector2(0.5f, 0.5f);
-            sceneRt.pivot = new Vector2(0.5f, 0.5f);
-            sceneRt.anchoredPosition = new Vector2(0f, 120f);
-            sceneRt.sizeDelta = new Vector2(920f, 720f);
-            sceneGo.GetComponent<Image>().color = new Color(0.12f, 0.14f, 0.18f, 1f);
+            RectTransform sceneRt = m_StaticSceneRoot;
+            if (sceneRt == null)
+            {
+                var sceneGo = new GameObject("scene_placeholder", typeof(RectTransform), typeof(Image));
+                sceneGo.transform.SetParent(transform, false);
+                sceneRt = (RectTransform)sceneGo.transform;
+                sceneRt.anchorMin = new Vector2(0.5f, 0.5f);
+                sceneRt.anchorMax = new Vector2(0.5f, 0.5f);
+                sceneRt.pivot = new Vector2(0.5f, 0.5f);
+                sceneRt.anchoredPosition = new Vector2(0f, 120f);
+                sceneRt.sizeDelta = new Vector2(920f, 720f);
+                sceneGo.GetComponent<Image>().color = new Color(0.12f, 0.14f, 0.18f, 1f);
+            }
 
             if (hotspots != null)
             {
@@ -91,12 +109,28 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            var closeBtn = MakeButton(transform, "btn_finish", new Vector2(0f, -420f), new Vector2(360f, 56f), "完成调查");
+            var closeBtn = m_StaticFinishButton != null ? m_StaticFinishButton : MakeButton(transform, "btn_finish", new Vector2(0f, -420f), new Vector2(360f, 56f), "完成调查");
+            closeBtn.onClick.RemoveAllListeners();
             closeBtn.onClick.AddListener(Finish);
         }
 
         private void AddHotspot(RectTransform sceneRt, Hotspot hotspot)
         {
+            GameObject template = Resources.Load<GameObject>("UI/Item/InvestigationHotspotItem");
+            if (template != null)
+            {
+                GameObject instance = Instantiate(template, sceneRt);
+                instance.name = "hotspot";
+                RectTransform itemRect = instance.transform as RectTransform;
+                itemRect.anchorMin = new Vector2(0.5f, 0.5f); itemRect.anchorMax = itemRect.anchorMin; itemRect.pivot = itemRect.anchorMin; itemRect.sizeDelta = new Vector2(140f, 140f);
+                itemRect.anchoredPosition = new Vector2((hotspot.Position.x - 0.5f) * sceneRt.sizeDelta.x, (hotspot.Position.y - 0.5f) * sceneRt.sizeDelta.y);
+                Image itemRing = instance.GetComponent<Image>();
+                TextMeshProUGUI itemLabel = instance.GetComponentInChildren<TextMeshProUGUI>();
+                m_Items.Add((hotspot, itemRing, itemLabel));
+                Hotspot capturedItem = hotspot;
+                instance.GetComponent<InvestigationHotspotItem>()?.Bind(hotspot.Name, () => OnHotspotTap(capturedItem, itemRing, itemLabel));
+                return;
+            }
             var go = new GameObject("hotspot", typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(sceneRt, false);
             var rt = (RectTransform)go.transform;
@@ -205,7 +239,7 @@ namespace Everlight.Tales.UI
             text.raycastTarget = false;
             text.text = label;
 
-            return go.GetComponent<Button>();
+            return UISpriteButton.ConfigureButton(go.GetComponent<Button>(), UISpriteButtonRole.Secondary)?.GetComponent<Button>();
         }
     }
 }

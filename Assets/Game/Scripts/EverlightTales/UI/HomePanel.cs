@@ -100,7 +100,8 @@ namespace Everlight.Tales.UI
             m_Zone = index;
             for (int i = 0; i < m_ZoneButtons.Length; i++)
             {
-                m_ZoneButtons[i].image.color = i == index ? UIFactory.ButtonGreen : UIFactory.ButtonBlue;
+                UISpriteButton spriteButton = m_ZoneButtons[i] == null ? null : m_ZoneButtons[i].GetComponent<UISpriteButton>();
+                if (spriteButton != null) spriteButton.SetSelected(i == index);
             }
 
             switch (index)
