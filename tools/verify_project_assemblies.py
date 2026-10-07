@@ -81,6 +81,10 @@ def main() -> int:
     layer_of: dict[str, str] = {}
 
     for file, data, error in load_asmdefs(root):
+        # 业务层程序集位于 EverlightTales/<Layer>/ 下；嵌套的 Editor
+        # 工具程序集只服务 Unity 编辑器，不属于运行时业务依赖图。
+        if file.parent.parent != root:
+            continue
         relative = file.relative_to(REPO_ROOT).as_posix()
         if error:
             errors.append(f"{relative}: {error}")
