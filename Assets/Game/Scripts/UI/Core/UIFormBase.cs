@@ -66,6 +66,7 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
         UICanvas = gameObject.GetOrAddComponent<Canvas>();
         NormalizeUICanvas(UICanvas);
         NormalizeLayer(gameObject);
+        UIButtonStateUtility.Attach(gameObject);
         canvasGroup = gameObject.GetOrAddComponent<CanvasGroup>();
         RectTransform transform = GetComponent<RectTransform>();
         transform.anchorMin = Vector2.zero;
@@ -166,7 +167,29 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
         @params.IsSubUIForm = true;
         var uiformId = GF.UI.OpenUIForm(viewName, @params);
         m_SubUIForms.Add(uiformId);
+        // GF UIManager 将同组新窗体视为覆盖层，可能在 OpenUIForm 返回前暂停宿主。
+        // 子 UIForm 实际挂载在宿主 Content 内，宿主必须保持可见并继续接收导航输入。
+        if (uiformId >= 0 && Params != null && Params.IsSubUIForm == false)
+        {
+            Visible = true;
+            Interactable = true;
+            Debug.Log($"[UI诊断][UIFormBase] 宿主恢复可见 id={Id}, childId={uiformId}, active={gameObject.activeSelf}, visible={Visible}", this);
+        }
         return uiformId;
+    }
+
+    protected override void OnPause()
+    {
+        Debug.Log($"[UI诊断][UIFormBase] OnPause id={Id}, type={GetType().Name}, activeBefore={gameObject.activeSelf}, childCount={(m_SubUIForms != null ? m_SubUIForms.Count : 0)}", this);
+        base.OnPause();
+        Debug.Log($"[UI诊断][UIFormBase] OnPause 完成 id={Id}, activeAfter={gameObject.activeSelf}", this);
+    }
+
+    protected override void OnResume()
+    {
+        Debug.Log($"[UI诊断][UIFormBase] OnResume id={Id}, type={GetType().Name}, activeBefore={gameObject.activeSelf}", this);
+        base.OnResume();
+        Debug.Log($"[UI诊断][UIFormBase] OnResume 完成 id={Id}, activeAfter={gameObject.activeSelf}", this);
     }
     /// <summary>
     /// 关闭子UI Form
@@ -253,6 +276,11 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
             spawn = UIItemObject.Create<T>(itemInstance);
             pool.Register(spawn, true);
         }
+        else if (spawn.gameObject != null && instanceRoot != null)
+        {
+            // 同一对象池可能服务多个分类列表，复用时必须恢复当前列表的父节点。
+            spawn.gameObject.transform.SetParent(instanceRoot, false);
+        }
         return spawn;
     }
 
@@ -260,6 +288,12 @@ public class UIFormBase : UIFormLogic, ISerializeFieldTool
     public T SpawnChildItem<T>(GameObject itemTemplate, Transform instanceRoot, float autoReleaseInterval = 5f, int capacity = 50, float expireTime = 50) where T : UIItemObject, new()
     {
         return SpawnItem<T>(itemTemplate, instanceRoot, autoReleaseInterval, capacity, expireTime);
+    }
+
+    /// <summary>只回收指定实例，供共用模板的不同列表隔离清理。</summary>
+    public void UnspawnChildItem<T>(GameObject itemTemplate, T item) where T : UIItemObject, new()
+    {
+        UnspawnItem(itemTemplate, item);
     }
 
     string GetItemPoolId(GameObject itemTemple)
