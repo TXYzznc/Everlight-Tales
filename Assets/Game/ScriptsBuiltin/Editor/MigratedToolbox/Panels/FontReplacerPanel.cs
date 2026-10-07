@@ -7,12 +7,12 @@ using System.Linq;
 using TMPro;
 
 /// <summary>
-/// 字体资源替换工具 - 一键替换对象（含子对象）中所有 Text / TMP_Text 的字体
+/// 字体资源替换工具 - 一键替换对象（含子对象）或文件夹内 Prefab 中所有 Text / TMP_Text 的字体
 /// </summary>
 [ToolHubItem("UI工具/字体资源替换", "批量替换 Text 和 TextMeshPro 的字体资源", 10)]
 public class FontReplacerPanel : IToolHubPanel
 {
-    private GameObject m_TargetRoot;
+    private UnityEngine.Object m_Target;
     private Font m_NewFont;
     private TMP_FontAsset m_NewTmpFont;
 
@@ -38,8 +38,8 @@ public class FontReplacerPanel : IToolHubPanel
 
     public string GetHelpText()
     {
-        return "将目标对象（含所有子对象）中的 Text 和 TextMeshPro 字体统一替换为指定字体。\n" +
-               "支持 Scene 对象和 Prefab 资源。操作支持 Undo。";
+        return "将目标对象（含所有子对象）或文件夹内 Prefab 中的 Text 和 TextMeshPro 字体统一替换为指定字体。\n" +
+               "文件夹会递归处理其中的 Prefab 资源。操作支持 Undo。";
     }
 
     public void OnGUI()
@@ -48,7 +48,21 @@ public class FontReplacerPanel : IToolHubPanel
         EditorGUILayout.Space(4);
 
         // --- 目标对象 ---
-        m_TargetRoot = (GameObject)EditorGUILayout.ObjectField("目标对象", m_TargetRoot, typeof(GameObject), true);
+        m_Target = EditorGUILayout.ObjectField(
+            new GUIContent("目标对象 / 文件夹"),
+            m_Target,
+            typeof(UnityEngine.Object),
+            true
+        );
+
+        if (m_Target != null)
+        {
+            string targetPath = AssetDatabase.GetAssetPath(m_Target);
+            if (IsFolderTarget())
+                EditorGUILayout.HelpBox($"将递归处理文件夹中的 Prefab 资源：{targetPath}", MessageType.Info);
+            else if (!(m_Target is GameObject))
+                EditorGUILayout.HelpBox("目标必须是 GameObject 或 Project 窗口中的文件夹。", MessageType.Warning);
+        }
 
         EditorGUILayout.Space(8);
 
@@ -118,12 +132,12 @@ public class FontReplacerPanel : IToolHubPanel
 
     private bool CanPreview()
     {
-        return m_TargetRoot != null && (m_ReplaceText || m_ReplaceTmp);
+        return IsValidTarget() && (m_ReplaceText || m_ReplaceTmp);
     }
 
     private bool CanReplace()
     {
-        if (m_TargetRoot == null) return false;
+        if (!IsValidTarget()) return false;
         if (m_ReplaceText && m_NewFont == null && m_ReplaceTmp && m_NewTmpFont == null) return false;
         if (m_ReplaceText && m_NewFont == null && !m_ReplaceTmp) return false;
         if (m_ReplaceTmp && m_NewTmpFont == null && !m_ReplaceText) return false;
@@ -157,15 +171,52 @@ public class FontReplacerPanel : IToolHubPanel
 
     private void CollectEntries(bool apply)
     {
+        if (IsFolderTarget())
+        {
+            string folderPath = AssetDatabase.GetAssetPath(m_Target);
+            string[] prefabGuids = AssetDatabase.FindAssets("t:Prefab", new[] { folderPath });
+            foreach (string guid in prefabGuids)
+            {
+                string prefabPath = AssetDatabase.GUIDToAssetPath(guid);
+                GameObject prefabRoot = null;
+                try
+                {
+                    prefabRoot = PrefabUtility.LoadPrefabContents(prefabPath);
+                    if (prefabRoot != null)
+                        CollectEntriesForRoot(prefabRoot, apply, prefabPath);
+                }
+                finally
+                {
+                    if (prefabRoot != null)
+                    {
+                        if (apply)
+                            PrefabUtility.SaveAsPrefabAsset(prefabRoot, prefabPath);
+                        PrefabUtility.UnloadPrefabContents(prefabRoot);
+                    }
+                }
+            }
+
+            if (apply && prefabGuids.Length > 0)
+                AssetDatabase.SaveAssets();
+            return;
+        }
+
+        CollectEntriesForRoot((GameObject)m_Target, apply, null);
+        if (apply && PrefabUtility.IsPartOfPrefabAsset(m_Target))
+            AssetDatabase.SaveAssets();
+    }
+
+    private void CollectEntriesForRoot(GameObject root, bool apply, string resultPrefix)
+    {
         if (m_ReplaceText && (apply ? m_NewFont != null : true))
         {
-            var texts = m_TargetRoot.GetComponentsInChildren<Text>(m_IncludeInactive);
+            var texts = root.GetComponentsInChildren<Text>(m_IncludeInactive);
             foreach (var t in texts)
             {
                 string oldName = t.font != null ? t.font.name : "(None)";
                 string newName = m_NewFont != null ? m_NewFont.name : "(未指定)";
 
-                if (apply && m_NewFont != null)
+                if (apply && m_NewFont != null && t.font != m_NewFont)
                 {
                     Undo.RecordObject(t, "Replace Font");
                     t.font = m_NewFont;
@@ -174,7 +225,7 @@ public class FontReplacerPanel : IToolHubPanel
 
                 m_Results.Add(new ResultEntry
                 {
-                    Path = GetPath(t.transform),
+                    Path = GetResultPath(t.transform, root, resultPrefix),
                     ComponentType = "Text",
                     OldFont = oldName,
                     NewFont = newName
@@ -184,13 +235,13 @@ public class FontReplacerPanel : IToolHubPanel
 
         if (m_ReplaceTmp && (apply ? m_NewTmpFont != null : true))
         {
-            var tmps = m_TargetRoot.GetComponentsInChildren<TMP_Text>(m_IncludeInactive);
+            var tmps = root.GetComponentsInChildren<TMP_Text>(m_IncludeInactive);
             foreach (var t in tmps)
             {
                 string oldName = t.font != null ? t.font.name : "(None)";
                 string newName = m_NewTmpFont != null ? m_NewTmpFont.name : "(未指定)";
 
-                if (apply && m_NewTmpFont != null)
+                if (apply && m_NewTmpFont != null && t.font != m_NewTmpFont)
                 {
                     Undo.RecordObject(t, "Replace TMP Font");
                     t.font = m_NewTmpFont;
@@ -199,7 +250,7 @@ public class FontReplacerPanel : IToolHubPanel
 
                 m_Results.Add(new ResultEntry
                 {
-                    Path = GetPath(t.transform),
+                    Path = GetResultPath(t.transform, root, resultPrefix),
                     ComponentType = "TMP",
                     OldFont = oldName,
                     NewFont = newName
@@ -208,20 +259,40 @@ public class FontReplacerPanel : IToolHubPanel
         }
     }
 
-    private string GetPath(Transform t)
+    private string GetResultPath(Transform t, GameObject root, string resultPrefix)
     {
-        if (t == m_TargetRoot.transform)
+        string path = GetPath(t, root.transform);
+        return string.IsNullOrEmpty(resultPrefix) ? path : $"{resultPrefix}/{path}";
+    }
+
+    private static string GetPath(Transform t, Transform root)
+    {
+        if (t == root)
             return t.name;
 
         var parts = new List<string>();
         var current = t;
-        while (current != null && current != m_TargetRoot.transform)
+        while (current != null && current != root)
         {
             parts.Add(current.name);
             current = current.parent;
         }
         parts.Reverse();
         return string.Join("/", parts);
+    }
+
+    private bool IsFolderTarget()
+    {
+        if (m_Target == null)
+            return false;
+
+        string path = AssetDatabase.GetAssetPath(m_Target);
+        return !string.IsNullOrEmpty(path) && AssetDatabase.IsValidFolder(path);
+    }
+
+    private bool IsValidTarget()
+    {
+        return m_Target is GameObject || IsFolderTarget();
     }
 }
 #endif

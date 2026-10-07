@@ -27,3 +27,7 @@ MonoBehaviour:
     displayName: "Game\u89C6\u56FE UI \u4E2D\u952E\u9009\u4E2D"
     description: "\u9F20\u6807\u4E2D\u952E\u5728 Game \u89C6\u56FE\u4E2D\u70B9\u51FB
       UI \u5143\u7D20\uFF0C\u76F4\u63A5\u5728 Hierarchy \u4E2D\u9009\u4E2D\u8BE5\u5BF9\u8C61\uFF08\u5F00\u5173\u53EF\u6301\u4E45\u5316\uFF09"
+  - typeName: FontReplacerPanel, Builtin.Editor, Version=0.0.0.0, Culture=neutral,
+      PublicKeyToken=null
+    displayName: "\u5B57\u4F53\u8D44\u6E90\u66FF\u6362"
+    description: "\u6279\u91CF\u66FF\u6362 Text \u548C TextMeshPro \u7684\u5B57\u4F53\u8D44\u6E90"
