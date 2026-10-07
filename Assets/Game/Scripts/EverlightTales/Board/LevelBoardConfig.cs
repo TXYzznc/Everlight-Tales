@@ -40,6 +40,9 @@ namespace Everlight.Tales.Board
 
         /// <summary>现场可借用种类（计入携带上限，去重后进入可用池，P2-007）。</summary>
         public IReadOnlyList<PartType> BorrowedParts { get; }
+        /// <summary>本次可异化种类；未配置时不显示标签。</summary>
+        public IReadOnlyList<PartType> PossibleAnomalyParts { get; }
+        public IReadOnlyDictionary<PartType, string> AdaptationHints { get; }
 
         /// <summary>固定元素（地形设施／障碍／任务标记，P2-009）。</summary>
         public IReadOnlyList<FixedElementConfig> FixedElements { get; }
@@ -61,7 +64,9 @@ namespace Everlight.Tales.Board
             IReadOnlyList<PartType> borrowedParts = null,
             IReadOnlyList<FixedElementConfig> fixedElements = null,
             string objective = "",
-            int duration = 0)
+            int duration = 0,
+            IReadOnlyList<PartType> possibleAnomalyParts = null,
+            IReadOnlyDictionary<PartType, string> adaptationHints = null)
         {
             LevelName = levelName;
             BoardRadius = boardRadius;
@@ -71,6 +76,8 @@ namespace Everlight.Tales.Board
             InitialArmMoves = initialArmMoves;
             InitialPublicRepairEnergy = initialPublicRepairEnergy;
             BorrowedParts = borrowedParts ?? new PartType[0];
+            PossibleAnomalyParts = possibleAnomalyParts ?? new PartType[0];
+            AdaptationHints = adaptationHints;
             FixedElements = fixedElements ?? new FixedElementConfig[0];
             Objective = objective;
             Duration = duration;

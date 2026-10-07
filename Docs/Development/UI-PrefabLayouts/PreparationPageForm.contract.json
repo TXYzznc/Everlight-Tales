@@ -481,36 +481,36 @@
               {
                 "type": "GridLayoutGroup",
                 "cellSize": [
-                  300.0,
-                  88.0
+                  350,
+                  88
                 ],
                 "spacing": [
-                  20.0,
-                  16.0
+                  0,
+                  8
                 ],
                 "constraint": 1,
-                "constraintCount": 3
+                "constraintCount": 1
               }
             ],
             "anchorMin": [
-              0.0,
-              1.0
+              0.59,
+              1
             ],
             "anchorMax": [
-              1.0,
-              1.0
+              1,
+              1
             ],
             "pivot": [
               0.5,
-              1.0
+              1
             ],
             "sizeDelta": [
-              -40.0,
-              210.0
+              -20,
+              568
             ],
             "anchoredPosition": [
-              0.0,
-              -60.0
+              0,
+              -94
             ],
             "children": [
               {
@@ -533,6 +533,9 @@
                     "type": "Button",
                     "transition": 1,
                     "interactable": true
+                  },
+                  {
+                    "type": "CarrySlotDropTarget"
                   }
                 ],
                 "anchorMin": [
@@ -562,7 +565,7 @@
                       {
                         "type": "TextMeshProUGUI",
                         "text": "—",
-                        "fontSize": 22.0,
+                        "fontSize": 18,
                         "color": [
                           0.9412,
                           0.949,
@@ -570,7 +573,9 @@
                           1.0
                         ],
                         "raycastTarget": false,
-                        "wordWrap": false
+                        "wordWrap": false,
+                        "enableWordWrapping": false,
+                        "overflowMode": 1
                       }
                     ],
                     "anchorMin": [
@@ -616,6 +621,9 @@
                     "type": "Button",
                     "transition": 1,
                     "interactable": true
+                  },
+                  {
+                    "type": "CarrySlotDropTarget"
                   }
                 ],
                 "anchorMin": [
@@ -645,7 +653,7 @@
                       {
                         "type": "TextMeshProUGUI",
                         "text": "—",
-                        "fontSize": 22.0,
+                        "fontSize": 18,
                         "color": [
                           0.9412,
                           0.949,
@@ -653,7 +661,9 @@
                           1.0
                         ],
                         "raycastTarget": false,
-                        "wordWrap": false
+                        "wordWrap": false,
+                        "enableWordWrapping": false,
+                        "overflowMode": 1
                       }
                     ],
                     "anchorMin": [
@@ -699,6 +709,9 @@
                     "type": "Button",
                     "transition": 1,
                     "interactable": true
+                  },
+                  {
+                    "type": "CarrySlotDropTarget"
                   }
                 ],
                 "anchorMin": [
@@ -728,7 +741,7 @@
                       {
                         "type": "TextMeshProUGUI",
                         "text": "—",
-                        "fontSize": 22.0,
+                        "fontSize": 18,
                         "color": [
                           0.9412,
                           0.949,
@@ -736,7 +749,9 @@
                           1.0
                         ],
                         "raycastTarget": false,
-                        "wordWrap": false
+                        "wordWrap": false,
+                        "enableWordWrapping": false,
+                        "overflowMode": 1
                       }
                     ],
                     "anchorMin": [
@@ -782,6 +797,9 @@
                     "type": "Button",
                     "transition": 1,
                     "interactable": true
+                  },
+                  {
+                    "type": "CarrySlotDropTarget"
                   }
                 ],
                 "anchorMin": [
@@ -811,7 +829,7 @@
                       {
                         "type": "TextMeshProUGUI",
                         "text": "—",
-                        "fontSize": 22.0,
+                        "fontSize": 18,
                         "color": [
                           0.9412,
                           0.949,
@@ -819,7 +837,9 @@
                           1.0
                         ],
                         "raycastTarget": false,
-                        "wordWrap": false
+                        "wordWrap": false,
+                        "enableWordWrapping": false,
+                        "overflowMode": 1
                       }
                     ],
                     "anchorMin": [
@@ -865,6 +885,9 @@
                     "type": "Button",
                     "transition": 1,
                     "interactable": true
+                  },
+                  {
+                    "type": "CarrySlotDropTarget"
                   }
                 ],
                 "anchorMin": [
@@ -894,7 +917,7 @@
                       {
                         "type": "TextMeshProUGUI",
                         "text": "—",
-                        "fontSize": 22.0,
+                        "fontSize": 18,
                         "color": [
                           0.9412,
                           0.949,
@@ -902,7 +925,9 @@
                           1.0
                         ],
                         "raycastTarget": false,
-                        "wordWrap": false
+                        "wordWrap": false,
+                        "enableWordWrapping": false,
+                        "overflowMode": 1
                       }
                     ],
                     "anchorMin": [
@@ -948,6 +973,9 @@
                     "type": "Button",
                     "transition": 1,
                     "interactable": true
+                  },
+                  {
+                    "type": "CarrySlotDropTarget"
                   }
                 ],
                 "anchorMin": [
@@ -977,7 +1005,7 @@
                       {
                         "type": "TextMeshProUGUI",
                         "text": "—",
-                        "fontSize": 22.0,
+                        "fontSize": 18,
                         "color": [
                           0.9412,
                           0.949,
@@ -985,7 +1013,9 @@
                           1.0
                         ],
                         "raycastTarget": false,
-                        "wordWrap": false
+                        "wordWrap": false,
+                        "enableWordWrapping": false,
+                        "overflowMode": 1
                       }
                     ],
                     "anchorMin": [
@@ -1018,8 +1048,8 @@
             "components": [
               {
                 "type": "TextMeshProUGUI",
-                "text": "可选零件（点击补位 / 再点移除）",
-                "fontSize": 20.0,
+                "text": "全部可用零件 · 点击加入 / 拖动替换",
+                "fontSize": 18,
                 "color": [
                   0.6784,
                   0.7059,
@@ -1031,24 +1061,24 @@
               }
             ],
             "anchorMin": [
-              0.0,
-              1.0
+              0,
+              1
             ],
             "anchorMax": [
-              1.0,
-              1.0
+              0.57,
+              1
             ],
             "pivot": [
               0.5,
-              1.0
+              1
             ],
             "sizeDelta": [
-              -40.0,
-              36.0
+              -36,
+              28
             ],
             "anchoredPosition": [
-              0.0,
-              -286.0
+              0,
+              -94
             ]
           },
           {
@@ -1062,24 +1092,24 @@
               }
             ],
             "anchorMin": [
-              0.0,
-              0.0
+              0,
+              1
             ],
             "anchorMax": [
-              1.0,
-              0.0
+              0.57,
+              1
             ],
             "pivot": [
               0.5,
-              0.0
+              1
             ],
             "sizeDelta": [
-              -40.0,
-              350.0
+              -36,
+              536
             ],
             "anchoredPosition": [
-              0.0,
-              16.0
+              0,
+              -126
             ],
             "children": [
               {
@@ -1117,7 +1147,11 @@
                         "type": "VerticalLayoutGroup",
                         "spacing": 8.0,
                         "ChildForceExpandWidth": true,
-                        "ChildForceExpandHeight": false
+                        "ChildForceExpandHeight": false,
+                        "childControlWidth": true,
+                        "childControlHeight": true,
+                        "childForceExpandWidth": true,
+                        "childForceExpandHeight": false
                       },
                       {
                         "type": "ContentSizeFitter",
@@ -1148,6 +1182,38 @@
                     "children": []
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "name": "Txt_CarryStatus",
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              0
+            ],
+            "pivot": [
+              0.5,
+              0
+            ],
+            "sizeDelta": [
+              -40,
+              32
+            ],
+            "anchoredPosition": [
+              0,
+              4
+            ],
+            "components": [
+              {
+                "type": "TextMeshProUGUI",
+                "text": "已选 0/6",
+                "fontSize": 20,
+                "raycastTarget": false,
+                "alignment": 513
               }
             ]
           }
@@ -1528,6 +1594,11 @@
       "path": "_autoFillKeys",
       "node": "PreparationPageForm/Panel_Carry/Btn_AutoFillKeys",
       "kind": "Button"
+    },
+    {
+      "path": "_carryStatus",
+      "node": "PreparationPageForm/Panel_Carry/Txt_CarryStatus",
+      "kind": "TextMeshProUGUI"
     }
   ],
   "scalars": [],

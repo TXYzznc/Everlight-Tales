@@ -1,250 +1,121 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 namespace Everlight.Tales.UI
 {
-    /// <summary>
-    /// 现场调查界面（P2 叙事层，D-015 表现）：场景占位 + 可点击热点。
-    /// 点热点高亮并计数，全部确认后回调（对应 InvestigationService.ConfirmAnomaly）。
-    /// 程序化构建，自带 ScreenSpaceOverlay Canvas（sortingOrder 600）。
-    /// 热点具体内容（工具包/施工记录/画中敲击等）与场景立绘由调查事件配置 + 美术填充。
-    /// </summary>
+    /// <summary>调查页的表现组件，页面负责数据注入与 GF 生命周期。</summary>
     public sealed class InvestigationView : MonoBehaviour
     {
         [SerializeField] private GameObject m_HotspotTemplate;
+        [SerializeField] private TextMeshProUGUI m_SceneLabel;
+        [SerializeField] private RectTransform m_StaticSceneRoot;
+        [SerializeField] private Button m_StaticFinishButton;
+        [SerializeField] private UIFormBase m_Form;
+        [SerializeField] private TMP_Text _progress;
+        private readonly List<InvestigationHotspotItemObject> _items = new List<InvestigationHotspotItemObject>();
+        private Action _onComplete;
+        private bool _finished;
+        private bool _playing;
+        private bool _autoFinish;
+        private int _confirmedCount;
+        public int ConfirmedCount => _confirmedCount;
+        public int HotspotCount => _items.Count;
 
-        public void SetHotspotTemplate(GameObject template) { m_HotspotTemplate = template; }
-        /// <summary>一个可点击调查热点。</summary>
         public sealed class Hotspot
         {
             public string Name;
-
-            /// <summary>归一化位置（0~1，左下原点）。</summary>
+            /// <summary>归一化位置，左下为 (0,0)。</summary>
             public Vector2 Position;
-
             public Action OnTap;
         }
 
-        private readonly List<(Hotspot Hotspot, Image Ring, TextMeshProUGUI Label)> m_Items =
-            new List<(Hotspot, Image, TextMeshProUGUI)>();
-
-        private TextMeshProUGUI m_SceneLabel;
-
-        private Action m_OnComplete;
-
-        private bool m_Finished;
-
-        private int m_ConfirmedCount;
-
-        private RectTransform m_StaticSceneRoot;
-        private Button m_StaticFinishButton;
-
+        public void SetHotspotTemplate(GameObject template) => m_HotspotTemplate = template;
         public void BindStaticLayout()
         {
-            m_SceneLabel = transform.Find("Txt_Scene")?.GetComponent<TextMeshProUGUI>();
-            m_StaticSceneRoot = transform.Find("Panel_Scene") as RectTransform;
-            m_StaticFinishButton = transform.Find("Btn_Finish")?.GetComponent<Button>();
+            if (m_SceneLabel == null || m_StaticSceneRoot == null || m_StaticFinishButton == null || m_Form == null || _progress == null || m_HotspotTemplate == null)
+                throw new InvalidOperationException("[InvestigationView][Contract] 调查页序列化引用不完整。");
         }
 
-        /// <summary>创建全屏调查面板；全部热点确认后回调并自毁。</summary>
+        /// <summary>兼容旧调用，但仍由正式 UIForm 加载与关闭。</summary>
         public static InvestigationView Show(string sceneName, IReadOnlyList<Hotspot> hotspots, Action onComplete)
         {
-            var go = new GameObject("investigation_view", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster), typeof(InvestigationView));
-            var canvas = go.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.overrideSorting = true;
-            canvas.sortingOrder = 600;
-            var view = go.GetComponent<InvestigationView>();
-            view.Play(sceneName, hotspots, onComplete);
-            return view;
+            InvestigationPageForm.Open(new InvestigationPageData(sceneName, hotspots, onComplete));
+            return null; // GF 异步加载，不能同步返回尚未创建的组件。
         }
 
-        public void Play(string sceneName, IReadOnlyList<Hotspot> hotspots, Action onComplete)
+        public void Play(string sceneName, IReadOnlyList<Hotspot> hotspots, Action onComplete, bool autoFinish = true)
         {
-            m_OnComplete = onComplete;
-            BuildUI(sceneName, hotspots);
-        }
-
-        private void BuildUI(string sceneName, IReadOnlyList<Hotspot> hotspots)
-        {
-            var rt = (RectTransform)transform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = Vector2.zero;
-
-            Image bg = GetComponent<Image>();
-            if (bg == null)
-            {
-                bg = gameObject.AddComponent<Image>();
-                bg.color = new Color(0.03f, 0.04f, 0.06f, 0.97f);
-                bg.raycastTarget = true;
-            }
-
-            if (m_SceneLabel == null) m_SceneLabel = MakeText(transform, "scene", new Vector2(0f, 340f), new Vector2(920f, 44f), 28, TextAlignmentOptions.Center);
-            m_SceneLabel.color = new Color(0.88f, 0.66f, 0.35f, 1f);
+            Stop();
+            BindStaticLayout();
+            _playing = true; _finished = false; _autoFinish = autoFinish; _onComplete = onComplete;
             m_SceneLabel.text = sceneName ?? "现场调查";
-
-            // 场景占位（中央大块）。
-            RectTransform sceneRt = m_StaticSceneRoot;
-            if (sceneRt == null)
-            {
-                var sceneGo = new GameObject("scene_placeholder", typeof(RectTransform), typeof(Image));
-                sceneGo.transform.SetParent(transform, false);
-                sceneRt = (RectTransform)sceneGo.transform;
-                sceneRt.anchorMin = new Vector2(0.5f, 0.5f);
-                sceneRt.anchorMax = new Vector2(0.5f, 0.5f);
-                sceneRt.pivot = new Vector2(0.5f, 0.5f);
-                sceneRt.anchoredPosition = new Vector2(0f, 120f);
-                sceneRt.sizeDelta = new Vector2(920f, 720f);
-                sceneGo.GetComponent<Image>().color = new Color(0.12f, 0.14f, 0.18f, 1f);
-            }
-
             if (hotspots != null)
-            {
-                foreach (Hotspot hotspot in hotspots)
-                {
-                    AddHotspot(sceneRt, hotspot);
-                }
-            }
-
-            var closeBtn = m_StaticFinishButton != null ? m_StaticFinishButton : MakeButton(transform, "btn_finish", new Vector2(0f, -420f), new Vector2(360f, 56f), "完成调查");
-            closeBtn.onClick.RemoveAllListeners();
-            closeBtn.onClick.AddListener(Finish);
+                foreach (Hotspot hotspot in hotspots) if (hotspot != null) AddHotspot(hotspot);
+            m_StaticFinishButton.onClick.RemoveAllListeners();
+            m_StaticFinishButton.onClick.AddListener(Finish);
+            RefreshProgress();
         }
 
-        private void AddHotspot(RectTransform sceneRt, Hotspot hotspot)
+        public void ShowEmpty()
         {
-            GameObject template = m_HotspotTemplate;
-            if (template != null)
-            {
-                GameObject instance = Instantiate(template, sceneRt);
-                instance.name = "hotspot";
-                RectTransform itemRect = instance.transform as RectTransform;
-                itemRect.anchorMin = new Vector2(0.5f, 0.5f); itemRect.anchorMax = itemRect.anchorMin; itemRect.pivot = itemRect.anchorMin; itemRect.sizeDelta = new Vector2(140f, 140f);
-                itemRect.anchoredPosition = new Vector2((hotspot.Position.x - 0.5f) * sceneRt.sizeDelta.x, (hotspot.Position.y - 0.5f) * sceneRt.sizeDelta.y);
-                Image itemRing = instance.GetComponent<Image>();
-                TextMeshProUGUI itemLabel = instance.GetComponentInChildren<TextMeshProUGUI>();
-                m_Items.Add((hotspot, itemRing, itemLabel));
-                Hotspot capturedItem = hotspot;
-                instance.GetComponent<InvestigationHotspotItem>()?.Bind(hotspot.Name, () => OnHotspotTap(capturedItem, itemRing, itemLabel));
-                return;
-            }
-            var go = new GameObject("hotspot", typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(sceneRt, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(140f, 140f);
-            rt.anchoredPosition = new Vector2(
-                (hotspot.Position.x - 0.5f) * sceneRt.sizeDelta.x,
-                (hotspot.Position.y - 0.5f) * sceneRt.sizeDelta.y);
-
-            var ring = go.GetComponent<Image>();
-            ring.color = new Color(0.66f, 0.42f, 0.78f, 0.35f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.offsetMin = Vector2.zero;
-            labelRt.offsetMax = Vector2.zero;
-            var label = labelGo.GetComponent<TextMeshProUGUI>();
-            label.font = TMP_Settings.defaultFontAsset;
-            label.fontSize = 18;
-            label.color = Color.white;
-            label.alignment = TextAlignmentOptions.Center;
-            label.raycastTarget = false;
-            label.text = hotspot.Name;
-
-            m_Items.Add((hotspot, ring, label));
-
-            var captured = hotspot;
-            go.GetComponent<Button>().onClick.AddListener(() => OnHotspotTap(captured, ring, label));
+            Stop(); BindStaticLayout();
+            m_SceneLabel.text = "现场调查";
+            _progress.text = "没有待调查的现场";
+            m_StaticFinishButton.interactable = false;
+            UIButtonStateUtility.SetSelected(m_StaticFinishButton, false);
         }
 
-        private void OnHotspotTap(Hotspot hotspot, Image ring, TextMeshProUGUI label)
+        private void AddHotspot(Hotspot hotspot)
         {
-            if (m_ConfirmedCount >= m_Items.Count)
-            {
-                return;
-            }
+            InvestigationHotspotItemObject item = m_Form.SpawnChildItem<InvestigationHotspotItemObject>(m_HotspotTemplate, m_StaticSceneRoot);
+            RectTransform rect = (RectTransform)item.gameObject.transform;
+            // 用归一化锚点适配容器实际尺寸；拉伸容器的 sizeDelta 可能为零。
+            rect.anchorMin = rect.anchorMax = new Vector2(Mathf.Clamp01(hotspot.Position.x), Mathf.Clamp01(hotspot.Position.y));
+            rect.pivot = Vector2.one * 0.5f; rect.anchoredPosition = Vector2.zero; rect.sizeDelta = new Vector2(140, 140);
+            _items.Add(item);
+            item.Bind(hotspot.Name, () => OnHotspotTap(item, hotspot));
+        }
 
-            // 高亮为已确认（冷紫 → 暖铜，标签加勾）。
-            ring.color = new Color(0.88f, 0.66f, 0.35f, 0.55f);
-            label.text = hotspot.Name + " ✓";
-            m_ConfirmedCount++;
+        private void OnHotspotTap(InvestigationHotspotItemObject item, Hotspot hotspot)
+        {
+            if (!_playing || _finished || !item.View.IsConfirmed) return;
+            _confirmedCount++;
+            RefreshProgress();
+            // 先锁定热点与计数，再执行外部回调；支持回调关闭或重开本页。
+            int generation = _generation;
             hotspot.OnTap?.Invoke();
+            if (generation == _generation && _playing && !_finished && _autoFinish && _confirmedCount == _items.Count) Finish();
+        }
 
-            if (m_ConfirmedCount >= m_Items.Count)
-            {
-                Finish();
-            }
+        private void RefreshProgress()
+        {
+            _progress.text = "已确认 " + _confirmedCount + "/" + _items.Count;
+            bool complete = _items.Count > 0 && _confirmedCount == _items.Count;
+            m_StaticFinishButton.interactable = complete;
+            UIButtonStateUtility.SetSelected(m_StaticFinishButton, complete);
         }
 
         private void Finish()
         {
-            if (m_Finished)
-            {
-                return;
-            }
-
-            m_Finished = true;
-            Action callback = m_OnComplete;
-            m_OnComplete = null;
+            if (!_playing || _finished || _items.Count == 0 || _confirmedCount != _items.Count) return;
+            _finished = true;
+            Action callback = _onComplete; _onComplete = null;
+            // 通过 GF 关闭，不销毁可复用页面的子节点。
+            m_Form.OnClickClose();
             callback?.Invoke();
-            Destroy(gameObject);
         }
 
-        private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)
+        private int _generation;
+        public void Stop()
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = fontSize;
-            text.color = Color.white;
-            text.alignment = anchor;
-            text.raycastTarget = false;
-            return text;
-        }
-
-        private static Button MakeButton(Transform parent, string name, Vector2 pos, Vector2 size, string label)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.offsetMin = Vector2.zero;
-            labelRt.offsetMax = Vector2.zero;
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 24;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.raycastTarget = false;
-            text.text = label;
-
-            Button button = go.GetComponent<Button>();
-            button.transition = Selectable.Transition.SpriteSwap;
-            return button;
+            _generation++; _playing = false; _finished = false; _confirmedCount = 0; _onComplete = null;
+            if (_items.Count > 0 && m_Form != null && m_HotspotTemplate != null)
+                m_Form.UnspawnAllChildItem<InvestigationHotspotItemObject>(m_HotspotTemplate);
+            _items.Clear();
+            if (m_StaticFinishButton != null) m_StaticFinishButton.onClick.RemoveAllListeners();
         }
     }
 }

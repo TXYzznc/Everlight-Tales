@@ -52,6 +52,35 @@ namespace Everlight.Tales.Data
             new PartCodexConfig("P-020", "接力电池", PartType.RelayBattery, "S2 街区初期", "画皮完成后的白天工具维修。"),
         };
 
+        /// <summary>准备页的一句话作用，来源于已确认的零件库索引。</summary>
+        public static string UseHint(PartType type)
+        {
+            switch (type)
+            {
+                case PartType.InertiaHammer: return "把普通碰撞变成下一次位移，承担最基础的连锁接力。";
+                case PartType.MeteringRatchet: return "把布置出来的重复碰撞转化为维修能量与表现分，提供值得保护的收益中心。";
+                case PartType.BlastCoil: return "同时触发多个邻接对象、拆开局面，形成连锁爆发点。";
+                case PartType.ReversalGear: return "改变来撞零件的去向，把两条运动路线接起来。";
+                case PartType.SpringLauncher: return "把一次向下运动重新送回上游，创造回弹接力。";
+                case PartType.SplitMold: return "把值得利用的一枚普通件变成两枚，主动扩大连锁规模。";
+                case PartType.StorageStomach: return "先把零件收起来，等路线合适再吐出，改变连锁时机。";
+                case PartType.MaterialFurnace: return "牺牲普通件清理空间，把拥堵转成当前作业的能量。";
+                case PartType.SwapFork: return "在连锁进行中交换两枚对象，改变后续触发位置。";
+                case PartType.VortexRotor: return "整体重排六邻格，让一圈零件一起换到新位置。";
+                case PartType.EnergyFlywheel: return "把分散的小碰撞积成一次大释放，承接跨拍准备。";
+                case PartType.ConductiveBridge: return "让隔着空隙的设备互相触发，并维持故事需要的通信线路。";
+                case PartType.LightingPrism: return "用连锁获得可操作的情报，处理伪装和视野异常。";
+                case PartType.RivetPliers: return "把连锁能量花在具体修复目标上，连接输出与故事推进。";
+                case PartType.TuningFork: return "把碰撞转成敲门、呼应和引导，支撑声音类挑战。";
+                case PartType.DrainImpeller: return "把积压水负荷转成排水与动力，为水灾连锁提供核心转换。";
+                case PartType.BufferBladder: return "承接可转移的设备负荷，为集中释放争取空间。";
+                case PartType.CalibrationProbe: return "用一次低成本试探确定出口或目标关系，同时承担设备校准。";
+                case PartType.MagneticTractor: return "主动把远处一个对象拉近，接上本来碰不到的连锁。";
+                case PartType.RelayBattery: return "延长关键器械的工作次数，让持续零件支撑更长连锁。";
+                default: return string.Empty;
+            }
+        }
+
         public static IReadOnlyList<PartCodexConfig> All() => _parts;
 
         public static PartCodexConfig Get(PartType type)

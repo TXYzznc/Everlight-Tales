@@ -1,0 +1,6 @@
+- [x] 1. 修改 CarryAvailableItem 的显示、状态、拖动与池清理。
+- [x] 2. 接入 PreparationPage、槽位投放、本关形态及真实提示。
+- [x] 3. 修改 InvestigationHotspotItem 和调查页的数据/生命周期。
+- [x] 4. 逐个修改两个 Item 和两个页面预制体，同步工具与契约。
+- [x] 5. 普通 Unity 编译并验证引用和运行日志，修复发现的问题。
+- [x] 6. 保存验收记录、关闭验证开关与 Play Mode。

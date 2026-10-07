@@ -15,6 +15,8 @@ namespace Everlight.Tales.Board
         private readonly List<PartType> _available;
         private readonly List<PartType> _keyParts;
         private readonly PartType[] _slots = new PartType[MaxSlots];
+        private readonly Dictionary<PartType, string> _forms = new Dictionary<PartType, string>();
+        public IReadOnlyDictionary<PartType, string> Forms => _forms;
 
         public IReadOnlyList<PartType> Available => _available;
 
@@ -24,14 +26,24 @@ namespace Everlight.Tales.Board
 
         public bool IsFull => SelectedCount >= MaxSlots;
 
-        public CarrySelection(IReadOnlyList<PartType> ownedKinds, IReadOnlyList<PartType> borrowedKinds, IReadOnlyList<PartType> keyParts)
+        public CarrySelection(IReadOnlyList<PartType> ownedKinds, IReadOnlyList<PartType> borrowedKinds, IReadOnlyList<PartType> keyParts, IReadOnlyDictionary<PartType, string> forms = null)
         {
             _available = new List<PartType>();
             var seen = new HashSet<PartType>();
             AddUnique(ownedKinds, seen);
             AddUnique(borrowedKinds, seen);
             _keyParts = new List<PartType>(keyParts ?? new PartType[0]);
+            foreach (PartType part in _available)
+                _forms[part] = forms != null && forms.TryGetValue(part, out string id) ? id ?? string.Empty : string.Empty;
             AutoSelectKeys();
+        }
+
+        public string FormAt(PartType part) => _forms.TryGetValue(part, out string id) ? id : string.Empty;
+        public bool SetForm(PartType part, string id)
+        {
+            if (!_available.Contains(part)) return false;
+            _forms[part] = id ?? string.Empty;
+            return true;
         }
 
         public PartType SlotAt(int index)
@@ -95,16 +107,12 @@ namespace Everlight.Tales.Board
                 return false;
             }
 
-            if (_slots[slotIndex] == PartType.None)
-            {
-                return Fill(part);
-            }
-
             if (Contains(part))
             {
                 return false;
             }
 
+            if (_slots[slotIndex] == PartType.None) SelectedCount++;
             _slots[slotIndex] = part;
             return true;
         }

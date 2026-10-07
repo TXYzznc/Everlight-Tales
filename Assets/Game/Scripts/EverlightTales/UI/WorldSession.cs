@@ -119,6 +119,45 @@ namespace Everlight.Tales.UI
         /// <summary>当前昼/夜的一批普通供给。</summary>
         public IReadOnlyList<SupplyInstance> Supply => _supply;
 
+        /// <summary>
+        /// 仅供 UI 正常流程验收：准备一组较丰富的家园来客数据，不写入正式存档。
+        /// 数据故意覆盖多种普通事件类型，便于检查来客区的布局和溢出表现。
+        /// </summary>
+        public void PrepareValidationHomeData()
+        {
+            while (Time.Period != TimeOfDay.Morning)
+            {
+                Time.Advance(Time.RemainingCells);
+            }
+
+            var candidates = new[]
+            {
+                new SupplyCandidate("EV-H01", "旧台灯接线", 1, 1, 0, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon }, 2, 40, EventKind.Repair, "home"),
+                new SupplyCandidate("EV-H02", "卡住的卷帘门", 1, 1, 0, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon }, 2, 40, EventKind.Repair, "home"),
+                new SupplyCandidate("EV-H03", "货架后的隔板", 1, 1, 0, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon }, 2, 40, EventKind.Repair, "home"),
+                new SupplyCandidate("EV-H04", "修复记录核对", 1, 1, 0, new[] { TimeOfDay.Morning }, 1, 20, EventKind.Investigate, "home"),
+                new SupplyCandidate("EV-H05", "邻里帮忙找物", 1, 1, 0, new[] { TimeOfDay.Morning }, 1, 20, EventKind.Life, "home"),
+                new SupplyCandidate("EV-H06", "待归档的零件清点", 1, 1, 0, new[] { TimeOfDay.Morning }, 1, 20, EventKind.Investigate, "home"),
+            };
+            _supply.Clear();
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                _supply.Add(new SupplyInstance(candidates[i].TemplateId, candidates[i], false));
+            }
+
+            CaseState redShoe = FindCase("L-01");
+            if (redShoe == null)
+            {
+                redShoe = new CaseState(new CaseConfig("L-01", "红舞鞋", "B-01", 3, "委托", "旧城区"));
+                World.Cases.Add(redShoe);
+            }
+            redShoe.Kind = CaseStateKind.AwaitingRevisit;
+            redShoe.CurrentStage = 3;
+            redShoe.Config.RevisitBlueprints = new[] { "L-01" };
+            redShoe.Config.RevisitFee = 120;
+            Debug.Log("[UIValidationHarness] HomePage 测试数据：homeSupply=" + _supply.Count + ", redShoe=" + redShoe.Kind + ", period=" + Time.Period);
+        }
+
         /// <summary>是否有未完成的维修尝试存档（首版 PlayerPrefs 最简存档未持久化尝试，暂恒 false；恢复面板预留）。</summary>
         public bool HasAttemptSave => false;
 
@@ -253,7 +292,7 @@ namespace Everlight.Tales.UI
                 keyParts.Add(key.PartType);
             }
 
-            PendingCarry = new CarrySelection(World.OwnedParts, boardConfig.BorrowedParts, keyParts);
+            PendingCarry = new CarrySelection(World.OwnedParts, boardConfig.BorrowedParts, keyParts, World.CurrentForms);
             PendingEventConfig = eventConfig;
             CurrentBoardConfig = boardConfig;
             return boardConfig;
@@ -290,7 +329,11 @@ namespace Everlight.Tales.UI
                 return null;
             }
 
-            BoardState board = InitialBoardBuilder.Build(CurrentBoardConfig, PendingCarry.SelectedParts(), Rng, ResolveBoardForms(null));
+            // 盘面用 null 表示基础形态；只传非基础映射，保持既有形态判断契约。
+            var preparedForms = new Dictionary<PartType, string>();
+            foreach (var pair in PendingCarry.Forms)
+                if (!string.IsNullOrEmpty(pair.Value)) preparedForms[pair.Key] = pair.Value;
+            BoardState board = InitialBoardBuilder.Build(CurrentBoardConfig, PendingCarry.SelectedParts(), Rng, preparedForms);
             CurrentEvent = RepairEventShell.Begin(PendingEventConfig, board);
 
             // 注入四选一累计的机械臂次数奖励（跨事件保留，注入后清零）。
@@ -449,8 +492,11 @@ namespace Everlight.Tales.UI
             CaseState state = FindCase(caseId);
             if (state == null)
             {
+                Debug.LogWarning($"[WorldSession][Revisit] case={caseId}, state=null");
                 return RevisitResult.NotAvailable;
             }
+
+            Debug.Log($"[WorldSession][Revisit] case={caseId}, beforeKind={state.Kind}, day={Time.Day}, period={Time.Period}, blueprints={state.Config.RevisitBlueprints?.Count ?? 0}, materials={state.Config.RevisitMaterials?.Count ?? 0}, fee={state.Config.RevisitFee}");
 
             if (state.Kind == CaseStateKind.Resolved)
             {
@@ -464,6 +510,8 @@ namespace Everlight.Tales.UI
                 ShowRevisitUnlock(state.Config.RevisitBlueprints);
             }
 
+            Debug.Log($"[WorldSession][Revisit] case={caseId}, success={result.Success}, already={result.AlreadyDone}, notReady={result.NotReady}, afterKind={state.Kind}");
+
             return result;
         }
 
@@ -471,6 +519,7 @@ namespace Everlight.Tales.UI
         {
             if (blueprints == null || blueprints.Count == 0)
             {
+                Debug.Log("[WorldSession][RevisitReward] 没有图样奖励，当前实现不会显示获得图样弹窗；请结合回访费和材料日志判断奖励是否发放。");
                 return;
             }
 
@@ -481,7 +530,9 @@ namespace Everlight.Tales.UI
                 names.Add(form != null ? form.Name : blueprint);
             }
 
-            GlobalUI.ShowUnlock("获得图样", string.Join("、", names));
+            string content = string.Join("、", names);
+            Debug.Log($"[WorldSession][RevisitReward] 显示图样奖励弹窗：{content}");
+            GlobalUI.ShowUnlock("获得图样", content);
         }
 
         /// <summary>演示入口：确保红舞鞋 L-01 已解决（待回访）并配置回访奖励（D-085）。</summary>

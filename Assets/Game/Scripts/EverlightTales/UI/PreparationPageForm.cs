@@ -1,7 +1,9 @@
 using System.Text;
+using System.Collections.Generic;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
 using Everlight.Tales.Events;
+using Everlight.Tales.Meta;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,6 +18,15 @@ namespace Everlight.Tales.UI
     public sealed partial class PreparationPageForm : UIFormBase, IProjectUIForm
     {
         public string FormKey => "PreparationPage";
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
+        private readonly List<CarryAvailableItem> _availableItems = new List<CarryAvailableItem>();
+
+        protected override void OnClose(bool isShutdown, object userData)
+        {
+            _availableItems.Clear();
+            foreach (Button slot in CarrySlots) slot.GetComponent<CarrySlotDropTarget>()?.ResetForPool();
+            base.OnClose(isShutdown, userData);
+        }
 
         private static readonly Color SlotEmptyColor = new Color(0.1843f, 0.2078f, 0.2510f, 1f);
 
@@ -30,6 +41,8 @@ namespace Everlight.Tales.UI
         private void BuildContent()
         {
             WireButtons();
+            _availableItems.Clear();
+            UnspawnAllItem<CarryAvailableItemObject>(AvailableItemTemplate);
 
             WorldSession session = WorldSession.Current;
             if (session == null || session.PendingEventConfig == null || session.PendingCarry == null
@@ -40,6 +53,9 @@ namespace Everlight.Tales.UI
                 Duration.text = "预计耗时：— 格";
                 Rounds.text = "轮次：—";
                 PreviewSummary.text = "无待准备的事件";
+                CarryStatus.text = "没有待准备的携带选择";
+                for (int i = 0; i < CarrySlots.Length; i++) { CarrySlotLabels[i].text = "—"; CarrySlots[i].interactable = false; CarrySlots[i].image.color = SlotEmptyColor; }
+                AutoFillKeys.interactable = false;
                 ConfirmButton.interactable = false;
                 return;
             }
@@ -79,6 +95,7 @@ namespace Everlight.Tales.UI
                 int slot = i;
                 CarrySlots[i].onClick.RemoveAllListeners();
                 CarrySlots[i].onClick.AddListener(() => OnSlotClicked(slot));
+                CarrySlots[i].GetComponent<CarrySlotDropTarget>().Bind(slot, OnPartDropped);
             }
         }
 
@@ -182,6 +199,7 @@ namespace Everlight.Tales.UI
         {
             // 通过 GF UIItem 对象池回收并重新生成，模板本身位于独立 Item Prefab。
             UnspawnAllItem<CarryAvailableItemObject>(AvailableItemTemplate);
+            _availableItems.Clear();
 
             foreach (PartType part in carry.Available)
             {
@@ -191,8 +209,47 @@ namespace Everlight.Tales.UI
                 }
 
                 CarryAvailableItemObject item = SpawnItem<CarryAvailableItemObject>(AvailableItemTemplate, AvailableContent);
-                item.Bind(part, PartName(part), OnAvailableClicked);
+                _availableItems.Add(item.View);
+                BindAvailable(item.View, part, WorldSession.Current);
             }
+        }
+
+        private void BindAvailable(CarryAvailableItem item, PartType part, WorldSession session)
+        {
+            CarrySelection carry = session.PendingCarry;
+            LevelBoardConfig config = session.CurrentBoardConfig;
+            string id = carry.FormAt(part);
+            FormConfig form = FormCatalog.Get(id);
+            int unlocked = 1;
+            foreach (FormConfig candidate in FormCatalog.OfHost(part)) if (FormService.IsUnlocked(session.World, candidate.Id)) unlocked++;
+            string hint = Contains(config.BorrowedParts, part) && !session.World.OwnedParts.Contains(part) ? "现场借用" : string.Empty;
+            if (config.AdaptationHints != null && config.AdaptationHints.TryGetValue(part, out string adaptation)) hint = JoinHint(hint, adaptation);
+            else if (Contains(carry.KeyParts, part)) hint = JoinHint(hint, "本关关键件");
+            item.Bind(part, PartName(part), form != null ? form.Description : PartCodexCatalog.UseHint(part),
+                _spriteCatalog.Get("ICO-060零件"), form != null ? form.Name : "基础形态", hint,
+                Contains(config.PossibleAnomalyParts, part), unlocked > 1, OnAvailableClicked, OnFormClicked);
+            for (int i = 0; i < CarrySelection.MaxSlots; i++) if (carry.SlotAt(i) == part) { item.SetSelectedSlot(i); break; }
+        }
+        private static string JoinHint(string a, string b) => string.IsNullOrEmpty(a) ? b : a + " · " + b;
+        private static bool Contains(IReadOnlyList<PartType> parts, PartType part) { foreach (PartType p in parts) if (p == part) return true; return false; }
+
+        private void OnFormClicked(PartType part)
+        {
+            WorldSession session = WorldSession.Current;
+            if (session?.PendingCarry == null) return;
+            List<string> choices = new List<string> { FormService.BaseFormId };
+            foreach (FormConfig form in FormCatalog.OfHost(part)) if (FormService.IsUnlocked(session.World, form.Id)) choices.Add(form.Id);
+            int index = choices.IndexOf(session.PendingCarry.FormAt(part));
+            session.PendingCarry.SetForm(part, choices[(index + 1) % choices.Count]);
+            foreach (CarryAvailableItem item in _availableItems) if (item.Part == part) BindAvailable(item, part, session);
+            RefreshCarry();
+        }
+        private void OnPartDropped(int slot, PartType part)
+        {
+            CarrySelection carry = WorldSession.Current?.PendingCarry;
+            if (carry == null) return;
+            if (!carry.Replace(slot, part)) GlobalUI.ShowToast("该零件已经携带，请先移除原槽位");
+            RefreshCarry();
         }
 
         private void OnSlotClicked(int slot)
@@ -218,19 +275,11 @@ namespace Everlight.Tales.UI
             CarrySelection carry = session.PendingCarry;
             if (carry.Contains(part))
             {
-                // 再点移除：找到该种类所在槽并清空。
-                for (int i = 0; i < CarrySelection.MaxSlots; i++)
-                {
-                    if (carry.SlotAt(i) == part)
-                    {
-                        carry.Remove(i);
-                        break;
-                    }
-                }
+                GlobalUI.ShowToast("已携带；点击右侧槽位可移除");
             }
             else
             {
-                carry.Fill(part);
+                if (!carry.Fill(part)) GlobalUI.ShowToast("已选满 6 种，请拖到右侧槽位替换");
             }
 
             RefreshCarry();
@@ -248,12 +297,26 @@ namespace Everlight.Tales.UI
             for (int i = 0; i < CarrySelection.MaxSlots; i++)
             {
                 PartType part = carry.SlotAt(i);
-                CarrySlotLabels[i].text = part == PartType.None ? "—" : PartName(part);
+                FormConfig form = part != PartType.None ? FormCatalog.Get(carry.FormAt(part)) : null;
+                CarrySlotLabels[i].text = part == PartType.None ? (i + 1) + " · 空槽" : (i + 1) + " · " + PartName(part) + "\n" + (form != null ? form.Name : "基础形态") + "\n" + (form != null ? form.Description : PartCodexCatalog.UseHint(part));
+                CarrySlots[i].interactable = true;
                 CarrySlots[i].image.color = part == PartType.None ? SlotEmptyColor : SlotFilledColor;
             }
 
+            foreach (CarryAvailableItem item in _availableItems)
+            {
+                int selected = -1;
+                for (int i = 0; i < CarrySelection.MaxSlots; i++) if (carry.SlotAt(i) == item.Part) { selected = i; break; }
+                item.SetSelectedSlot(selected);
+            }
+            var missing = carry.MissingKeyParts();
+            StringBuilder status = new StringBuilder("已选 ").Append(carry.SelectedCount).Append("/6");
+            if (missing.Count > 0) { status.Append(" · 缺少关键件："); foreach (PartType part in missing) status.Append(PartName(part)).Append(' '); }
+            CarryStatus.text = status.ToString();
+            AutoFillKeys.interactable = missing.Count > 0;
+
             // 关键件必须选入才可开始（关键件自动选入，移除后需补回）。
-            ConfirmButton.interactable = carry.MissingKeyParts().Count == 0;
+            ConfirmButton.interactable = missing.Count == 0 && carry.SelectedCount == System.Math.Min(CarrySelection.MaxSlots, carry.Available.Count);
         }
 
         private void OnConfirm()

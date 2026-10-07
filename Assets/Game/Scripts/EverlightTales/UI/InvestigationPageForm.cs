@@ -1,19 +1,42 @@
-﻿using UnityEngine;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityGameFramework.Runtime;
 
 namespace Everlight.Tales.UI
 {
-    /// <summary>独立调查流程页：契约固定场景区域、标题与完成按钮，热点按调查配置动态生成。</summary>
+    public sealed class InvestigationPageData
+    {
+        public readonly string SceneName;
+        public readonly IReadOnlyList<InvestigationView.Hotspot> Hotspots;
+        public readonly Action OnComplete;
+        public readonly bool AutoFinish;
+        public InvestigationPageData(string sceneName, IReadOnlyList<InvestigationView.Hotspot> hotspots, Action onComplete, bool autoFinish = true)
+        { SceneName = sceneName; Hotspots = hotspots; OnComplete = onComplete; AutoFinish = autoFinish; }
+    }
+
     public sealed class InvestigationPageForm : UIFormBase, IProjectUIForm
     {
         public string FormKey => "InvestigationPage";
-
+        public const string DataKey = "InvestigationPage.Data";
         [SerializeField] private InvestigationView m_InvestigationView;
-
+        public static int Open(InvestigationPageData data)
+        {
+            UIParams args = UIParams.Create(); args.Set(DataKey, data);
+            return GF.UI.OpenUIForm(UIViews.InvestigationPage, args);
+        }
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
-            if (m_InvestigationView == null) m_InvestigationView = GetComponentInChildren<InvestigationView>(true);
-            if (m_InvestigationView != null) m_InvestigationView.BindStaticLayout();
+            m_InvestigationView.BindStaticLayout();
+            if (Params.TryGet<VarObject>(DataKey, out VarObject value) && value.Value is InvestigationPageData data)
+                m_InvestigationView.Play(data.SceneName, data.Hotspots, data.OnComplete, data.AutoFinish);
+            else m_InvestigationView.ShowEmpty();
+        }
+        protected override void OnClose(bool isShutdown, object userData)
+        {
+            m_InvestigationView.Stop();
+            base.OnClose(isShutdown, userData);
         }
     }
 }
