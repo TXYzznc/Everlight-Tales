@@ -16,9 +16,11 @@ namespace Everlight.Tales.UI
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
-            if (m_MessageInput == null) m_MessageInput = transform.Find("Panel_Feedback/Input_Message")?.GetComponent<TMP_InputField>();
-            if (m_StatusText == null) m_StatusText = transform.Find("Panel_Feedback/Txt_Status")?.GetComponent<TextMeshProUGUI>();
-            if (m_SubmitButton == null) m_SubmitButton = transform.Find("Panel_Feedback/Btn_Submit")?.GetComponent<Button>();
+            if (m_MessageInput == null || m_StatusText == null || m_SubmitButton == null)
+            {
+                Debug.LogError("[FeedbackPageForm][Contract] 页面引用未完整绑定，拒绝装配反馈提交。", this);
+                return;
+            }
             if (m_SubmitButton != null)
             {
                 m_SubmitButton.onClick.RemoveAllListeners();

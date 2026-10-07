@@ -13,11 +13,11 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class BoardHUD : MonoBehaviour
     {
-        private TextMeshProUGUI m_RoundTapText;
-        private TextMeshProUGUI m_ScoreText;
-        private TextMeshProUGUI m_GoalsText;
-        private TextMeshProUGUI m_EnergyText;
-        private TextMeshProUGUI m_ArmText;
+        [SerializeField] private TextMeshProUGUI m_RoundTapText;
+        [SerializeField] private TextMeshProUGUI m_ScoreText;
+        [SerializeField] private TextMeshProUGUI m_GoalsText;
+        [SerializeField] private TextMeshProUGUI m_EnergyText;
+        [SerializeField] private TextMeshProUGUI m_ArmText;
 
         public string RoundTapText => m_RoundTapText != null ? m_RoundTapText.text : null;
         public string ScoreText => m_ScoreText != null ? m_ScoreText.text : null;
@@ -42,11 +42,11 @@ namespace Everlight.Tales.UI
 
         private void BindStaticLayout()
         {
-            m_RoundTapText = FindText("Txt_HudRoundTap");
-            m_ScoreText = FindText("Txt_HudScore");
-            m_GoalsText = FindText("Txt_HudGoals");
-            m_EnergyText = FindText("Txt_HudEnergy");
-            m_ArmText = FindText("Txt_HudArm");
+            if (m_RoundTapText == null) m_RoundTapText = FindText("Txt_HudRoundTap");
+            if (m_ScoreText == null) m_ScoreText = FindText("Txt_HudScore");
+            if (m_GoalsText == null) m_GoalsText = FindText("Txt_HudGoals");
+            if (m_EnergyText == null) m_EnergyText = FindText("Txt_HudEnergy");
+            if (m_ArmText == null) m_ArmText = FindText("Txt_HudArm");
         }
 
         private TextMeshProUGUI FindText(string name)

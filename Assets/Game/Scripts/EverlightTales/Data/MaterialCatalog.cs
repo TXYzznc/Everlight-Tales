@@ -17,13 +17,15 @@ namespace Everlight.Tales.Data
         public string Name;
         public MaterialRarity Rarity;
         public bool IsTypedByCase;
+        public string FlavorText;
 
-        public MaterialConfig(string id, string name, MaterialRarity rarity, bool isTypedByCase = false)
+        public MaterialConfig(string id, string name, MaterialRarity rarity, bool isTypedByCase = false, string flavorText = "")
         {
             Id = id;
             Name = name;
             Rarity = rarity;
             IsTypedByCase = isTypedByCase;
+            FlavorText = flavorText;
         }
     }
 
@@ -34,12 +36,12 @@ namespace Everlight.Tales.Data
         {
             return new[]
             {
-                new MaterialConfig("MT-001", "铜芯线", MaterialRarity.Common),
-                new MaterialConfig("MT-002", "精密齿轮", MaterialRarity.Common),
-                new MaterialConfig("MT-003", "玻璃镜片", MaterialRarity.Common),
-                new MaterialConfig("MT-004", "校准簧片", MaterialRarity.Common),
-                new MaterialConfig("MT-005", "定势残晶", MaterialRarity.Refined),
-                new MaterialConfig("MT-006", "异常纹样", MaterialRarity.Rare, true),
+                new MaterialConfig("MT-001", "铜芯线", MaterialRarity.Common, flavorText: "细细的铜线绕成一圈，像把没说完的话收进了口袋。"),
+                new MaterialConfig("MT-002", "精密齿轮", MaterialRarity.Common, flavorText: "每一枚齿都认真咬合，只有时间偶尔偷懒。"),
+                new MaterialConfig("MT-003", "玻璃镜片", MaterialRarity.Common, flavorText: "擦净之后，映出来的世界似乎比昨天清楚一点。"),
+                new MaterialConfig("MT-004", "校准簧片", MaterialRarity.Common, flavorText: "轻轻一拨就会颤动，像在替某台旧机器清嗓子。"),
+                new MaterialConfig("MT-005", "定势残晶", MaterialRarity.Refined, flavorText: "一小块安静的光，握久了，总觉得它记得某个瞬间。"),
+                new MaterialConfig("MT-006", "异常纹样", MaterialRarity.Rare, true, flavorText: "纹路没有固定的方向。你移开视线时，它似乎又换了一种写法。"),
             };
         }
 

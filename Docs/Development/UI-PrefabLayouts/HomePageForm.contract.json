@@ -4,31 +4,326 @@
   "namespace": "Everlight.Tales.UI",
   "prefabPath": "Assets/Game/Prefabs/UI/HomePage.prefab",
   "scriptPath": "Assets/Game/Scripts/EverlightTales/UI/HomePageForm.cs",
-  "referenceResolution": [1080, 1920],
+  "referenceResolution": [
+    1080,
+    1920
+  ],
   "root": {
     "name": "HomePageForm",
-    "components": [{"type":"HomePageForm"},{"type":"Canvas","renderMode":0},{"type":"GraphicRaycaster"},{"type":"CanvasGroup","alpha":1.0,"interactable":true,"blocksRaycasts":true}],
-    "anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0],
-    "children":[
-      {"name":"Panel_Background","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.09,0.102,0.125,1],"raycastTarget":false}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
-      {"name":"Panel_Home","components":[{"type":"HomePanel"}],"anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[-48,-220],"anchoredPosition":[0,-80],"children":[
-        {"name":"Panel_HomeTop","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/九宫格/SHR-001面板.png","color":[0.08,0.10,0.14,0.94]}],"anchorMin":[0,1],"anchorMax":[1,1],"pivot":[0.5,1],"sizeDelta":[0,112],"anchoredPosition":[0,0],"children":[
-          {"name":"Btn_Zone_0","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"},{"type":"Button","interactable":true}],"anchorMin":[0,0],"anchorMax":[0,1],"pivot":[0,0.5],"sizeDelta":[170,-32],"anchoredPosition":[24,0]},
-          {"name":"Btn_Zone_1","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"},{"type":"Button","interactable":true}],"anchorMin":[0,0],"anchorMax":[0,1],"pivot":[0,0.5],"sizeDelta":[170,-32],"anchoredPosition":[204,0]},
-          {"name":"Btn_Zone_2","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"},{"type":"Button","interactable":true}],"anchorMin":[0,0],"anchorMax":[0,1],"pivot":[0,0.5],"sizeDelta":[170,-32],"anchoredPosition":[384,0]},
-          {"name":"Btn_Zone_3","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"},{"type":"Button","interactable":true}],"anchorMin":[0,0],"anchorMax":[0,1],"pivot":[0,0.5],"sizeDelta":[170,-32],"anchoredPosition":[564,0]},
-          {"name":"Btn_Zone_4","components":[{"type":"Image","imageType":1,"spritePath":"Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"},{"type":"Button","interactable":true}],"anchorMin":[0,0],"anchorMax":[0,1],"pivot":[0,0.5],"sizeDelta":[170,-32],"anchoredPosition":[744,0]}
-        ]},
-        {"name":"Panel_HomeArea","anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,-128],"anchoredPosition":[0,-64],"children":[
-          {"name":"Panel_Workbench","anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
-          {"name":"Panel_Codex","anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
-          {"name":"Panel_Archive","anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
-          {"name":"Panel_Guest","anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]},
-          {"name":"Panel_Service","anchorMin":[0,0],"anchorMax":[1,1],"pivot":[0.5,0.5],"sizeDelta":[0,0],"anchoredPosition":[0,0]}
-        ]}
-      ]}
+    "components": [
+      {
+        "type": "HomePageForm"
+      },
+      {
+        "type": "Canvas",
+        "renderMode": 0
+      },
+      {
+        "type": "GraphicRaycaster"
+      },
+      {
+        "type": "CanvasGroup",
+        "alpha": 1.0,
+        "interactable": true,
+        "blocksRaycasts": true
+      }
+    ],
+    "anchorMin": [
+      0,
+      0
+    ],
+    "anchorMax": [
+      1,
+      1
+    ],
+    "pivot": [
+      0.5,
+      0.5
+    ],
+    "sizeDelta": [
+      0,
+      0
+    ],
+    "anchoredPosition": [
+      0,
+      0
+    ],
+    "children": [
+      {
+        "name": "Panel_Background",
+        "components": [
+          {
+            "type": "Image",
+            "imageType": 1,
+            "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-001面板.png",
+            "color": [
+              0.09,
+              0.102,
+              0.125,
+              1
+            ],
+            "raycastTarget": false
+          }
+        ],
+        "anchorMin": [
+          0,
+          0
+        ],
+        "anchorMax": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          0,
+          0
+        ],
+        "anchoredPosition": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "Panel_Home",
+        "components": [
+          {
+            "type": "HomePanel"
+          }
+        ],
+        "anchorMin": [
+          0,
+          0
+        ],
+        "anchorMax": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          -48,
+          -220
+        ],
+        "anchoredPosition": [
+          0,
+          -80
+        ],
+        "children": [
+          {
+            "name": "Panel_HomeTop",
+            "components": [
+              {
+                "type": "Image",
+                "imageType": 1,
+                "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-001面板.png",
+                "color": [
+                  0.08,
+                  0.1,
+                  0.14,
+                  0.94
+                ]
+              }
+            ],
+            "anchorMin": [
+              0,
+              1
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              1
+            ],
+            "sizeDelta": [
+              0,
+              112
+            ],
+            "anchoredPosition": [
+              0,
+              0
+            ],
+            "children": [
+              {
+                "name": "Btn_Zone_0",
+                "components": [
+                  {
+                    "type": "Image",
+                    "imageType": 1,
+                    "spritePath": "Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"
+                  },
+                  {
+                    "type": "Button",
+                    "interactable": true
+                  }
+                ],
+                "anchorMin": [
+                  0.0,
+                  0
+                ],
+                "anchorMax": [
+                  0.25,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -16,
+                  -32
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "name": "Btn_Zone_2",
+                "components": [
+                  {
+                    "type": "Image",
+                    "imageType": 1,
+                    "spritePath": "Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"
+                  },
+                  {
+                    "type": "Button",
+                    "interactable": true
+                  }
+                ],
+                "anchorMin": [
+                  0.25,
+                  0
+                ],
+                "anchorMax": [
+                  0.5,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -16,
+                  -32
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "name": "Btn_Zone_3",
+                "components": [
+                  {
+                    "type": "Image",
+                    "imageType": 1,
+                    "spritePath": "Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"
+                  },
+                  {
+                    "type": "Button",
+                    "interactable": true
+                  }
+                ],
+                "anchorMin": [
+                  0.5,
+                  0
+                ],
+                "anchorMax": [
+                  0.75,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -16,
+                  -32
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "name": "Btn_Zone_4",
+                "components": [
+                  {
+                    "type": "Image",
+                    "imageType": 1,
+                    "spritePath": "Assets/Game/Sprites/UI/控件/SHR-028-normal页签5.png"
+                  },
+                  {
+                    "type": "Button",
+                    "interactable": true
+                  }
+                ],
+                "anchorMin": [
+                  0.75,
+                  0
+                ],
+                "anchorMax": [
+                  1.0,
+                  1
+                ],
+                "pivot": [
+                  0.5,
+                  0.5
+                ],
+                "sizeDelta": [
+                  -16,
+                  -32
+                ],
+                "anchoredPosition": [
+                  0,
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Panel_HomeArea",
+            "anchorMin": [
+              0,
+              0
+            ],
+            "anchorMax": [
+              1,
+              1
+            ],
+            "pivot": [
+              0.5,
+              0.5
+            ],
+            "sizeDelta": [
+              0,
+              -128
+            ],
+            "anchoredPosition": [
+              0,
+              -64
+            ],
+            "children": []
+          }
+        ]
+      }
     ]
   },
-  "bindings":[{"path":"m_HomePanel","node":"HomePageForm/Panel_Home","kind":"HomePanel"}],
-  "scalars":[],"formArrays":[],"generatedFrom":"家园五区独立流程页契约（1080×1920）"
+  "bindings": [
+    {
+      "path": "m_HomePanel",
+      "node": "HomePageForm/Panel_Home",
+      "kind": "HomePanel"
+    }
+  ],
+  "scalars": [],
+  "formArrays": [],
+  "generatedFrom": "家园四区独立流程页契约（1080×1920）"
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Everlight.Tales.Data;
@@ -13,31 +13,41 @@ namespace Everlight.Tales.UI
     /// <summary>
     /// 三页列表（b44，任务页签）：事件页 / 任务页 / 怪谈页 + 维修费余额 + 任务领奖。
     /// 纯逻辑分组/排序复用 b21 的 EventPageLayout/TaskPageLayout/CasePageLayout，本类只做表现与领奖接线。
-    /// 页签壳优先绑定 MainPageShell Prefab，列表行与业务数据动态生成；挂在 MainPageShell 内容容器，切页签时整体显隐。
+    /// 页签壳优先绑定 MainPageShell Prefab，列表行与业务数据动态生成；挂在对应独立 UIForm 的内容容器，切页签时整体显隐。
     /// </summary>
     public sealed class JournalPanel : MonoBehaviour
     {
         private const float TopBarHeight = 96f;
-        private const float RowHeight = 50f;
+        private const float RowHeight = 64f;
 
         private int m_SubTab;
-        private TextMeshProUGUI m_BalanceLabel;
-        private RectTransform m_ListRoot;
-        private RectTransform m_ActionableContent;
-        private RectTransform m_DeferredContent;
-        private RectTransform m_CurrentContent;
-        private RectTransform m_FilterRoot;
-        private readonly Button[] m_SubButtons = new Button[3];
-        private readonly Button[] m_FilterButtons = new Button[6];
+        [SerializeField] private TextMeshProUGUI m_BalanceLabel;
+        [SerializeField] private RectTransform m_ListRoot;
+        [SerializeField] private RectTransform m_ActionableContent;
+        [SerializeField] private RectTransform m_DeferredContent;
+        [SerializeField] private RectTransform m_CurrentContent;
+        [SerializeField] private RectTransform m_FilterRoot;
+        [SerializeField] private GameObject[] _sections = new GameObject[3];
+        [SerializeField] private TextMeshProUGUI[] _sectionHeaders = new TextMeshProUGUI[3];
+        [SerializeField] private RectTransform[] _sectionContents = new RectTransform[3];
+        [SerializeField] private GameObject[] _sectionEmptyStates = new GameObject[3];
+        [SerializeField] private ScrollRect[] _sectionScrolls = new ScrollRect[3];
+        private readonly int[] _sectionCounts = new int[3];
+        [SerializeField] private Button[] m_SubButtons = new Button[3];
+        [SerializeField] private Button[] m_FilterButtons = new Button[6];
+        [SerializeField] private TextMeshProUGUI[] m_FilterNumbers = new TextMeshProUGUI[6];
 
-        private readonly TextMeshProUGUI[] m_SubBadges = new TextMeshProUGUI[3];
+        [SerializeField] private TextMeshProUGUI[] m_SubBadges = new TextMeshProUGUI[3];
 
         private EventKind m_EventFilter;
 
-        private Transform m_StaticRoot;
+        [SerializeField] private Transform m_StaticRoot;
+        [SerializeField] private Transform m_TopRoot;
+        [SerializeField] private RectTransform m_StaticListRoot;
 
         [SerializeField] private GameObject _itemTemplate;
         private UIFormBase _form;
+        private readonly ListRowCollection _rows = new ListRowCollection();
 
         public void SetItemTemplate(GameObject template)
         {
@@ -49,91 +59,72 @@ namespace Everlight.Tales.UI
             Debug.Log("[UI诊断][JournalPanel] BindStaticLayout begin panel=" + GetInstanceID() + ", template=" + (_itemTemplate != null ? _itemTemplate.name : "null"));
             if (_itemTemplate == null)
             {
-                Debug.LogError("[JournalPanel] JournalItem 模板未绑定。请在 Journal Prefab 中绑定 Assets/Game/Prefabs/UI/Item/JournalItem.prefab。");
+                Debug.LogError("[JournalPanel] 通用列表行模板未绑定。请在 Journal Prefab 中绑定 ListRowItem.prefab。");
             }
-            m_StaticRoot = transform.name == "Panel_Journal" ? transform : transform.Find("Panel_Journal");
+            if (m_StaticRoot == null) m_StaticRoot = transform.name == "Panel_Journal" ? transform : transform.Find("Panel_Journal");
             if (m_StaticRoot == null) return;
-            _form = GetComponentInParent<UIFormBase>();
+            _form = GetComponentInParent<UIFormBase>(true);
             if (_form == null) _form = FindObjectOfType<UIFormBase>();
-            Transform top = m_StaticRoot.Find("Panel_JournalTop");
-            RectTransform staticList = m_StaticRoot.Find("Panel_JournalList") as RectTransform;
-            m_ListRoot = staticList;
-            LayoutGroup staticLayout = staticList != null ? staticList.GetComponent<LayoutGroup>() : null;
-            if (staticLayout != null) staticLayout.enabled = false;
+            Transform top = m_TopRoot != null ? m_TopRoot : m_StaticRoot.Find("Panel_JournalTop");
+            RectTransform staticList = m_StaticListRoot != null ? m_StaticListRoot : m_StaticRoot.Find("Panel_JournalList") as RectTransform;
+            if (m_ListRoot == null) m_ListRoot = staticList;
+            // 保留预制体中 Panel_JournalList 的 LayoutGroup 状态。
+            // 动态条目位于 JournalEntriesRoot 的内部内容根，不需要关闭父级布局来定位。
             if (staticList != null)
             {
-                m_FilterRoot = EnsureRoot(staticList, "JournalFilterRoot");
-                m_ListRoot = EnsureRoot(staticList, "JournalEntriesRoot");
-                m_ActionableContent = m_ListRoot != null ? FindDescendant(m_ListRoot, "Content_Actionable") as RectTransform : null;
-                m_DeferredContent = m_ListRoot != null ? FindDescendant(m_ListRoot, "Content_Deferred") as RectTransform : null;
+                if (m_FilterRoot == null) m_FilterRoot = EnsureRoot(staticList, "JournalFilterRoot");
+                if (m_ListRoot == staticList || m_ListRoot == null) m_ListRoot = EnsureRoot(staticList, "JournalEntriesRoot");
+                if (_sections == null || _sections.Length != 3) _sections = new GameObject[3];
+                if (_sectionHeaders == null || _sectionHeaders.Length != 3) _sectionHeaders = new TextMeshProUGUI[3];
+                if (_sectionScrolls == null || _sectionScrolls.Length != 3) _sectionScrolls = new ScrollRect[3];
+                if (_sectionContents == null || _sectionContents.Length != 3) _sectionContents = new RectTransform[3];
+                if (_sectionEmptyStates == null || _sectionEmptyStates.Length != 3) _sectionEmptyStates = new GameObject[3];
+                for (int i = 0; i < _sections.Length; i++)
+                {
+                    Transform section = m_ListRoot != null ? m_ListRoot.Find("Section_" + i) : null;
+                    if (section != null) section.SetSiblingIndex(i);
+                    if (_sections[i] == null) _sections[i] = section != null ? section.gameObject : null;
+                    if (_sectionHeaders[i] == null) _sectionHeaders[i] = section != null ? section.Find("Header")?.GetComponentInChildren<TextMeshProUGUI>(true) : null;
+                    if (_sectionScrolls[i] == null) _sectionScrolls[i] = section != null ? section.Find("ScrollRect")?.GetComponent<ScrollRect>() : null;
+                    if (_sectionContents[i] == null) _sectionContents[i] = _sectionScrolls[i] != null ? _sectionScrolls[i].content : null;
+                    if (_sectionEmptyStates[i] == null) _sectionEmptyStates[i] = section != null ? section.Find("ScrollRect/EmptyState")?.gameObject : null;
+                }
+                if (m_ActionableContent == null) m_ActionableContent = _sectionContents[0];
+                if (m_DeferredContent == null) m_DeferredContent = _sectionContents[1];
             }
-            m_BalanceLabel = top != null ? FindDescendant(top, "Txt_Balance")?.GetComponent<TextMeshProUGUI>() : null;
+            if (m_BalanceLabel == null) m_BalanceLabel = top != null ? FindDescendant(top, "Txt_Balance")?.GetComponent<TextMeshProUGUI>() : null;
+            if (m_SubButtons == null || m_SubButtons.Length != 3) m_SubButtons = new Button[3];
+            if (m_SubBadges == null || m_SubBadges.Length != 3) m_SubBadges = new TextMeshProUGUI[3];
             for (int i = 0; i < m_SubButtons.Length; i++)
             {
-                m_SubButtons[i] = top != null ? FindDescendant(top, "Btn_Sub_" + i)?.GetComponent<Button>() : null;
+                if (m_SubButtons[i] == null) m_SubButtons[i] = top != null ? FindDescendant(top, "Btn_Sub_" + i)?.GetComponent<Button>() : null;
                 // Badge 文本可能被正式美术的 Bg1/Bg2/Bg3 容器包裹，不能只查找直接子节点。
-                m_SubBadges[i] = top != null ? FindDescendant(top, "Txt_Badge_" + i)?.GetComponent<TextMeshProUGUI>() : null;
+                if (m_SubBadges[i] == null) m_SubBadges[i] = top != null ? FindDescendant(top, "Txt_Badge_" + i)?.GetComponent<TextMeshProUGUI>() : null;
             }
+            if (m_FilterButtons == null || m_FilterButtons.Length != 6) m_FilterButtons = new Button[6];
+            if (m_FilterNumbers == null || m_FilterNumbers.Length != 6) m_FilterNumbers = new TextMeshProUGUI[6];
             for (int i = 0; i < m_FilterButtons.Length; i++)
             {
-                m_FilterButtons[i] = m_FilterRoot != null ? FindDescendant(m_FilterRoot, "Btn_Filter_" + i)?.GetComponent<Button>() : null;
+                if (m_FilterButtons[i] == null) m_FilterButtons[i] = m_FilterRoot != null ? FindDescendant(m_FilterRoot, "Btn_Filter_" + i)?.GetComponent<Button>() : null;
+                if (m_FilterNumbers[i] == null) m_FilterNumbers[i] = m_FilterButtons[i] != null ? FindDescendant(m_FilterButtons[i].transform, "Txt_Num")?.GetComponent<TextMeshProUGUI>() : null;
             }
         }
 
         public void Build()
         {
-            if (m_StaticRoot != null && m_ListRoot != null && m_ActionableContent != null && m_DeferredContent != null && m_BalanceLabel != null && m_SubButtons[0] != null)
+            if (m_StaticRoot != null && m_ListRoot != null && m_ActionableContent != null && _sectionContents[2] != null && m_DeferredContent != null && m_BalanceLabel != null && m_SubButtons[0] != null)
             {
                 for (int i = 0; i < m_SubButtons.Length; i++)
                 {
                     int index = i;
                     m_SubButtons[i].onClick.RemoveAllListeners();
                     m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
-                    if (m_SubBadges[i] != null) m_SubBadges[i].text = string.Empty;
+                    SetSubBadge(i, 0);
                 }
                 SelectSubTab(0);
                 return;
             }
-            var topGo = new GameObject("journal_top", typeof(RectTransform), typeof(Image));
-            topGo.transform.SetParent(transform, false);
-            var topRt = (RectTransform)topGo.transform;
-            topRt.anchorMin = new Vector2(0f, 1f);
-            topRt.anchorMax = new Vector2(1f, 1f);
-            topRt.pivot = new Vector2(0.5f, 1f);
-            topRt.anchoredPosition = Vector2.zero;
-            topRt.sizeDelta = new Vector2(0f, TopBarHeight);
-            topGo.GetComponent<Image>().color = UIFactory.BgDark;
-
-            // 右：维修费余额（经济入口）。
-            m_BalanceLabel = UIFactory.MakeText(topGo.transform, "balance", new Vector2(-24f, -24f), new Vector2(260f, 36f), 26, TextAlignmentOptions.Right);
-
-            // 左：三个子页签。
-            string[] names = { "事件", "任务", "怪谈" };
-            for (int i = 0; i < names.Length; i++)
-            {
-                int index = i;
-                m_SubButtons[i] = UIFactory.MakeButton(topGo.transform, "sub_" + names[i], new Vector2(-430f + i * 150f, -24f), new Vector2(140f, 56f), names[i], 26);
-                m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
-
-                m_SubBadges[i] = UIFactory.MakeText(topGo.transform, "badge_" + names[i], new Vector2(-430f + i * 150f + 54f, -6f), new Vector2(36f, 26f), 20, TextAlignmentOptions.Center);
-                m_SubBadges[i].color = new Color(0.88f, 0.66f, 0.35f, 1f);
-                m_SubBadges[i].raycastTarget = false;
-                m_SubBadges[i].text = string.Empty;
-            }
-
-            var listGo = new GameObject("journal_list", typeof(RectTransform));
-            listGo.transform.SetParent(transform, false);
-            var listRt = (RectTransform)listGo.transform;
-            listRt.anchorMin = new Vector2(0f, 0f);
-            listRt.anchorMax = new Vector2(1f, 1f);
-            listRt.pivot = new Vector2(0.5f, 0.5f);
-            listRt.anchoredPosition = new Vector2(0f, -TopBarHeight * 0.5f);
-            listRt.sizeDelta = new Vector2(0f, -TopBarHeight);
-            m_ListRoot = listRt;
-            m_FilterRoot = listRt;
-
-            SelectSubTab(0);
-            Debug.Log("[UI诊断][JournalPanel] BindStaticLayout done filter=" + (m_FilterRoot != null ? m_FilterRoot.name : "null") + ", actionable=" + (m_ActionableContent != null ? m_ActionableContent.name : "null") + ", deferred=" + (m_DeferredContent != null ? m_DeferredContent.name : "null") + ", form=" + (_form != null ? _form.GetType().Name : "null"));
+            Debug.LogError("JournalPanel 静态布局不完整，拒绝运行时创建 UI。", this);
         }
 
         public void Refresh()
@@ -144,22 +135,32 @@ namespace Everlight.Tales.UI
                 return;
             }
 
+            ApplySubTabSelection();
             if (m_BalanceLabel != null) m_BalanceLabel.text = "维修费 " + session.World.RepairFee;
-            if (m_SubBadges[0] != null) m_SubBadges[0].text = BadgeText(CountActionableEvents(session));
-            if (m_SubBadges[1] != null) m_SubBadges[1].text = BadgeText(CountClaimableTasks(session));
-            if (m_SubBadges[2] != null) m_SubBadges[2].text = BadgeText(CountActiveCases(session));
+            SetSubBadge(0, CountActionableEvents(session));
+            SetSubBadge(1, CountClaimableTasks(session));
+            SetSubBadge(2, CountActiveCases(session));
             RebuildList();
         }
 
         private void SelectSubTab(int index)
         {
-            m_SubTab = index;
-            for (int i = 0; i < m_SubButtons.Length; i++)
+            if (index < 0 || index >= m_SubButtons.Length)
             {
-                UIFactory.SetSelected(m_SubButtons[i], i == index);
+                return;
             }
 
+            m_SubTab = index;
+            ApplySubTabSelection();
             RebuildList();
+        }
+
+        private void ApplySubTabSelection()
+        {
+            for (int i = 0; i < m_SubButtons.Length; i++)
+            {
+                UIButtonStateUtility.SetSelected(m_SubButtons[i], i == m_SubTab);
+            }
         }
 
         private void RebuildList()
@@ -167,9 +168,13 @@ namespace Everlight.Tales.UI
             try
             {
                 Debug.Log("[UI诊断][JournalPanel] RebuildList begin subTab=" + m_SubTab + ", template=" + (_itemTemplate != null ? _itemTemplate.name : "null") + ", actionable=" + (m_ActionableContent != null ? m_ActionableContent.name : "null") + ", deferred=" + (m_DeferredContent != null ? m_DeferredContent.name : "null"));
-                if (_form != null && _itemTemplate != null) _form.UnspawnAllChildItem<JournalItemObject>(_itemTemplate);
-                ClearChildren(m_ActionableContent);
-                ClearChildren(m_DeferredContent);
+                _rows.Clear();
+                ConfigureSections();
+                for (int i = 0; i < _sectionContents.Length; i++)
+                {
+                    _sectionCounts[i] = 0;
+                    ClearChildren(_sectionContents[i]);
+                }
 
                 WorldSession session = WorldSession.Current;
                 if (session == null)
@@ -193,6 +198,7 @@ namespace Everlight.Tales.UI
                         BuildCasePage(session);
                         break;
                 }
+                UpdateSectionEmptyStates();
                 Debug.Log("[UI诊断][JournalPanel] RebuildList done subTab=" + m_SubTab + ", actionableChildren=" + ChildCount(m_ActionableContent) + ", deferredChildren=" + ChildCount(m_DeferredContent));
             }
             catch (Exception ex)
@@ -237,7 +243,10 @@ namespace Everlight.Tales.UI
             int count = 0;
             foreach (CaseState c in session.World.Cases)
             {
-                if (c.Kind == CaseStateKind.Investigating || c.Kind == CaseStateKind.AwaitingRepair || c.Kind == CaseStateKind.Repairing)
+                // The case tab renders every triggered case, including AwaitingRevisit,
+                // Resolved and Revisited entries. Keep the badge count in lockstep with
+                // BuildCasePage so a visible case can never produce an empty Num3 badge.
+                if (c.Kind != CaseStateKind.NotTriggered)
                 {
                     count++;
                 }
@@ -251,12 +260,42 @@ namespace Everlight.Tales.UI
             return count > 0 ? count.ToString() : string.Empty;
         }
 
+        private void SetSubBadge(int index, int count)
+        {
+            TextMeshProUGUI badge = m_SubBadges[index];
+            if (badge == null) return;
+            badge.text = BadgeText(count);
+            // 隐藏整个数量标记，包含数字背后的底图。
+            string objectName = "Num" + (index + 1);
+            Transform root = badge.transform;
+            while (root != null && root != m_StaticRoot)
+            {
+                if (root.name == objectName)
+                {
+                    root.gameObject.SetActive(count > 0);
+                    return;
+                }
+                root = root.parent;
+            }
+            badge.gameObject.SetActive(count > 0);
+        }
+
         // ---- 事件页 ----
 
-        private void BuildEventFilterRow()
+        private void BuildEventFilterRow(WorldSession session)
         {
             string[] names = { "全部", "维修", "处置", "生活", "调查", "怪谈" };
             EventKind[] kinds = { EventKind.None, EventKind.Repair, EventKind.Disposal, EventKind.Life, EventKind.Investigate, EventKind.Anomaly };
+            int[] counts = new int[kinds.Length];
+            foreach (SupplyInstance supply in session.Supply)
+            {
+                EventEntry entry = EventEntry.FromSupply(supply, "本城");
+                counts[0]++;
+                for (int kindIndex = 1; kindIndex < kinds.Length; kindIndex++)
+                {
+                    if (entry.Kind == kinds[kindIndex]) counts[kindIndex]++;
+                }
+            }
             for (int i = 0; i < names.Length; i++)
             {
                 int index = i;
@@ -266,8 +305,9 @@ namespace Everlight.Tales.UI
                     Debug.LogError("[JournalPanel] JournalFilterRoot 缺少 Btn_Filter_" + i + "，请检查 Journal Prefab 布局。");
                     continue;
                 }
+                if (m_FilterNumbers[i] != null) m_FilterNumbers[i].text = counts[i] > 0 ? counts[i].ToString() : string.Empty;
                 btn.onClick.RemoveAllListeners();
-                UIFactory.SetSelected(btn, m_EventFilter == kinds[i]);
+                UIButtonStateUtility.SetSelected(btn, m_EventFilter == kinds[i]);
                 btn.onClick.AddListener(() =>
                 {
                     m_EventFilter = kinds[index];
@@ -301,7 +341,7 @@ namespace Everlight.Tales.UI
 
         private void BuildEventPage(WorldSession session)
         {
-            BuildEventFilterRow();
+            BuildEventFilterRow(session);
 
             var entries = new List<EventEntry>();
             foreach (SupplyInstance supply in session.Supply)
@@ -317,108 +357,54 @@ namespace Everlight.Tales.UI
 
             float y = 0f;
             m_CurrentContent = m_ActionableContent;
-            bool anyActionable = false;
             foreach (EventEntry entry in entries)
             {
                 if (EventPageLayout.GroupOf(entry, session.Time.Period) == EventGroup.Actionable)
                 {
-                    anyActionable = true;
-                    y = AddCard(y, "◆ " + entry.Name + "（" + entry.TimeCost + " 格）", BuildEventDetail(entry), new Color(0.92f, 0.92f, 0.92f, 1f));
+                    y = AddCard(y, "◆ " + entry.Name + "（" + entry.TimeCost + " 格）", BuildEventDetail(entry), new Color(0.92f, 0.92f, 0.92f, 1f), false);
                 }
-            }
-
-            if (!anyActionable)
-            {
-                AddRow(y, "（无）");
             }
 
             y = 0f;
             m_CurrentContent = m_DeferredContent;
-            bool anyElse = false;
             foreach (EventEntry entry in entries)
             {
                 EventGroup g = EventPageLayout.GroupOf(entry, session.Time.Period);
                 if (g == EventGroup.NotOpenYet || g == EventGroup.Missed)
                 {
-                    anyElse = true;
                     string tag = g == EventGroup.NotOpenYet ? "未到开放" : "已错过";
-                    y = AddCard(y, "◇ " + entry.Name + "（" + tag + "）", BuildEventDetail(entry), new Color(0.62f, 0.64f, 0.68f, 1f));
+                    y = AddCard(y, "◇ " + entry.Name + "（" + tag + "）", BuildEventDetail(entry), new Color(0.62f, 0.64f, 0.68f, 1f), false);
                 }
             }
 
-            if (!anyElse)
-            {
-                AddRow(y, "（无）");
-            }
         }
 
         // ---- 任务页 ----
 
         private void BuildTaskPage(WorldSession session)
         {
-            // 任务页签与事件页签共用第一条滚动列表，切换时必须重新指定内容根节点。
-            m_CurrentContent = m_ActionableContent != null ? m_ActionableContent : m_ListRoot;
             List<TaskState> tasks = session.World.Tasks;
-            Debug.Log("[UI诊断][JournalPanel] BuildTaskPage tasks=" + (tasks != null ? tasks.Count.ToString() : "null") + ", content=" + (m_CurrentContent != null ? m_CurrentContent.name : "null"));
-            if (tasks == null || tasks.Count == 0)
+            if (tasks == null) return;
+            var sorted = new List<TaskState>(tasks);
+            sorted.Sort(TaskPageLayout.Compare);
+            foreach (TaskState task in sorted)
             {
-                AddRow(-18f, "暂无任务。");
-                return;
-            }
-
-            var groups = new List<(TaskGroup, List<TaskState>)>
-            {
-                (TaskGroup.InProgress, new List<TaskState>()),
-                (TaskGroup.Claimable, new List<TaskState>()),
-                (TaskGroup.Done, new List<TaskState>()),
-            };
-
-            foreach (TaskState task in tasks)
-            {
-                TaskGroup g = TaskPageLayout.GroupOf(task);
-                foreach (var pair in groups)
+                TaskGroup group = TaskPageLayout.GroupOf(task);
+                m_CurrentContent = _sectionContents[group == TaskGroup.InProgress ? 0 : group == TaskGroup.Claimable ? 1 : 2];
+                string detail = BuildTaskDetail(task);
+                UnityEngine.Events.UnityAction detailClick = () => GlobalUI.ShowDialog("详情", detail);
+                switch (group)
                 {
-                    if (pair.Item1 == g)
-                    {
-                        pair.Item2.Add(task);
-                    }
+                    case TaskGroup.InProgress:
+                        SpawnJournalRow(0f, "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）", detail, Color.white, detailClick, "跟踪", false, () => TrackTask(task));
+                        break;
+                    case TaskGroup.Claimable:
+                        SpawnJournalRow(0f, "● " + task.Config.Name + "（奖励 " + task.Config.RewardFee + " 费）", detail, Color.white, detailClick, "领取", false, () => ClaimTask(task));
+                        break;
+                    default:
+                        AddCard(0f, "○ " + task.Config.Name, detail, new Color(0.62f, 0.64f, 0.68f, 1f), false);
+                        break;
                 }
-            }
-
-            float y = -18f;
-            y = AddHeader(y, "进行中");
-            foreach (TaskState task in groups[0].Item2)
-            {
-                y = AddTrackRow(y, task);
-            }
-
-            if (groups[0].Item2.Count == 0)
-            {
-                y = AddRow(y, "（无）");
-            }
-
-            y = AddHeader(y, "可领奖");
-            if (groups[1].Item2.Count == 0)
-            {
-                y = AddRow(y, "（无）");
-            }
-            else
-            {
-                foreach (TaskState task in groups[1].Item2)
-                {
-                    y = AddActionRow(y, "● " + task.Config.Name + "（奖励 " + task.Config.RewardFee + " 费）", "领取", () => ClaimTask(task));
-                }
-            }
-
-            y = AddHeader(y, "已完成");
-            foreach (TaskState task in groups[2].Item2)
-            {
-                y = AddCard(y, "○ " + task.Config.Name, BuildTaskDetail(task), new Color(0.62f, 0.64f, 0.68f, 1f));
-            }
-
-            if (groups[2].Item2.Count == 0)
-            {
-                y = AddRow(y, "（无）");
             }
         }
 
@@ -440,21 +426,14 @@ namespace Everlight.Tales.UI
 
             if (cases.Count == 0)
             {
-                AddRow(-18f, "暂无已触发的怪谈档案。");
                 return;
             }
 
-            float y = -18f;
-            string currentBatch = null;
             foreach (CaseState c in cases)
             {
-                if (currentBatch != c.Config.Batch)
-                {
-                    currentBatch = c.Config.Batch;
-                    y = AddHeader(y, "批次 " + currentBatch);
-                }
-
-                y = AddCard(y, "· " + c.Config.Name + "（" + CaseKindText(c.Kind) + "）", BuildCaseDetail(c), new Color(0.92f, 0.92f, 0.92f, 1f));
+                bool completed = c.Kind == CaseStateKind.Resolved || c.Kind == CaseStateKind.Revisited;
+                m_CurrentContent = _sectionContents[completed ? 1 : 0];
+                AddCard(0f, "· " + c.Config.Name + "（" + CaseKindText(c.Kind) + "）", BuildCaseDetail(c), Color.white, false);
             }
         }
 
@@ -476,61 +455,6 @@ namespace Everlight.Tales.UI
         }
 
         // ---- 进行中任务的定位 / 跟踪 ----
-
-        private float AddTrackRow(float y, TaskState task)
-        {
-            var textGo = new GameObject("row_text", typeof(RectTransform), typeof(TextMeshProUGUI));
-            textGo.transform.SetParent(m_ListRoot, false);
-            var textRt = (RectTransform)textGo.transform;
-            textRt.anchorMin = new Vector2(0f, 1f);
-            textRt.anchorMax = new Vector2(1f, 1f);
-            textRt.pivot = new Vector2(0.5f, 1f);
-            textRt.anchoredPosition = new Vector2(0f, y);
-            textRt.sizeDelta = new Vector2(-300f, RowHeight);
-            var text = textGo.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = 24;
-            text.color = new Color(0.92f, 0.92f, 0.92f, 1f);
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）";
-
-            MakeTrackButton(new Vector2(-160f, y), "跟踪", UIFactory.ButtonGreen, () => TrackTask(task));
-            MakeTrackButton(new Vector2(-20f, y), "定位", UIFactory.ButtonBlue, () => LocateTask(task));
-
-            return y - RowHeight - 6f;
-        }
-
-        private void MakeTrackButton(Vector2 pos, string label, Color color, UnityEngine.Events.UnityAction onClick)
-        {
-            var btnGo = new GameObject("row_action", typeof(RectTransform), typeof(Image), typeof(Button));
-            btnGo.transform.SetParent(m_ListRoot, false);
-            var btnRt = (RectTransform)btnGo.transform;
-            btnRt.anchorMin = new Vector2(1f, 1f);
-            btnRt.anchorMax = new Vector2(1f, 1f);
-            btnRt.pivot = new Vector2(1f, 1f);
-            btnRt.anchoredPosition = pos;
-            btnRt.sizeDelta = new Vector2(120f, 44f);
-            btnGo.GetComponent<Image>().color = color;
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(btnGo.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = Vector2.zero;
-            var btnText = labelGo.GetComponent<TextMeshProUGUI>();
-            btnText.font = UIFactory.BuiltinFont;
-            btnText.fontSize = 22;
-            btnText.color = Color.white;
-            btnText.alignment = TextAlignmentOptions.Center;
-            btnText.text = label;
-            btnText.raycastTarget = false;
-
-            btnGo.GetComponent<Button>().transition = Selectable.Transition.SpriteSwap;
-            btnGo.GetComponent<Button>().onClick.AddListener(onClick);
-        }
 
         private void TrackTask(TaskState task)
         {
@@ -601,7 +525,6 @@ namespace Everlight.Tales.UI
         {
             var sb = new StringBuilder();
             sb.Append(c.Config.Name).Append('\n');
-            sb.Append("批次：").Append(c.Config.Batch).Append('\n');
             sb.Append("状态：").Append(CaseKindText(c.Kind)).Append('\n');
             if (!string.IsNullOrEmpty(c.Config.Source))
             {
@@ -629,131 +552,54 @@ namespace Everlight.Tales.UI
 
         // ---- 行渲染 ----
 
-        private float AddHeader(float y, string title)
+        private void ConfigureSections()
         {
-            return AddRow(y - 6f, "—— " + title + " ——", new Color(1f, 0.85f, 0.35f, 1f), 26);
-        }
-
-        private float AddRow(float y, string label)
-        {
-            return AddRow(y, label, new Color(0.92f, 0.92f, 0.92f, 1f), 26);
-        }
-
-        private float AddRow(float y, string label, Color color, int fontSize = 26)
-        {
-            TextMeshProUGUI text = MakeRowText(m_CurrentContent != null ? m_CurrentContent : m_ListRoot, y, label, color, fontSize);
-            text.gameObject.name = "row";
-            return y - RowHeight;
-        }
-
-        private float AddCard(float y, string label, string detail, Color color, int fontSize = 26)
-        {
-            if (_form != null && _itemTemplate != null)
+            string[] headers = m_SubTab == 0
+                ? new[] { "可处理", "未到开放时段 / 本段已错过", "" }
+                : m_SubTab == 1 ? new[] { "进行中", "可领奖", "已完成" }
+                : new[] { "处理中", "已完成", "" };
+            for (int i = 0; i < _sections.Length; i++)
             {
-                string captured = detail;
-                JournalItemObject item = _form.SpawnChildItem<JournalItemObject>(_itemTemplate, m_CurrentContent != null ? m_CurrentContent : m_ListRoot);
-                RectTransform itemRect = item.gameObject.transform as RectTransform;
-                if (itemRect != null) { itemRect.anchoredPosition = new Vector2(0f, y); itemRect.sizeDelta = new Vector2(-24f, RowHeight); }
-                item.Bind(label, detail, color, () => GlobalUI.ShowDialog("详情", captured));
-                return y - RowHeight - 6f;
+                if (_sections[i] != null) _sections[i].SetActive(i < (m_SubTab == 1 ? 3 : 2));
+                if (_sectionHeaders[i] != null) _sectionHeaders[i].text = "—— " + headers[i] + " ——";
             }
-            var card = new GameObject("card", typeof(RectTransform), typeof(Image), typeof(Button));
-            card.transform.SetParent(m_CurrentContent != null ? m_CurrentContent : m_ListRoot, false);
-            var rt = (RectTransform)card.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-24f, RowHeight);
-            card.GetComponent<Image>().color = new Color(0.18f, 0.21f, 0.25f, 1f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(card.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = new Vector2(0f, 0f);
-            labelRt.anchorMax = new Vector2(1f, 1f);
-            labelRt.offsetMin = new Vector2(16f, 0f);
-            labelRt.offsetMax = new Vector2(-16f, 0f);
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = fontSize;
-            text.color = color;
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = label;
-
-            string fallbackCaptured = detail;
-            card.GetComponent<Button>().onClick.AddListener(() => GlobalUI.ShowDialog("详情", fallbackCaptured));
-            return y - RowHeight - 6f;
         }
 
-        private float AddActionRow(float y, string label, string actionLabel, UnityEngine.Events.UnityAction onClick)
+        private void UpdateSectionEmptyStates()
         {
-            // 行文本左侧留出按钮位。
-            var textGo = new GameObject("row_text", typeof(RectTransform), typeof(TextMeshProUGUI));
-            textGo.transform.SetParent(m_ListRoot, false);
-            var textRt = (RectTransform)textGo.transform;
-            textRt.anchorMin = new Vector2(0f, 1f);
-            textRt.anchorMax = new Vector2(1f, 1f);
-            textRt.pivot = new Vector2(0.5f, 1f);
-            textRt.anchoredPosition = new Vector2(0f, y);
-            textRt.sizeDelta = new Vector2(-200f, RowHeight);
-            var text = textGo.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = 24;
-            text.color = new Color(1f, 1f, 1f, 1f);
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = label;
-
-            // 右侧「领取」按钮：右上锚定。
-            var btnGo = new GameObject("row_action", typeof(RectTransform), typeof(Image), typeof(Button));
-            btnGo.transform.SetParent(m_ListRoot, false);
-            var btnRt = (RectTransform)btnGo.transform;
-            btnRt.anchorMin = new Vector2(1f, 1f);
-            btnRt.anchorMax = new Vector2(1f, 1f);
-            btnRt.pivot = new Vector2(1f, 1f);
-            btnRt.anchoredPosition = new Vector2(-20f, y);
-            btnRt.sizeDelta = new Vector2(140f, 44f);
-            btnGo.GetComponent<Image>().color = UIFactory.ButtonGreen;
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(btnGo.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = Vector2.zero;
-            var btnText = labelGo.GetComponent<TextMeshProUGUI>();
-            btnText.font = UIFactory.BuiltinFont;
-            btnText.fontSize = 22;
-            btnText.color = Color.white;
-            btnText.alignment = TextAlignmentOptions.Center;
-            btnText.text = actionLabel;
-            btnText.raycastTarget = false;
-
-            btnGo.GetComponent<Button>().onClick.AddListener(onClick);
-            return y - RowHeight;
+            for (int i = 0; i < _sections.Length; i++)
+            {
+                if (_sectionEmptyStates[i] != null) _sectionEmptyStates[i].SetActive(_sectionCounts[i] == 0);
+                if (_sectionScrolls[i] != null)
+                {
+                    _sectionScrolls[i].StopMovement();
+                    _sectionScrolls[i].verticalNormalizedPosition = 1f;
+                }
+            }
+            if (m_ListRoot != null) LayoutRebuilder.ForceRebuildLayoutImmediate(m_ListRoot);
         }
 
-        private static TextMeshProUGUI MakeRowText(RectTransform parent, float y, string label, Color color, int fontSize)
+        private float AddCard(float y, string label, string detail, Color color, bool showDetail, int fontSize = 26)
         {
-            var go = new GameObject("row_text", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-40f, RowHeight);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = fontSize;
-            text.color = color;
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = label;
-            return text;
+            string captured = detail;
+            return SpawnJournalRow(y, label, detail, color, () => GlobalUI.ShowDialog("详情", captured), null, showDetail, null) - 6f;
+        }
+
+        private float SpawnJournalRow(float y, string label, string detail, Color color, UnityEngine.Events.UnityAction onClick, string actionLabel, bool showDetail, UnityEngine.Events.UnityAction actionOnClick)
+        {
+            if (_form == null || _itemTemplate == null) { Debug.LogError("JournalPanel 缺少通用列表行预制体。", this); return y - RowHeight; }
+            ListRowItemObject item = _rows.Spawn(_form, _itemTemplate, m_CurrentContent != null ? m_CurrentContent : m_ListRoot);
+            for (int i = 0; i < _sectionContents.Length; i++)
+                if (_sectionContents[i] == m_CurrentContent) _sectionCounts[i]++;
+            item.Bind(new ListRowData(label)
+            {
+                Detail = showDetail ? detail : null,
+                TextColor = color,
+                OnClick = onClick,
+                ActionText = actionLabel,
+                OnAction = actionOnClick
+            });
+            return y - (showDetail && !string.IsNullOrEmpty(detail) ? 96f : RowHeight);
         }
 
         private static string CaseKindText(CaseStateKind kind)

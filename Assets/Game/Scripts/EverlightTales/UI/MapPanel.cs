@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -14,27 +14,30 @@ namespace Everlight.Tales.UI
     /// <summary>
     /// 地图页签面板（b43）：装配时段条 + 五区地图 + 地点事件面板。
     /// 点地点节点看信息、点「开始事件」进入盘面。地图壳优先绑定 MainPageShell Prefab，
-    /// 地点节点与事件卡按世界状态动态生成；挂在 MainPageShell 地图页签的内容容器上。
+    /// 地点节点与事件卡按世界状态动态生成；挂在 MapPage UIForm 的内容容器上。
     /// </summary>
     public sealed class MapPanel : MonoBehaviour
     {
-        private TimePeriodBar m_TimeBar;
+        [SerializeField] private TimePeriodBar m_TimeBar;
 
-        private CityMapView m_MapView;
+        [SerializeField] private CityMapView m_MapView;
 
-        private TextMeshProUGUI m_PlaceLabel;
+        [SerializeField] private TextMeshProUGUI m_PlaceLabel;
 
-        private TextMeshProUGUI m_PlaceDesc;
+        [SerializeField] private TextMeshProUGUI m_PlaceDesc;
 
-        private RectTransform m_EventListRoot;
+        [SerializeField] private RectTransform m_EventListRoot;
 
-        private Button m_WaitButton;
+        [SerializeField] private Button m_WaitButton;
 
-        private GameObject m_EventCardTemplate;
+        [SerializeField] private GameObject m_EventCardTemplate;
 
         [SerializeField] private GameObject _eventItemTemplate;
 
-        private TextMeshProUGUI m_TrackLabel;
+        [SerializeField] private TextMeshProUGUI m_TrackLabel;
+        [SerializeField] private Transform m_LayoutRoot;
+        [SerializeField] private Transform m_TimeRoot;
+        [SerializeField] private Transform m_MapRoot;
 
         private string m_SelectedPlaceId;
 
@@ -43,23 +46,24 @@ namespace Everlight.Tales.UI
         private bool m_CallShown;
 
         private UIFormBase m_Form;
+        private readonly ListRowCollection _eventRows = new ListRowCollection();
 
         /// <summary>绑定主页地图的静态 Prefab 布局；地点节点和事件卡仍按数据动态生成。</summary>
         public void BindStaticLayout()
         {
-            Transform layout = transform.name == "Panel_Map" ? transform : transform.Find("Panel_Map");
+            Transform layout = m_LayoutRoot != null ? m_LayoutRoot : (transform.name == "Panel_Map" ? transform : transform.Find("Panel_Map"));
             if (layout == null) return;
 
-            m_TrackLabel = FindText(layout, "Txt_Track");
-            Transform timeRoot = layout.Find("Panel_TimeBar");
+            if (m_TrackLabel == null) m_TrackLabel = FindText(layout, "Txt_Track");
+            Transform timeRoot = m_TimeRoot != null ? m_TimeRoot : layout.Find("Panel_TimeBar");
             if (timeRoot != null)
             {
-                m_TimeBar = timeRoot.GetComponent<TimePeriodBar>();
+                if (m_TimeBar == null) m_TimeBar = timeRoot.GetComponent<TimePeriodBar>();
                 if (m_TimeBar == null) m_TimeBar = timeRoot.gameObject.AddComponent<TimePeriodBar>();
                 m_TimeBar.BindStaticLayout();
             }
-            Transform mapRoot = layout.Find("Panel_MapView");
-            m_MapView = mapRoot != null ? mapRoot.GetComponent<CityMapView>() : null;
+            Transform mapRoot = m_MapRoot != null ? m_MapRoot : layout.Find("Panel_MapView");
+            if (m_MapView == null) m_MapView = mapRoot != null ? mapRoot.GetComponent<CityMapView>() : null;
             if (m_MapView == null && mapRoot != null)
             {
                 m_MapView = mapRoot.gameObject.AddComponent<CityMapView>();
@@ -69,14 +73,26 @@ namespace Everlight.Tales.UI
                 m_MapView.BindNodeTemplates(mapRoot);
             }
 
-            m_PlaceLabel = FindText(layout, "Panel_Place/Txt_PlaceLabel");
-            m_PlaceDesc = FindText(layout, "Panel_Place/Txt_PlaceDesc");
-            m_EventListRoot = layout.Find("Panel_Place/List_Event") as RectTransform;
-            m_WaitButton = FindComponent<Button>(layout, "Panel_Place/Btn_Wait");
-            Transform template = layout.Find("Panel_Place/List_Event/EventCardTemplate");
-            m_EventCardTemplate = template != null ? template.gameObject : null;
-            m_Form = GetComponentInParent<UIFormBase>();
+            if (m_PlaceLabel == null) m_PlaceLabel = FindText(layout, "Panel_Place/Txt_PlaceLabel");
+            if (m_PlaceDesc == null) m_PlaceDesc = FindText(layout, "Panel_Place/Txt_PlaceDesc");
+            Transform eventViewport = layout.Find("Panel_Place/List_Event");
+            Transform eventContent = eventViewport != null ? eventViewport.Find("EventContent") : null;
+            if (m_EventListRoot == null) m_EventListRoot = (eventContent != null ? eventContent : eventViewport) as RectTransform;
+            if (m_WaitButton == null) m_WaitButton = FindComponent<Button>(layout, "Panel_Place/Btn_Wait");
+            Transform template = m_EventListRoot != null ? m_EventListRoot.Find("EventCardTemplate") : null;
+            if (m_EventCardTemplate == null) m_EventCardTemplate = template != null ? template.gameObject : null;
+            m_Form = GetComponentInParent<UIFormBase>(true);
             if (m_Form == null) m_Form = FindObjectOfType<UIFormBase>();
+            if (m_MapView != null)
+            {
+                m_MapView.NodeClicked -= OnNodeClicked;
+                m_MapView.NodeClicked += OnNodeClicked;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (m_MapView != null) m_MapView.NodeClicked -= OnNodeClicked;
         }
 
         /// <summary>地点详情面板里的一张事件卡（P1 地图信息层视图模型）。</summary>
@@ -136,7 +152,7 @@ namespace Everlight.Tales.UI
             if (m_MapView != null)
             {
                 m_MapView.Build(session.World.Map);
-                HookNodeClicks();
+                m_MapView.ClearSelection();
             }
 
             m_SelectedPlaceId = null;
@@ -150,8 +166,7 @@ namespace Everlight.Tales.UI
             {
                 return;
             }
-            m_TrackLabel = MakeText(transform, "track_card", new Vector2(0f, -150f), new Vector2(920f, 36f), 20, TextAlignmentOptions.Center);
-            m_TrackLabel.color = new Color(0.88f, 0.66f, 0.35f, 1f);
+            Debug.LogError("MapPanel 缺少 Txt_Track，拒绝运行时创建 UI。", this);
         }
 
         private void UpdateTrackLabel(WorldSession session)
@@ -189,68 +204,18 @@ namespace Everlight.Tales.UI
                 m_TimeBar.Build();
                 return;
             }
-            var go = new GameObject("time_bar", typeof(RectTransform));
-            go.transform.SetParent(transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(0f, 120f);
-
-            m_TimeBar = go.AddComponent<TimePeriodBar>();
-            m_TimeBar.Build();
-
-            RectTransform parent = rt;
-            // 左：第N天·时段
-            m_TimeBar.DayPeriodLabel.rectTransform.anchorMin = new Vector2(0f, 0.5f);
-            m_TimeBar.DayPeriodLabel.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            m_TimeBar.DayPeriodLabel.rectTransform.anchoredPosition = new Vector2(20f, 10f);
-            m_TimeBar.DayPeriodLabel.rectTransform.sizeDelta = new Vector2(0f, 40f);
-            m_TimeBar.DayPeriodLabel.alignment = TextAlignmentOptions.Left;
-            m_TimeBar.DayPeriodLabel.fontSize = 26;
-            // 右：剩N/4
-            m_TimeBar.RemainingLabel.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            m_TimeBar.RemainingLabel.rectTransform.anchorMax = new Vector2(1f, 0.5f);
-            m_TimeBar.RemainingLabel.rectTransform.anchoredPosition = new Vector2(-20f, 10f);
-            m_TimeBar.RemainingLabel.rectTransform.sizeDelta = new Vector2(0f, 40f);
-            m_TimeBar.RemainingLabel.alignment = TextAlignmentOptions.Right;
-            m_TimeBar.RemainingLabel.fontSize = 26;
-            // 中：四时段格
-            for (int i = 0; i < m_TimeBar.PeriodCells.Length; i++)
-            {
-                var cell = m_TimeBar.PeriodCells[i];
-                cell.rectTransform.anchorMin = new Vector2(0f, 0f);
-                cell.rectTransform.anchorMax = new Vector2(0f, 0f);
-                cell.rectTransform.pivot = new Vector2(0.5f, 0f);
-                float x = 80f + i * 70f;
-                cell.rectTransform.anchoredPosition = new Vector2(x, 6f);
-                cell.rectTransform.sizeDelta = new Vector2(56f, 14f);
-            }
-
-            parent.gameObject.SetActive(true);
+            Debug.LogError("MapPanel 缺少 Panel_TimeBar，拒绝运行时创建 UI。", this);
         }
 
         private void BuildMapView()
         {
             if (m_MapView != null)
             {
-                m_MapView.Scale = 110f;
-                m_MapView.ViewportOffset = new Vector2(240f, 200f);
+                // 节点位置由 MapContent 中的预制体节点决定，便于美术直接调整。
+                m_MapView.ViewportOffset = Vector2.zero;
                 return;
             }
-            var go = new GameObject("map_view", typeof(RectTransform));
-            go.transform.SetParent(transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(0f, -300f);
-
-            m_MapView = go.AddComponent<CityMapView>();
-            m_MapView.Scale = 110f;
-            m_MapView.ViewportOffset = new Vector2(240f, 200f);
+            Debug.LogError("MapPanel 缺少 Panel_MapView，拒绝运行时创建 UI。", this);
         }
 
         private void BuildPlacePanel()
@@ -261,53 +226,12 @@ namespace Everlight.Tales.UI
                 m_WaitButton.onClick.AddListener(OnWaitNextPeriod);
                 return;
             }
-            var go = new GameObject("place_panel", typeof(RectTransform));
-            go.transform.SetParent(transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 0f);
-            rt.anchorMax = new Vector2(1f, 0f);
-            rt.pivot = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(0f, 360f);
-
-            var bg = go.AddComponent<Image>();
-            bg.color = new Color(0.10f, 0.12f, 0.16f, 0.92f);
-
-            m_PlaceLabel = MakeText(go.transform, "place_label", new Vector2(0f, 168f), new Vector2(920f, 40f), 28, TextAlignmentOptions.Center);
-            m_PlaceDesc = MakeText(go.transform, "place_desc", new Vector2(0f, 132f), new Vector2(920f, 56f), 20, TextAlignmentOptions.Center);
-            m_PlaceDesc.color = new Color(0.68f, 0.71f, 0.75f, 1f);
-
-            var listGo = new GameObject("event_list", typeof(RectTransform));
-            listGo.transform.SetParent(go.transform, false);
-            m_EventListRoot = (RectTransform)listGo.transform;
-            m_EventListRoot.anchorMin = new Vector2(0f, 0.5f);
-            m_EventListRoot.anchorMax = new Vector2(1f, 0.5f);
-            m_EventListRoot.pivot = new Vector2(0.5f, 0.5f);
-            m_EventListRoot.anchoredPosition = new Vector2(0f, 30f);
-            m_EventListRoot.sizeDelta = new Vector2(-40f, 120f);
-
-            m_WaitButton = MakeButton(go.transform, "btn_wait", new Vector2(0f, -152f), new Vector2(360f, 52f), "等待到下一时段");
-            m_WaitButton.onClick.AddListener(OnWaitNextPeriod);
-        }
-
-        private void HookNodeClicks()
-        {
-            foreach (CityMapNodeView node in m_MapView.Nodes)
-            {
-                string placeId = node.Place.Config.Id;
-                var button = node.Rect.GetComponent<Button>();
-                if (button != null)
-                {
-                    button.onClick.RemoveListener(() => OnNodeClicked(placeId));
-                    button.onClick.AddListener(() => OnNodeClicked(placeId));
-                }
-            }
+            Debug.LogError("MapPanel 缺少 Panel_Place 静态布局，拒绝运行时创建 UI。", this);
         }
 
         private void OnNodeClicked(string placeId)
         {
             m_SelectedPlaceId = placeId;
-            m_MapView.Select(placeId);
             UpdatePlacePanel();
         }
 
@@ -450,10 +374,7 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            if (m_Form != null && _eventItemTemplate != null)
-            {
-                m_Form.UnspawnAllChildItem<MapEventItemObject>(_eventItemTemplate);
-            }
+            _eventRows.Clear();
             for (int i = m_EventListRoot.childCount - 1; i >= 0; i--)
             {
                 GameObject child = m_EventListRoot.GetChild(i).gameObject;
@@ -480,59 +401,12 @@ namespace Everlight.Tales.UI
                 string itemMeta = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
                 if (openPeriods != null && openPeriods.Length > 0) itemMeta += " · " + BuildPeriodsText(openPeriods);
                 PlaceEventEntry itemCaptured = entry;
-                MapEventItemObject item = m_Form.SpawnChildItem<MapEventItemObject>(_eventItemTemplate, m_EventListRoot);
-                item.Bind(entry.Name, itemMeta, () => OnEventClicked(itemCaptured));
+                ListRowItemObject item = _eventRows.Spawn(m_Form, _eventItemTemplate, m_EventListRoot);
+                item.Bind(new ListRowData(entry.Name) { Detail = itemMeta, OnClick = () => OnEventClicked(itemCaptured) });
                 return;
             }
 
-            if (m_EventCardTemplate != null)
-            {
-                GameObject tplCard = Instantiate(m_EventCardTemplate, m_EventListRoot);
-                tplCard.name = "event_card";
-                tplCard.SetActive(true);
-                TextMeshProUGUI tplName = FindText(tplCard.transform, "Txt_EventName");
-                TextMeshProUGUI tplMeta = FindText(tplCard.transform, "Txt_EventMeta");
-                if (tplName != null) tplName.text = entry.Name;
-                if (tplMeta != null)
-                {
-                    string tplMetaText = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
-                    if (openPeriods != null && openPeriods.Length > 0) tplMetaText += " · " + BuildPeriodsText(openPeriods);
-                    tplMeta.text = tplMetaText;
-                }
-                Button tplButton = tplCard.GetComponent<Button>();
-                if (tplButton != null)
-                {
-                    var tplCaptured = entry;
-                    tplButton.onClick.AddListener(() => OnEventClicked(tplCaptured));
-                }
-                return;
-            }
-
-            var card = new GameObject("event_card", typeof(RectTransform), typeof(Image), typeof(Button));
-            card.transform.SetParent(m_EventListRoot, false);
-            var rt = (RectTransform)card.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.sizeDelta = new Vector2(0f, 56f);
-            rt.anchoredPosition = new Vector2(0f, -(m_CurrentEntries.Count - 1) * 62f);
-
-            card.GetComponent<Image>().color = new Color(0.18f, 0.21f, 0.25f, 1f);
-
-            TextMeshProUGUI nameText = MakeText(card.transform, "name", new Vector2(-420f, 10f), new Vector2(760f, 30f), 22, TextAlignmentOptions.Left);
-            nameText.text = entry.Name;
-
-            TextMeshProUGUI metaText = MakeText(card.transform, "meta", new Vector2(-420f, -16f), new Vector2(760f, 24f), 16, TextAlignmentOptions.Left);
-            metaText.color = new Color(0.68f, 0.71f, 0.75f, 1f);
-            string meta = entry.TypeLabel + " · 耗时 " + entry.TimeLabel;
-            if (openPeriods != null && openPeriods.Length > 0)
-            {
-                meta += " · " + BuildPeriodsText(openPeriods);
-            }
-            metaText.text = meta;
-
-            var captured = entry;
-            card.GetComponent<Button>().onClick.AddListener(() => OnEventClicked(captured));
+            Debug.LogError("MapPanel 缺少通用列表行预制体，拒绝运行时创建事件卡。", this);
         }
 
         private static string BuildPeriodsText(TimeOfDay[] periods)
@@ -563,46 +437,5 @@ namespace Everlight.Tales.UI
             return target != null ? target.GetComponent<TextMeshProUGUI>() : null;
         }
 
-        private static TextMeshProUGUI MakeText(Transform parent, string name, Vector2 pos, Vector2 size, int fontSize, TextAlignmentOptions anchor)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = fontSize;
-            text.color = new Color(1f, 1f, 1f, 1f);
-            text.alignment = anchor;
-            text.raycastTarget = false;
-            return text;
-        }
-
-        private static Button MakeButton(Transform parent, string name, Vector2 pos, Vector2 size, string label)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = size;
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 24;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.text = label;
-
-            Button button = go.GetComponent<Button>();
-            button.transition = Selectable.Transition.SpriteSwap;
-            return button;
-        }
     }
 }

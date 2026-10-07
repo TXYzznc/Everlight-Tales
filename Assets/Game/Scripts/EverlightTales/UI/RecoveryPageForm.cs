@@ -16,9 +16,11 @@ namespace Everlight.Tales.UI
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
-            if (m_StatusText == null) m_StatusText = transform.Find("Panel_Recovery/Txt_Status")?.GetComponent<TextMeshProUGUI>();
-            if (m_ContinueButton == null) m_ContinueButton = transform.Find("Panel_Recovery/Btn_Continue")?.GetComponent<Button>();
-            if (m_AbandonButton == null) m_AbandonButton = transform.Find("Panel_Recovery/Btn_Abandon")?.GetComponent<Button>();
+            if (m_StatusText == null || m_ContinueButton == null || m_AbandonButton == null)
+            {
+                Debug.LogError("[RecoveryPageForm][Contract] 页面引用未完整绑定，拒绝装配恢复操作。", this);
+                return;
+            }
             bool has = WorldSession.Current != null && WorldSession.Current.HasAttemptSave;
             if (m_StatusText != null) m_StatusText.text = has ? "检测到未完成的维修尝试，是否继续？" : "当前没有未完成的维修尝试。";
             if (m_ContinueButton != null)

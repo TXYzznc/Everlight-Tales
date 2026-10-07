@@ -28,7 +28,13 @@ namespace Everlight.Tales.UI
     {
         public void Bind(string title, string detail, string value, Sprite icon, Sprite background, Color color, bool interactable = false)
         {
-            itemLogic.GetComponent<WorkbenchItem>().Bind(title, detail, value, icon, background, color, interactable);
+            WorkbenchItem logic = gameObject != null ? gameObject.GetComponent<WorkbenchItem>() : null;
+            if (logic == null)
+            {
+                Debug.LogError("[WorkbenchItemObject] 实例缺少 WorkbenchItem 逻辑组件，已跳过绑定。", gameObject);
+                return;
+            }
+            logic.Bind(title, detail, value, icon, background, color, interactable);
         }
     }
 }

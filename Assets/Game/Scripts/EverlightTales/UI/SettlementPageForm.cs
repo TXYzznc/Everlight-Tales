@@ -21,10 +21,12 @@ namespace Everlight.Tales.UI
         public string FormKey => "SettlementPage";
 
         private bool m_Finished;
+        private readonly ListRowCollection m_RewardRows = new ListRowCollection();
 
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
+            m_Finished = false;
             BuildContent();
         }
 
@@ -118,15 +120,15 @@ namespace Everlight.Tales.UI
             IReadOnlyList<RewardOption> options = session.DrawRewardChoice();
             if (RewardChoiceItemTemplate == null)
             {
-                Debug.LogError("[SettlementPageForm] RewardChoiceItem 模板未绑定。", this);
+                Debug.LogError("[SettlementPageForm] 通用列表行模板未绑定。", this);
                 return;
             }
 
-            UnspawnAllItem<RewardChoiceItemObject>(RewardChoiceItemTemplate);
+            m_RewardRows.Clear();
             for (int i = 0; i < options.Count; i++)
             {
                 RewardOption option = options[i];
-                RewardChoiceItemObject item = SpawnItem<RewardChoiceItemObject>(RewardChoiceItemTemplate, RewardChoices);
+                ListRowItemObject item = m_RewardRows.Spawn(this, RewardChoiceItemTemplate, RewardChoices);
                 RectTransform rect = item.gameObject.transform as RectTransform;
                 if (rect != null)
                 {
@@ -136,7 +138,7 @@ namespace Everlight.Tales.UI
                     rect.anchoredPosition = new Vector2(0f, -i * 72f);
                     rect.sizeDelta = new Vector2(-32f, 64f);
                 }
-                item.Bind(option.Label, () => OnChoose(option));
+                item.Bind(new ListRowData(option.Label) { OnClick = () => OnChoose(option) });
             }
         }
 

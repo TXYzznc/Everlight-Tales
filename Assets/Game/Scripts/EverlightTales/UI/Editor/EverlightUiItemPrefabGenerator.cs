@@ -1,11 +1,13 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Everlight.Tales.UI;
+using Everlight.Tales.UI.Editor;
 
 namespace Everlight.Tales.Editor
 {
@@ -29,85 +31,220 @@ namespace Everlight.Tales.Editor
         {
             EnsureFolder(ItemDir);
             string saveItem = CreateSaveSlotItem();
-            string rewardItem = CreateRewardChoiceItem();
+            string rewardItem = CommonRow();
             string carryItem = CreateCarryAvailableItem();
             BindSaveSlotPage(saveItem);
             BindSettlementPage(rewardItem);
             BindPreparationPage(carryItem);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成并接入 SaveSlotItem、RewardChoiceItem、CarryAvailableItem。");
+            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成并接入 SaveSlotItem、通用奖励行、CarryAvailableItem。");
+        }
+
+        [MenuItem("Game Framework/EverlightTales/UI/生成并接入地图节点 UIItem", priority = 2021)]
+        public static void GenerateAndBindMapNodeItem()
+        {
+            EnsureFolder(ItemDir);
+            string path = ItemDir + "/MapNodeItem.prefab";
+            if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
+            CreateItemVisual(path, "MapNodeItem", "SHR-003-normal卡片", (root, background) =>
+            {
+                if (root.GetComponent<Button>() == null) root.AddComponent<Button>();
+                foreach (string childName in new[] { "Txt_Id", "Icon", "StateFrame", "Txt_Detail", "Txt_State", "Txt_Source", "Txt_Value" })
+                {
+                    Transform child = root.transform.Find(childName); if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
+                }
+                RectTransform title = root.transform.Find("Txt_Title") as RectTransform;
+                if (title != null) { title.anchorMin = Vector2.zero; title.anchorMax = Vector2.one; title.offsetMin = Vector2.zero; title.offsetMax = Vector2.zero; title.GetComponent<TMP_Text>().fontSize = 16f; title.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Center; }
+                (root.transform as RectTransform).sizeDelta = new Vector2(64f, 64f);
+                Component logic = AddComponentByName(root, "Everlight.Tales.UI.MapNodeItem");
+                SetRef(logic, "_label", FindComponent<TMP_Text>(root, "Txt_Title")); SetRef(logic, "_button", root.GetComponent<Button>());
+            });
+            BindMapNodeTemplate(path);
+            AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
+            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成并接入 MapNodeItem。");
+        }
+
+        private static Component AddComponentByName(GameObject root, string fullTypeName)
+        {
+            Type type = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(candidate => candidate.FullName == fullTypeName);
+            if (type == null || !typeof(Component).IsAssignableFrom(type))
+            {
+                throw new InvalidOperationException("无法找到 UIItem 组件类型: " + fullTypeName);
+            }
+            return root.AddComponent(type);
+        }
+
+        private static void BindMapNodeTemplate(string itemPath)
+        {
+            // 地图节点是 MapContent 中显式绑定地点 ID 的静态节点；不重写旧模板字段。
+            Debug.Log("[MapNodeItem] 已生成特殊节点资源；地图节点由 MapPage 手工配置地点 ID。");
+        }
+
+        private static Transform FindDescendant(Transform root, string name)
+        {
+            if (root == null) return null;
+            if (root.name == name) return root;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindDescendant(root.GetChild(i), name);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/生成并接入 Archive-Codex-Workbench UIItem", priority = 2022)]
         public static void GenerateAndBindCollectionPages()
         {
-            EnsureFolder("Assets/Game/Data");
-            EnsureFolder("Assets/Game/Data/UI");
-            EnsureFolder(ItemDir);
-            UIFormalSpriteCatalog catalog = CreateFormalSpriteCatalog();
-            string archiveDisplay = CreateArchiveItem("ArchiveDisplayItem", "SHR-003-normal卡片");
-            string archiveOwned = CreateArchiveItem("ArchiveOwnedItem", "SHR-005-normal列表行");
-            string archiveMaterial = CreateArchiveItem("ArchiveMaterialItem", "SHR-005-normal列表行");
-            string archiveBlueprint = CreateArchiveItem("ArchiveBlueprintItem", "SHR-005-normal列表行");
-            string archiveSummary = CreateArchiveItem("ArchiveSummaryItem", "SHR-003-normal卡片");
-            string codexPart = CreateCodexItem("CodexPartItem", "SHR-005-normal列表行");
-            string codexForm = CreateCodexItem("CodexFormItem", "SHR-005-normal列表行");
-            string codexCase = CreateCodexItem("CodexCaseItem", "SHR-003-normal卡片");
-            string workbenchHost = CreateWorkbenchItem("WorkbenchHostItem", "SHR-046-normal六边形框");
-            string workbenchForm = CreateWorkbenchItem("WorkbenchFormItem", "SHR-005-normal列表行");
-            string workbenchMaterial = CreateWorkbenchItem("WorkbenchMaterialItem", "SHR-005-normal列表行");
-            string workbenchLedger = CreateWorkbenchItem("WorkbenchLedgerItem", "SHR-005-normal列表行");
-            BindArchivePage(archiveDisplay, archiveOwned, archiveMaterial, archiveBlueprint, archiveSummary, catalog);
-            BindCodexPage(codexPart, codexForm, codexCase, catalog);
-            BindWorkbenchPage(workbenchHost, workbenchForm, workbenchMaterial, workbenchLedger, catalog);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成并接入 Archive/Codex/Workbench UIItem。 ");
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/ArchivePage.prefab");
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/CodexPage.prefab");
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/WorkbenchPage.prefab");
+            Debug.Log("[ListRow][Generator] ArchivePage, CodexPage, WorkbenchPage 已接入通用行，保留页面布局。");
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/修复 Workbench 布局与 Item", priority = 2023)]
         public static void RebuildWorkbenchOnly()
         {
-            EnsureFolder(ItemDir);
-            UIFormalSpriteCatalog catalog = CreateFormalSpriteCatalog();
-            string host = CreateWorkbenchItem("WorkbenchHostItem", "SHR-046-normal六边形框");
-            string form = CreateWorkbenchItem("WorkbenchFormItem", "SHR-005-normal列表行");
-            string material = CreateWorkbenchItem("WorkbenchMaterialItem", "SHR-005-normal列表行");
-            string ledger = CreateWorkbenchItem("WorkbenchLedgerItem", "SHR-005-normal列表行");
-            BindWorkbenchPage(host, form, material, ledger, catalog);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("[EverlightUiItemPrefabGenerator] Workbench 布局与 Item 已重建。");
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/WorkbenchPage.prefab");
+            Debug.Log("[ListRow][Generator] WorkbenchPage 已接入通用行，保留页面布局。");
+        }
+
+        /// <summary>
+        /// 修复工作台对通用行的引用及图片过渡，保留宿主与页面的美术布局。
+        /// </summary>
+        [MenuItem("Game Framework/EverlightTales/UI/修复 Workbench 交互与布局", priority = 2024)]
+        public static void RepairWorkbenchInteractionAndLayout()
+        {
+            CommonRow();
+            HomeSubPanelsContractMigration.RepairItemButtons();
+            ListRowPrefabMigration.BindPage(WorkbenchPage);
+        }
+
+
+
+
+
+
+
+        [MenuItem("Game Framework/EverlightTales/UI/修复 Codex 布局与 Item", priority = 2025)]
+        public static void RebuildCodexOnly()
+        {
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/CodexPage.prefab");
+            Debug.Log("[ListRow][Generator] CodexPage 已接入通用行，保留页面布局。");
+        }
+
+        [MenuItem("Game Framework/EverlightTales/UI/修复 Archive 布局与 Item", priority = 2026)]
+        public static void RebuildArchiveOnly()
+        {
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/ArchivePage.prefab");
+            Debug.Log("[ListRow][Generator] ArchivePage 已接入通用行，保留页面布局。");
+        }
+
+        private static void AddCodexTabLabels()
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(CodexPage);
+            try
+            {
+                string[] labels = { "零件", "形态", "怪谈" };
+                for (int i = 0; i < labels.Length; i++)
+                {
+                    Transform button = root.GetComponentsInChildren<Transform>(true)
+                        .FirstOrDefault(node => node.name == "Btn_Sub_" + i);
+                    if (button == null) continue;
+                    TMP_Text label = button.Find("Txt_Label")?.GetComponent<TMP_Text>();
+                    if (label == null)
+                    {
+                        GameObject labelObject = CreateTextChild(button, "Txt_Label", Vector2.zero, Vector2.zero, 22, TextAlignmentOptions.Center);
+                        label = labelObject.GetComponent<TMP_Text>();
+                        RectTransform rect = labelObject.transform as RectTransform;
+                        rect.anchorMin = Vector2.zero;
+                        rect.anchorMax = Vector2.one;
+                        rect.offsetMin = new Vector2(8f, 4f);
+                        rect.offsetMax = new Vector2(-8f, -4f);
+                    }
+                    label.font = UIFactory.BuiltinFont;
+                    label.fontSize = 22f;
+                    label.text = labels[i];
+                    label.color = Color.white;
+                    label.alignment = TextAlignmentOptions.Center;
+                    label.raycastTarget = false;
+                    EditorUtility.SetDirty(button.gameObject);
+                }
+                PrefabUtility.SaveAsPrefabAsset(root, CodexPage);
+            }
+            finally { PrefabUtility.UnloadPrefabContents(root); }
+        }
+
+        private static void EnsureArchiveTabButtons(Transform pageRoot, string[] labels)
+        {
+            Transform top = Find(pageRoot, "Panel_ArchiveTop");
+            if (top == null) return;
+            RectTransform topRect = top as RectTransform;
+            topRect.sizeDelta = new Vector2(topRect.sizeDelta.x, 168f);
+            for (int i = 0; i < labels.Length; i++)
+            {
+                Transform existing = top.Find("Btn_Sub_" + i);
+                GameObject button = existing != null ? existing.gameObject : CreateRect(top, "Btn_Sub_" + i).gameObject;
+                RectTransform rect = button.transform as RectTransform;
+                rect.anchorMin = new Vector2(0.5f, 1f); rect.anchorMax = rect.anchorMin; rect.pivot = new Vector2(0.5f, 1f);
+                rect.sizeDelta = new Vector2(132f, 52f); rect.anchoredPosition = new Vector2(-300f + i * 150f, -104f);
+                Image image = button.GetComponent<Image>() ?? button.AddComponent<Image>();
+                image.sprite = FindSprite("SHR-028-normal页签5"); image.type = Image.Type.Sliced; image.color = Color.white;
+                Button buttonComponent = button.GetComponent<Button>() ?? button.AddComponent<Button>();
+                buttonComponent.targetGraphic = image;
+                TMP_Text text = button.transform.Find("Txt_Label")?.GetComponent<TMP_Text>();
+                if (text == null)
+                {
+                    GameObject label = CreateTextChild(button.transform, "Txt_Label", Vector2.zero, Vector2.zero, 20, TextAlignmentOptions.Center);
+                    text = label.GetComponent<TMP_Text>();
+                    RectTransform labelRect = label.transform as RectTransform; labelRect.anchorMin = Vector2.zero; labelRect.anchorMax = Vector2.one; labelRect.offsetMin = new Vector2(6f, 3f); labelRect.offsetMax = new Vector2(-6f, -3f);
+                }
+                text.text = labels[i]; text.color = Color.white; text.alignment = TextAlignmentOptions.Center; text.raycastTarget = false;
+            }
+        }
+
+        [MenuItem("Game Framework/EverlightTales/UI/修复 HomePage 加工 Item 引用", priority = 2024)]
+        public static void BindHomeWorkbenchItems()
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents("Assets/Game/Prefabs/UI/HomePage.prefab");
+            try
+            {
+                Component home = FindComponentByType(root, "HomePanel");
+                PrefabUtility.SaveAsPrefabAsset(root, "Assets/Game/Prefabs/UI/HomePage.prefab");
+                Debug.Log("[EverlightUiItemPrefabGenerator] HomePage 不再持有加工 Item 引用，工作台统一使用 WorkbenchPage。");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(root); }
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/第二批动态 Item/生成并接入地图事件 Item", priority = 2026)]
         public static void GenerateAndBindMapEventItem()
         {
-            EnsureFolder(ItemDir);
-            string item = CreateMapEventItem();
-            BindMapPage(item);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成并接入 MapEventItem。");
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/MapPage.prefab");
+            Debug.Log("[ListRow][Generator] MapPage 已接入通用行，保留页面布局。");
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/第二批动态 Item/生成并接入日志条目 Item", priority = 2027)]
         public static void GenerateAndBindJournalItem()
         {
-            EnsureFolder(ItemDir);
-            string item = CreateJournalItem();
-            BindJournalPage(item);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成并接入 JournalItem。");
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/JournalPage.prefab");
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/MainPageShell.prefab");
+            Debug.Log("[ListRow][Generator] JournalPage, MainPageShell 已接入通用行，保留页面布局。");
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/第二批动态 Item/生成对话选项 Item", priority = 2028)]
         public static void GenerateDialogueChoiceItem()
         {
             EnsureFolder(ItemDir);
-            CreateDialogueChoiceItem();
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/BoardPage.prefab");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[EverlightUiItemPrefabGenerator] 已生成对话选项 Item。");
@@ -124,8 +261,9 @@ namespace Everlight.Tales.Editor
         [MenuItem("Game Framework/EverlightTales/UI/第二批动态 Item/生成并接入来客委托 Item", priority = 2030)]
         public static void GenerateAndBindGuestDelegationItem()
         {
-            EnsureFolder(ItemDir); string item = CreateGuestDelegationItem(); BindGuestPage(item); AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
-            Debug.Log("[EverlightUiItemPrefabGenerator] 已生成并接入 GuestDelegationItem。");
+            CommonRow();
+            ListRowPrefabMigration.BindPage("Assets/Game/Prefabs/UI/GuestPage.prefab");
+            Debug.Log("[ListRow][Generator] GuestPage 已接入通用行，保留页面布局。");
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/全量20界面/规范化节点并生成审计报告", priority = 2024)]
@@ -173,6 +311,9 @@ namespace Everlight.Tales.Editor
         [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/MainPageShell", priority = 2029)]
         public static void EnableMainPageShellValidation() => UIValidationHarness.Configure("MainPageShell");
 
+        [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/HomePage", priority = 2030)]
+        public static void EnableHomeValidation() => UIValidationHarness.Configure("HomePage");
+
         [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/CodexPage", priority = 2031)]
         public static void EnableCodexValidation() => UIValidationHarness.Configure("CodexPage");
 
@@ -185,11 +326,45 @@ namespace Everlight.Tales.Editor
         [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/关闭", priority = 2033)]
         public static void DisableValidation() => UIValidationHarness.Disable();
 
+        [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/启用正常流程测试", priority = 2033)]
+        public static void EnableNormalFlowValidation() => UIValidationHarness.ConfigureNormalFlow(true);
+
         [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/PlayMode立即注入", priority = 2034)]
         public static void InjectValidationNow()
         {
             if (Application.isPlaying) UIValidationHarness.Start();
             else Debug.LogWarning("请先进入 PlayMode，再执行此菜单。");
+        }
+
+        [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/正常流程测试-从存档进入主页", priority = 2034)]
+        public static void EnterMainShellFromSaveSlotForTest()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning("请先进入 PlayMode，再执行此菜单。");
+                return;
+            }
+
+            System.Type pageType = System.Type.GetType("Everlight.Tales.UI.SaveSlotPage, Everlight.Tales.UI");
+            UnityEngine.Object page = pageType == null
+                ? null
+                : Resources.FindObjectsOfTypeAll(pageType)
+                    .FirstOrDefault(item => item != null && ((Component)item).gameObject.scene.IsValid());
+            if (page == null)
+            {
+                Debug.LogError("[UI诊断][测试] 当前 PlayMode 未找到 SaveSlotPage。");
+                return;
+            }
+
+            var method = pageType.GetMethod("EnterSlot", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            if (method == null)
+            {
+                Debug.LogError("[UI诊断][测试] SaveSlotPage.EnterSlot 不存在。");
+                return;
+            }
+
+            Debug.Log("[UI诊断][测试] 调用 SaveSlotPage.EnterSlot(1)，模拟从存档进入主页。");
+            method.Invoke(page, new object[] { 1 });
         }
 
         [MenuItem("Game Framework/EverlightTales/UI/验证运行时数据/状态转储", priority = 2035)]
@@ -280,135 +455,19 @@ namespace Everlight.Tales.Editor
             return field == null ? null : field.GetValue(target) as RectTransform;
         }
 
-        private static void BindArchivePage(string display, string owned, string material, string blueprint, string summary, UIFormalSpriteCatalog catalog)
-        {
-            GameObject root = PrefabUtility.LoadPrefabContents(ArchivePage);
-            try
-            {
-                Transform list = Find(root.transform, "Panel_ArchiveList");
-                if (list == null) throw new InvalidOperationException("找不到 ArchivePage/Panel_ArchiveList");
-                ConfigureContainerLayout(list);
-                string[] names = { "Content_Display", "Content_Owned", "Content_Material", "Content_Blueprint", "Content_Summary" };
-                foreach (Transform child in list.GetComponentsInChildren<Transform>(true))
-                    if (child != list && Array.IndexOf(names, child.name) >= 0) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                RectTransform[] roots = new RectTransform[names.Length];
-                for (int i = 0; i < names.Length; i++)
-                {
-                    roots[i] = CreateRect(list, names[i]);
-                    roots[i].anchorMin = new Vector2(0f, 1f); roots[i].anchorMax = new Vector2(1f, 1f); roots[i].pivot = new Vector2(0.5f, 1f);
-                    roots[i].anchoredPosition = new Vector2(0f, -i * 230f); roots[i].sizeDelta = new Vector2(0f, i == 4 ? 180f : 210f);
-                    AddVerticalLayout(roots[i], 12f);
-                    CreateSectionHeader(roots[i], new[] { "陈列物", "拥有物", "材料", "图样", "汇总" }[i]);
-                }
-                Component panel = FindComponentByType(root, "ArchivePanel");
-                SetRef(panel, "_displayItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(display)); SetRef(panel, "_displayRoot", roots[0]);
-                SetRef(panel, "_ownedItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(owned)); SetRef(panel, "_ownedRoot", roots[1]);
-                SetRef(panel, "_materialItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(material)); SetRef(panel, "_materialRoot", roots[2]);
-                SetRef(panel, "_blueprintItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(blueprint)); SetRef(panel, "_blueprintRoot", roots[3]);
-                SetRef(panel, "_summaryItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(summary)); SetRef(panel, "_summaryRoot", roots[4]); SetRef(panel, "_spriteCatalog", catalog);
-                PrefabUtility.SaveAsPrefabAsset(root, ArchivePage);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
 
-        private static void BindCodexPage(string part, string form, string @case, UIFormalSpriteCatalog catalog)
-        {
-            GameObject root = PrefabUtility.LoadPrefabContents(CodexPage);
-            try
-            {
-                Transform list = Find(root.transform, "Panel_CodexList");
-                if (list == null) throw new InvalidOperationException("找不到 CodexPage/Panel_CodexList");
-                ConfigureContainerLayout(list);
-                string[] names = { "PartScroll", "FormScroll", "CaseScroll" };
-                foreach (Transform child in list.GetComponentsInChildren<Transform>(true))
-                    if (child != list && Array.IndexOf(names, child.name) >= 0) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                RectTransform[] roots = new RectTransform[3];
-                for (int i = 0; i < names.Length; i++)
-                {
-                    roots[i] = CreateRect(list, names[i]); roots[i].anchorMin = Vector2.zero; roots[i].anchorMax = Vector2.one; roots[i].sizeDelta = Vector2.zero; roots[i].gameObject.SetActive(i == 0); AddVerticalLayout(roots[i], 8f);
-                }
-                Component panel = FindComponentByType(root, "CodexPanel");
-                SetRef(panel, "_partItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(part)); SetRef(panel, "_formItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(form)); SetRef(panel, "_caseItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(@case));
-                SetRef(panel, "_partRoot", roots[0]); SetRef(panel, "_formRoot", roots[1]); SetRef(panel, "_caseRoot", roots[2]); SetRef(panel, "_spriteCatalog", catalog);
-                PrefabUtility.SaveAsPrefabAsset(root, CodexPage);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
 
-        private static void BindWorkbenchPage(string host, string form, string material, string ledger, UIFormalSpriteCatalog catalog)
-        {
-            GameObject root = PrefabUtility.LoadPrefabContents(WorkbenchPage);
-            try
-            {
-                Transform body = Find(root.transform, "Panel_WorkbenchBody");
-                Transform workbench = body != null ? Find(body, "Panel_Workbench") : null;
-                if (workbench == null) throw new InvalidOperationException("找不到 WorkbenchPage/Panel_Workbench");
-                foreach (Transform child in workbench.GetComponentsInChildren<Transform>(true))
-                    if (child != workbench && (child.name == "HostScroll" || child.name == "FormScroll")) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                RectTransform hostRoot = CreateRect(workbench, "HostScroll"); hostRoot.anchorMin = new Vector2(0f, 1f); hostRoot.anchorMax = new Vector2(1f, 1f); hostRoot.pivot = new Vector2(0.5f, 1f); hostRoot.anchoredPosition = Vector2.zero; hostRoot.sizeDelta = new Vector2(0f, 104f);
-                hostRoot.gameObject.AddComponent<RectMask2D>();
-                RectTransform hostContent = CreateRect(hostRoot, "HostContent"); hostContent.anchorMin = new Vector2(0f, 1f); hostContent.anchorMax = new Vector2(0f, 1f); hostContent.pivot = new Vector2(0f, 1f); hostContent.anchoredPosition = Vector2.zero; hostContent.sizeDelta = new Vector2(184f * 11f + 12f * 10f, 104f); AddHorizontalLayout(hostContent, 12f);
-                ScrollRect hostScroll = hostRoot.gameObject.AddComponent<ScrollRect>(); hostScroll.content = hostContent; hostScroll.viewport = hostRoot; hostScroll.horizontal = true; hostScroll.vertical = false; hostScroll.movementType = ScrollRect.MovementType.Clamped;
-                RectTransform formRoot = CreateRect(workbench, "FormScroll"); formRoot.anchorMin = new Vector2(0f, 1f); formRoot.anchorMax = new Vector2(1f, 1f); formRoot.pivot = new Vector2(0.5f, 1f); formRoot.anchoredPosition = new Vector2(0f, -116f); formRoot.sizeDelta = new Vector2(0f, 300f); AddVerticalLayout(formRoot, 8f);
-                Component panel = FindComponentByType(root, "WorkbenchPanel");
-                GameObject hostAsset = AssetDatabase.LoadAssetAtPath<GameObject>(host);
-                GameObject formAsset = AssetDatabase.LoadAssetAtPath<GameObject>(form);
-                SetRef(panel, "_hostItemTemplate", hostAsset);
-                SetRef(panel, "_formItemTemplate", formAsset); SetRef(panel, "_materialItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(material)); SetRef(panel, "_ledgerItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(ledger)); SetRef(panel, "_spriteCatalog", catalog);
-                PrefabUtility.SaveAsPrefabAsset(root, WorkbenchPage);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
 
-        private static void BindMapPage(string eventItem)
-        {
-            GameObject root = PrefabUtility.LoadPrefabContents(MapPage);
-            try
-            {
-                Component panel = FindComponentByType(root, "MapPanel");
-                SetRef(panel, "_eventItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(eventItem));
-                PrefabUtility.SaveAsPrefabAsset(root, MapPage);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
 
-        private static void BindJournalPage(string item)
-        {
-            BindJournalPrefab("Assets/Game/Prefabs/UI/MainPageShell.prefab", item);
-            BindJournalPrefab(JournalPage, item);
-        }
 
-        private static void BindJournalPrefab(string prefabPath, string item)
-        {
-            GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
-            try
-            {
-                Component shell = FindComponentByType(root, "MainPageShell");
-                if (shell != null)
-                {
-                    SetRef(shell, "m_JournalItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(item));
-                }
-                Component panel = FindComponentByType(root, "JournalPanel");
-                if (panel != null)
-                {
-                    SetRef(panel, "_itemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(item));
-                }
-                PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
 
-        private static void BindGuestPage(string item)
-        {
-            GameObject root = PrefabUtility.LoadPrefabContents(GuestPage);
-            try
-            {
-                Component panel = FindComponentByType(root, "GuestPanel");
-                SetRef(panel, "_delegationItemTemplate", AssetDatabase.LoadAssetAtPath<GameObject>(item));
-                PrefabUtility.SaveAsPrefabAsset(root, GuestPage);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
-        }
+
+
+
+
+
+
+
 
         private static Component FindComponentByType(GameObject root, string typeName)
         {
@@ -483,37 +542,10 @@ namespace Everlight.Tales.Editor
             return catalog;
         }
 
-        private static string CreateArchiveItem(string prefabName, string backgroundPrefix)
+        private static string CommonRow()
         {
-            string path = ItemDir + "/" + prefabName + ".prefab";
-            return CreateItemVisual(path, prefabName, backgroundPrefix, (root, background) =>
-            {
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (116,33)", "ArchiveItem");
-                SetRef(logic, "_icon", FindComponent<Image>(root, "Icon"));
-                SetRef(logic, "_title", FindComponent<TMP_Text>(root, "Txt_Title"));
-                SetRef(logic, "_detail", FindComponent<TMP_Text>(root, "Txt_Detail"));
-                SetRef(logic, "_value", FindComponent<TMP_Text>(root, "Txt_Value"));
-                if (prefabName == "WorkbenchHostItem" || prefabName == "WorkbenchFormItem")
-                {
-                    LayoutElement element = root.GetComponent<LayoutElement>() ?? root.AddComponent<LayoutElement>();
-                    element.minWidth = 200f; element.preferredWidth = 200f; element.minHeight = 80f; element.preferredHeight = 80f;
-                }
-            });
-        }
-
-        private static string CreateCodexItem(string prefabName, string backgroundPrefix)
-        {
-            string path = ItemDir + "/" + prefabName + ".prefab";
-            return CreateItemVisual(path, prefabName, backgroundPrefix, (root, background) =>
-            {
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (129,32)", "CodexItem");
-                SetRef(logic, "_icon", FindComponent<Image>(root, "Icon"));
-                SetRef(logic, "_stateFrame", FindComponent<Image>(root, "StateFrame"));
-                SetRef(logic, "_id", FindComponent<TMP_Text>(root, "Txt_Id"));
-                SetRef(logic, "_title", FindComponent<TMP_Text>(root, "Txt_Title"));
-                SetRef(logic, "_state", FindComponent<TMP_Text>(root, "Txt_State"));
-                SetRef(logic, "_source", FindComponent<TMP_Text>(root, "Txt_Source"));
-            });
+            ListRowPrefabMigration.CreatePrefab();
+            return ListRowPrefabMigration.RowPath;
         }
 
         private static string CreateWorkbenchItem(string prefabName, string backgroundPrefix)
@@ -523,9 +555,15 @@ namespace Everlight.Tales.Editor
             if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
             return CreateItemVisual(path, prefabName, backgroundPrefix, (root, background) =>
             {
-                if (prefabName == "WorkbenchHostItem") ConfigureWorkbenchHostVisual(root);
-                else ConfigureWorkbenchRowVisual(root);
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (144,36)", "WorkbenchItem");
+                // WorkbenchPanel binds selection listeners to the item root.  Keep
+                // the interaction contract in the prefab instead of relying on a
+                // runtime component lookup that silently returns null.
+                background.raycastTarget = true;
+                Button button = root.GetComponent<Button>() ?? root.AddComponent<Button>();
+                button.transition = Selectable.Transition.ColorTint;
+                button.targetGraphic = background;
+                ConfigureWorkbenchHostVisual(root);
+                Component logic = AddComponentByName(root, "Everlight.Tales.UI.WorkbenchItem");
                 SetRef(logic, "_background", root.GetComponent<Image>());
                 SetRef(logic, "_icon", FindComponent<Image>(root, "Icon"));
                 SetRef(logic, "_title", FindComponent<TMP_Text>(root, "Txt_Title"));
@@ -534,114 +572,15 @@ namespace Everlight.Tales.Editor
             });
         }
 
-        private static string CreateMapEventItem()
-        {
-            string path = ItemDir + "/MapEventItem.prefab";
-            if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
-            return CreateItemVisual(path, "MapEventItem", "SHR-005-normal列表行", (root, background) =>
-            {
-                if (root.GetComponent<Button>() == null) root.AddComponent<Button>();
-                foreach (string childName in new[] { "Txt_Id", "Icon", "StateFrame", "Txt_State", "Txt_Source", "Txt_Value" })
-                {
-                    Transform child = root.transform.Find(childName);
-                    if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                }
-                RectTransform title = root.transform.Find("Txt_Title") as RectTransform;
-                if (title != null) { title.anchoredPosition = new Vector2(20f, 12f); title.sizeDelta = new Vector2(760f, 30f); title.GetComponent<TMP_Text>().fontSize = 20f; }
-                RectTransform detail = root.transform.Find("Txt_Detail") as RectTransform;
-                if (detail != null) { detail.anchoredPosition = new Vector2(20f, -16f); detail.sizeDelta = new Vector2(760f, 24f); detail.GetComponent<TMP_Text>().fontSize = 15f; }
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (465,36)", "MapEventItem");
-                SetRef(logic, "_title", FindComponent<TMP_Text>(root, "Txt_Title"));
-                SetRef(logic, "_meta", FindComponent<TMP_Text>(root, "Txt_Detail"));
-                SetRef(logic, "_button", root.GetComponent<Button>());
-            });
-        }
 
-        private static string CreateJournalItem()
-        {
-            string path = ItemDir + "/JournalItem.prefab";
-            if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
-            return CreateItemVisual(path, "JournalItem", "SHR-005-normal列表行", (root, background) =>
-            {
-                if (root.GetComponent<Button>() == null) root.AddComponent<Button>();
-                background.pixelsPerUnitMultiplier = 2f;
-                foreach (string childName in new[] { "Txt_Id", "Icon", "StateFrame", "Txt_State", "Txt_Source", "Txt_Value" })
-                {
-                    Transform child = root.transform.Find(childName);
-                    if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                }
-                RectTransform title = root.transform.Find("Txt_Title") as RectTransform;
-                if (title != null) { title.anchoredPosition = new Vector2(18f, 10f); title.sizeDelta = new Vector2(680f, 30f); title.GetComponent<TMP_Text>().fontSize = 20f; }
-                RectTransform detail = root.transform.Find("Txt_Detail") as RectTransform;
-                if (detail != null) { detail.anchoredPosition = new Vector2(18f, -17f); detail.sizeDelta = new Vector2(680f, 24f); detail.GetComponent<TMP_Text>().fontSize = 14f; }
-                GameObject action = new GameObject("Action", typeof(RectTransform), typeof(Image), typeof(Button));
-                action.transform.SetParent(root.transform, false);
-                RectTransform actionRect = action.transform as RectTransform;
-                actionRect.anchorMin = new Vector2(1f, 0.5f); actionRect.anchorMax = actionRect.anchorMin; actionRect.pivot = new Vector2(1f, 0.5f); actionRect.anchoredPosition = new Vector2(-16f, 0f); actionRect.sizeDelta = new Vector2(130f, 40f);
-                TextMeshProUGUI actionText = CreateTextChild(action.transform, "Label", Vector2.zero, Vector2.zero, 18, TextAlignmentOptions.Center).GetComponent<TextMeshProUGUI>();
-                (actionText.transform as RectTransform).anchorMin = Vector2.zero; (actionText.transform as RectTransform).anchorMax = Vector2.one; (actionText.transform as RectTransform).sizeDelta = Vector2.zero;
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (505,36)", "JournalItem");
-                SetRef(logic, "_title", FindComponent<TMP_Text>(root, "Txt_Title")); SetRef(logic, "_detail", FindComponent<TMP_Text>(root, "Txt_Detail")); SetRef(logic, "_actionLabel", actionText); SetRef(logic, "_button", root.GetComponent<Button>());
-            });
-        }
 
-        private static string CreateDialogueChoiceItem()
-        {
-            string path = ItemDir + "/DialogueChoiceItem.prefab";
-            if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
-            return CreateItemVisual(path, "DialogueChoiceItem", "SHR-003-normal卡片", (root, background) =>
-            {
-                if (root.GetComponent<Button>() == null) root.AddComponent<Button>();
-                foreach (string childName in new[] { "Txt_Id", "Icon", "StateFrame", "Txt_Detail", "Txt_State", "Txt_Source", "Txt_Value" })
-                {
-                    Transform child = root.transform.Find(childName);
-                    if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                }
-                RectTransform title = root.transform.Find("Txt_Title") as RectTransform;
-                if (title != null) { title.anchorMin = Vector2.zero; title.anchorMax = Vector2.one; title.offsetMin = new Vector2(18f, 0f); title.offsetMax = new Vector2(-18f, 0f); title.GetComponent<TMP_Text>().fontSize = 22f; title.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Left; }
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (560,36)", "DialogueChoiceItem");
-                SetRef(logic, "_label", FindComponent<TMP_Text>(root, "Txt_Title")); SetRef(logic, "_button", root.GetComponent<Button>());
-            });
-        }
 
         private static string CreateInvestigationHotspotItem()
         {
-            string path = ItemDir + "/InvestigationHotspotItem.prefab";
-            if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
-            return CreateItemVisual(path, "InvestigationHotspotItem", "SHR-003-normal卡片", (root, background) =>
-            {
-                if (root.GetComponent<Button>() == null) root.AddComponent<Button>();
-                foreach (string childName in new[] { "Txt_Id", "Icon", "StateFrame", "Txt_Detail", "Txt_State", "Txt_Source", "Txt_Value" })
-                {
-                    Transform child = root.transform.Find(childName); if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                }
-                RectTransform title = root.transform.Find("Txt_Title") as RectTransform;
-                if (title != null) { title.anchorMin = Vector2.zero; title.anchorMax = Vector2.one; title.offsetMin = Vector2.zero; title.offsetMax = Vector2.zero; title.GetComponent<TMP_Text>().fontSize = 18f; title.GetComponent<TMP_Text>().alignment = TextAlignmentOptions.Center; }
-                RectTransform rt = root.transform as RectTransform; rt.sizeDelta = new Vector2(140f, 140f);
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (615,36)", "InvestigationHotspotItem");
-                SetRef(logic, "_ring", root.GetComponent<Image>()); SetRef(logic, "_label", FindComponent<TMP_Text>(root, "Txt_Title")); SetRef(logic, "_button", root.GetComponent<Button>());
-            });
+            Everlight.Tales.UI.Editor.SpecialItemPrefabMigration.Investigation();
+            return ItemDir + "/InvestigationHotspotItem.prefab";
         }
 
-        private static string CreateGuestDelegationItem()
-        {
-            string path = ItemDir + "/GuestDelegationItem.prefab";
-            if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
-            return CreateItemVisual(path, "GuestDelegationItem", "SHR-005-normal列表行", (root, background) =>
-            {
-                if (root.GetComponent<Button>() == null) root.AddComponent<Button>();
-                foreach (string childName in new[] { "Txt_Id", "Icon", "StateFrame", "Txt_Detail", "Txt_State", "Txt_Source", "Txt_Value" })
-                {
-                    Transform child = root.transform.Find(childName); if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
-                }
-                RectTransform title = root.transform.Find("Txt_Title") as RectTransform;
-                if (title != null) { title.anchoredPosition = new Vector2(18f, 0f); title.sizeDelta = new Vector2(560f, 50f); title.GetComponent<TMP_Text>().fontSize = 20f; }
-                GameObject action = new GameObject("Action", typeof(RectTransform), typeof(Image), typeof(Button)); action.transform.SetParent(root.transform, false);
-                RectTransform actionRect = action.transform as RectTransform; actionRect.anchorMin = new Vector2(1f, 0.5f); actionRect.anchorMax = actionRect.anchorMin; actionRect.pivot = new Vector2(1f, 0.5f); actionRect.anchoredPosition = new Vector2(-16f, 0f); actionRect.sizeDelta = new Vector2(150f, 44f);
-                TMP_Text actionText = CreateTextChild(action.transform, "Label", Vector2.zero, Vector2.zero, 18, TextAlignmentOptions.Center).GetComponent<TMP_Text>(); RectTransform ar = actionText.transform as RectTransform; ar.anchorMin = Vector2.zero; ar.anchorMax = Vector2.one; ar.sizeDelta = Vector2.zero; actionText.text = "去处理";
-                Component logic = UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (680,36)", "GuestDelegationItem"); SetRef(logic, "_title", FindComponent<TMP_Text>(root, "Txt_Title")); SetRef(logic, "_button", action.GetComponent<Button>()); SetRef(logic, "_buttonLabel", actionText);
-            });
-        }
 
         private static void ConfigureWorkbenchHostVisual(GameObject root)
         {
@@ -664,28 +603,6 @@ namespace Everlight.Tales.Editor
                 title.anchoredPosition = new Vector2(0f, 8f); title.sizeDelta = new Vector2(-12f, 28f);
                 TMP_Text text = title.GetComponent<TMP_Text>(); text.fontSize = 16f; text.alignment = TextAlignmentOptions.Center; text.enableWordWrapping = false; text.overflowMode = TextOverflowModes.Ellipsis;
             }
-        }
-
-        private static void ConfigureWorkbenchRowVisual(GameObject root)
-        {
-            RectTransform rt = root.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f); rt.sizeDelta = new Vector2(-24f, 76f);
-            LayoutElement layout = root.GetComponent<LayoutElement>() ?? root.AddComponent<LayoutElement>();
-            layout.minHeight = 76f; layout.preferredHeight = 76f; layout.flexibleWidth = 1f;
-            foreach (string name in new[] { "Txt_Id", "Txt_State", "Txt_Source", "StateFrame" })
-            {
-                Transform child = root.transform.Find(name);
-                if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
-            }
-            RectTransform icon = root.transform.Find("Icon") as RectTransform;
-            if (icon != null) { icon.anchorMin = new Vector2(0f, 0.5f); icon.anchorMax = icon.anchorMin; icon.pivot = new Vector2(0f, 0.5f); icon.anchoredPosition = new Vector2(18f, 0f); icon.sizeDelta = new Vector2(42f, 42f); }
-            RectTransform title = root.transform.Find("Txt_Title") as RectTransform;
-            if (title != null) { title.anchoredPosition = new Vector2(76f, 14f); title.sizeDelta = new Vector2(620f, 30f); title.GetComponent<TMP_Text>().fontSize = 20f; title.GetComponent<TMP_Text>().enableWordWrapping = false; title.GetComponent<TMP_Text>().overflowMode = TextOverflowModes.Ellipsis; }
-            RectTransform detail = root.transform.Find("Txt_Detail") as RectTransform;
-            if (detail != null) { detail.anchoredPosition = new Vector2(76f, -18f); detail.sizeDelta = new Vector2(620f, 24f); detail.GetComponent<TMP_Text>().fontSize = 15f; detail.GetComponent<TMP_Text>().enableWordWrapping = false; detail.GetComponent<TMP_Text>().overflowMode = TextOverflowModes.Ellipsis; }
-            RectTransform value = root.transform.Find("Txt_Value") as RectTransform;
-            if (value != null) { value.anchorMin = new Vector2(1f, 0.5f); value.anchorMax = value.anchorMin; value.pivot = new Vector2(1f, 0.5f); value.anchoredPosition = new Vector2(-18f, 0f); value.sizeDelta = new Vector2(220f, 30f); value.GetComponent<TMP_Text>().fontSize = 18f; value.GetComponent<TMP_Text>().enableWordWrapping = false; value.GetComponent<TMP_Text>().overflowMode = TextOverflowModes.Ellipsis; }
         }
 
         private static string CreateItemVisual(string path, string prefabName, string backgroundPrefix, Action<GameObject, Image> configure)
@@ -753,7 +670,7 @@ namespace Everlight.Tales.Editor
                 Rename(root, "Txt_Slot1Label", "Txt_ActionLabel");
                 Rename(root, "Btn_Delete1", "Btn_Delete");
                 Rename(root, "Txt_Delete1Label", "Txt_DeleteLabel");
-                Component logic = root.GetComponent("SaveSlotItem") ?? UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (43,72)", "SaveSlotItem");
+                Component logic = root.GetComponent("SaveSlotItem") ?? AddComponentByName(root, "Everlight.Tales.UI.SaveSlotItem");
                 SetRef(logic, "_summary", FindComponent<TMP_Text>(root, "Txt_Summary"));
                 SetRef(logic, "_actionLabel", FindComponent<TMP_Text>(root, "Txt_ActionLabel"));
                 SetRef(logic, "_actionButton", FindComponent<Button>(root, "Btn_Action"));
@@ -761,30 +678,11 @@ namespace Everlight.Tales.Editor
             });
         }
 
-        private static string CreateRewardChoiceItem()
-        {
-            if (File.Exists(ItemDir + "/RewardChoiceItem.prefab")) return ItemDir + "/RewardChoiceItem.prefab";
-            return CreateFromChild(SettlementPage, "Btn_Choice0", ItemDir + "/RewardChoiceItem.prefab", root =>
-            {
-                root.name = "RewardChoiceItem";
-                Rename(root, "Txt_Choice0Label", "Txt_Label");
-                Component logic = root.GetComponent("RewardChoiceItem") ?? UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (57,76)", "RewardChoiceItem");
-                SetRef(logic, "_label", FindComponent<TMP_Text>(root, "Txt_Label"));
-                SetRef(logic, "_button", root.GetComponent<Button>());
-            });
-        }
 
         private static string CreateCarryAvailableItem()
         {
-            if (File.Exists(ItemDir + "/CarryAvailableItem.prefab")) return ItemDir + "/CarryAvailableItem.prefab";
-            return CreateFromChild(PreparationPage, "Item_CarryAvailableTemplate", ItemDir + "/CarryAvailableItem.prefab", root =>
-            {
-                root.name = "CarryAvailableItem";
-                Rename(root, "Txt_CarryAvailableItemLabel", "Txt_Label");
-                Component logic = root.GetComponent("CarryAvailableItem") ?? UnityEngineInternal.APIUpdaterRuntimeServices.AddComponent(root, "Assets/Game/Scripts/EverlightTales/UI/Editor/EverlightUiItemPrefabGenerator.cs (69,78)", "CarryAvailableItem");
-                SetRef(logic, "_label", FindComponent<TMP_Text>(root, "Txt_Label"));
-                SetRef(logic, "_button", root.GetComponent<Button>());
-            });
+            Everlight.Tales.UI.Editor.SpecialItemPrefabMigration.Carry();
+            return ItemDir + "/CarryAvailableItem.prefab";
         }
 
         private static void BindSaveSlotPage(string itemPath)
@@ -934,3 +832,4 @@ namespace Everlight.Tales.Editor
     }
 }
 #endif
+// Codex review menu registration touch

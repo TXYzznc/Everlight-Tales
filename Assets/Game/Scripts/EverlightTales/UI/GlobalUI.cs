@@ -44,9 +44,12 @@ namespace Everlight.Tales.UI
             return ShowDialog("解锁 · " + title, content);
         }
 
+        /// <summary>使用已注册的 DialogView UIDialog 显示短暂提示。</summary>
         public static void ShowToast(string message)
         {
-            EnsureRoot().ShowToast(message);
+            var p = UIParams.Create(false);
+            p.OpenCallback = form => ((DialogView)form).SetupToast(message);
+            GF.UI.OpenUIForm(UIViews.DialogView, p);
         }
 
         public static void ShowLoading()

@@ -20,14 +20,21 @@ namespace Everlight.Tales.UI
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
+            Debug.Log($"[UI诊断][SaveSlotPage] OnOpen id={Id}, active={gameObject.activeInHierarchy}, slotsRoot={(SlotsRoot != null ? SlotsRoot.name : "null")}", this);
             RefreshSlots();
         }
 
         private void EnterSlot(int slot)
         {
+            Debug.Log($"[UI诊断][SaveSlotPage] EnterSlot slot={slot}, hadSave={SaveSlotService.HasSlot(slot)}", this);
             WorldSession.LoadOrNew(WorldSession.DemoSeed, slot);
-            GF.UI.OpenUIForm(UIViews.MainPageShell);
+            Debug.Log($"[UI诊断][SaveSlotPage] WorldSession loaded current={(WorldSession.Current != null ? "ok" : "null")}, day={(WorldSession.Current != null ? WorldSession.Current.Time.Day.ToString() : "n/a")}", this);
+            UIValidationHarness.ApplyTestData(WorldSession.Current);
+            // 先关闭存档选择页，再打开常驻主页，避免 GF 同组 Refresh 在两个顶层窗体
+            // 交接期间把 MainPageShell 留在暂停/不可见状态。
             OnClickClose();
+            int shellId = GF.UI.OpenUIForm(UIViews.MainPageShell);
+            Debug.Log($"[UI诊断][SaveSlotPage] Open MainPageShell serialId={shellId}", this);
         }
 
         private void DeleteSlot(int slot)
@@ -70,4 +77,3 @@ namespace Everlight.Tales.UI
         }
     }
 }
-

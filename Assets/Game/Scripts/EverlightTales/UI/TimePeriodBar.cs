@@ -12,9 +12,9 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class TimePeriodBar : MonoBehaviour
     {
-        public TextMeshProUGUI DayPeriodLabel;
-        public TextMeshProUGUI RemainingLabel;
-        public Image[] PeriodCells;
+        [SerializeField] public TextMeshProUGUI DayPeriodLabel;
+        [SerializeField] public TextMeshProUGUI RemainingLabel;
+        [SerializeField] public Image[] PeriodCells;
 
         public static Color DayActive = new Color(1f, 0.88f, 0.4f);
         public static Color DayIdle = new Color(0.72f, 0.70f, 0.58f);
@@ -23,31 +23,20 @@ namespace Everlight.Tales.UI
 
         public void BindStaticLayout()
         {
-            DayPeriodLabel = FindText("Txt_DayPeriod");
-            RemainingLabel = FindText("Txt_Remaining");
-            PeriodCells = new Image[4];
+            if (DayPeriodLabel == null) DayPeriodLabel = FindText("Txt_DayPeriod");
+            if (RemainingLabel == null) RemainingLabel = FindText("Txt_Remaining");
+            if (PeriodCells == null || PeriodCells.Length != 4) PeriodCells = new Image[4];
             for (int i = 0; i < PeriodCells.Length; i++)
             {
                 Transform cell = transform.Find("Cell_" + i);
-                PeriodCells[i] = cell != null ? cell.GetComponent<Image>() : null;
+                if (PeriodCells[i] == null) PeriodCells[i] = cell != null ? cell.GetComponent<Image>() : null;
             }
         }
 
         public void Build()
         {
-            if (DayPeriodLabel != null && RemainingLabel != null && PeriodCells != null && PeriodCells.Length == 4)
-            {
-                return;
-            }
-            DayPeriodLabel = MakeText("day-period");
-            RemainingLabel = MakeText("remaining");
-            PeriodCells = new Image[4];
-            for (int i = 0; i < 4; i++)
-            {
-                var go = new GameObject("period-" + i, typeof(RectTransform), typeof(Image));
-                go.transform.SetParent(transform, false);
-                PeriodCells[i] = go.GetComponent<Image>();
-            }
+            if (DayPeriodLabel == null || RemainingLabel == null || PeriodCells == null || PeriodCells.Length != 4)
+                Debug.LogError("TimePeriodBar 静态布局不完整，拒绝运行时创建 UI。", this);
         }
 
         private TextMeshProUGUI FindText(string path)
@@ -81,11 +70,5 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private TextMeshProUGUI MakeText(string name)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(transform, false);
-            return go.GetComponent<TextMeshProUGUI>();
-        }
     }
 }

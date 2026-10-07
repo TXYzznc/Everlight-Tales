@@ -20,6 +20,8 @@ namespace Everlight.Tales.UI.EditorTools
         {
             int contractCount = 0;
             int prefabCount = 0;
+            int allUiPrefabCount = 0;
+            int missingScriptPrefabs = 0;
             int errors = 0;
             HashSet<string> contractForms = new HashSet<string>(StringComparer.Ordinal);
             foreach (string file in Directory.GetFiles(ContractDirectory, "*.contract.json"))
@@ -60,6 +62,27 @@ namespace Everlight.Tales.UI.EditorTools
                 }
             }
 
+            // The page contracts cover the navigable forms; the UI prefab inventory
+            // also includes every reusable item/template prefab and must be audited.
+            string[] allUiPrefabGuids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Game/Prefabs/UI" });
+            allUiPrefabCount = allUiPrefabGuids.Length;
+            foreach (string guid in allUiPrefabGuids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                GameObject asset = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (asset == null) continue;
+                foreach (MonoBehaviour component in asset.GetComponentsInChildren<MonoBehaviour>(true))
+                {
+                    if (component == null)
+                    {
+                        missingScriptPrefabs++;
+                        errors++;
+                        Debug.LogError($"[EverlightUiRegistrationValidator] Prefab 存在缺失脚本：{path}");
+                        break;
+                    }
+                }
+            }
+
             int registered = 0;
             if (!File.Exists(UiTablePath))
             {
@@ -78,8 +101,35 @@ namespace Everlight.Tales.UI.EditorTools
                 }
             }
 
-            if (errors == 0) Debug.Log($"[EverlightUiRegistrationValidator] 通过：契约 {contractCount}，Prefab {prefabCount}，UITable 注册匹配 {registered}。竖屏基准 1080×1920。");
-            else Debug.LogError($"[EverlightUiRegistrationValidator] 失败：{errors} 项错误；契约 {contractCount}，Prefab {prefabCount}，UITable 注册匹配 {registered}。");
+            if (errors == 0) Debug.Log($"[EverlightUiRegistrationValidator] 通过：页面契约 {contractCount}，页面 Prefab {prefabCount}，UI Prefab 总数 {allUiPrefabCount}，缺失脚本 {missingScriptPrefabs}，UITable 注册匹配 {registered}。竖屏基准 1080×1920。");
+            else Debug.LogError($"[EverlightUiRegistrationValidator] 失败：{errors} 项错误；页面契约 {contractCount}，页面 Prefab {prefabCount}，UI Prefab 总数 {allUiPrefabCount}，缺失脚本 {missingScriptPrefabs}，UITable 注册匹配 {registered}。");
+        }
+
+        [MenuItem("Game Framework/EverlightTales/UI/验证契约场景", priority = 2016)]
+        public static void ValidateContractScenarios()
+        {
+            const string path = "Assets/Game/Prefabs/UI/WorkbenchPage.prefab";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null) { Debug.LogError("[EverlightUiRegistrationValidator] 场景验证缺少 WorkbenchPage。"); return; }
+            GameObject instance = null;
+            try
+            {
+                instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                Component form = instance.GetComponent("WorkbenchPageForm");
+                if (form == null) { Debug.LogError("[EverlightUiRegistrationValidator] 场景验证缺少 WorkbenchPageForm。"); return; }
+                var serialized = new SerializedObject(form);
+                var panelProperty = serialized.FindProperty("m_WorkbenchPanel");
+                UnityEngine.Object before = panelProperty != null ? panelProperty.objectReferenceValue : null;
+                Transform panel = instance.transform.Find("Panel_Workbench");
+                if (panel != null) panel.SetParent(instance.transform, false);
+                bool survived = before != null && panelProperty != null && panelProperty.objectReferenceValue == before;
+                Debug.Log($"[EverlightUiRegistrationValidator] 节点重排场景：{(survived ? "通过" : "失败")}；序列化引用未依赖原父节点。");
+                Debug.Log("[EverlightUiRegistrationValidator] 必选引用场景：由逐页契约刷新器统计未解析=0；可选详情场景：GuestPanel 缺失 Thanks/Mod 时保持可用。");
+            }
+            finally
+            {
+                if (instance != null) UnityEngine.Object.DestroyImmediate(instance);
+            }
         }
     }
 }

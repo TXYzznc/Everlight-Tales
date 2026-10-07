@@ -84,6 +84,26 @@ namespace Everlight.Tales.UI.EditorTools
             RefreshBindingsOnly(DefaultContractPath);
         }
 
+        // 逐页契约刷新入口：每个菜单只处理一个明确页面，便于单独审阅和记录结果。
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/ArchivePage")] public static void RefreshArchive() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/ArchivePageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/BoardPage")] public static void RefreshBoard() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/BoardPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/CodexPage")] public static void RefreshCodex() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/CodexPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/DialoguePage")] public static void RefreshDialogue() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/DialoguePageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/FeedbackPage")] public static void RefreshFeedback() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/FeedbackPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/GuestPage")] public static void RefreshGuest() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/GuestPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/HomePage")] public static void RefreshHome() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/HomePageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/InvestigationPage")] public static void RefreshInvestigation() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/InvestigationPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/JournalPage")] public static void RefreshJournal() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/JournalPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/MapPage")] public static void RefreshMap() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/MapPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/PreparationPage")] public static void RefreshPreparation() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/PreparationPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/ProloguePage")] public static void RefreshPrologue() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/ProloguePageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/RecoveryPage")] public static void RefreshRecovery() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/RecoveryPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/SaveSlotPage")] public static void RefreshSaveSlot() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/SaveSlotPage.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/ServicePage")] public static void RefreshService() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/ServicePageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/Settings")] public static void RefreshSettings() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/SettingsForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/SettlementPage")] public static void RefreshSettlement() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/SettlementPageForm.contract.json");
+        [MenuItem("Game Framework/EverlightTales/UI/逐页契约/WorkbenchPage")] public static void RefreshWorkbench() => RefreshBindingsOnly("Docs/Development/UI-PrefabLayouts/WorkbenchPageForm.contract.json");
+
         /// <summary>Rebuild every page that ships a contract, one file per page.</summary>
         [MenuItem("Game Framework/EverlightTales/UI/从契约重建所有页面", priority = 2002)]
         public static void RebuildAllContracts()
@@ -488,6 +508,7 @@ namespace Everlight.Tales.UI.EditorTools
             var serialized = new SerializedObject(form);
             string contractRoot = (string)((JObject)doc["root"])["name"];
             int unresolved = 0;
+            var unresolvedDetails = new List<string>();
 
             if (doc["bindings"] is JArray bindings)
             {
@@ -501,18 +522,23 @@ namespace Everlight.Tales.UI.EditorTools
                     if (property == null)
                     {
                         Debug.LogWarning($"[EverlightUiPrefabGenerator] 绑定字段不存在：{path}");
+                        unresolvedDetails.Add($"field:{path}");
                         unresolved++;
                         continue;
                     }
 
                     UnityEngine.Object target;
-                    string assetPath = (string)binding["asset"];
+                    // Contracts historically used both `asset` and `assetPath`.
+                    // Treat them as the same external prefab reference so a logical
+                    // root node does not become a false unresolved binding.
+                    string assetPath = (string)(binding["asset"] ?? binding["assetPath"]);
                     if (!string.IsNullOrEmpty(assetPath))
                     {
                         target = LoadAssetFor(property, assetPath);
                         if (target == null)
                         {
                             Debug.LogWarning($"[EverlightUiPrefabGenerator] 外部资源未找到：{path} -> {assetPath}");
+                            unresolvedDetails.Add($"asset:{path}->{assetPath}");
                             unresolved++;
                         }
                     }
@@ -522,6 +548,7 @@ namespace Everlight.Tales.UI.EditorTools
                         if (target == null)
                         {
                             Debug.LogWarning($"[EverlightUiPrefabGenerator] 绑定目标未解析：{path} -> {nodePath} ({kind})");
+                            unresolvedDetails.Add($"node:{path}->{nodePath}({kind})");
                             unresolved++;
                         }
                     }
@@ -564,6 +591,8 @@ namespace Everlight.Tales.UI.EditorTools
             }
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
+            if (unresolvedDetails.Count > 0)
+                Debug.Log($"[EverlightUiPrefabGenerator] 未解析明细：{string.Join(" | ", unresolvedDetails)}");
             return unresolved;
         }
 
@@ -662,6 +691,45 @@ namespace Everlight.Tales.UI.EditorTools
             if (index.TryGetValue(nodePath, out GameObject go)) return go;
             if (index.TryGetValue(rootName + "/" + nodePath, out go)) return go;
             if (index.TryGetValue(contractRoot + "/" + nodePath, out go)) return go;
+            // Contracts describe the logical form root. Prefabs may use a different
+            // root name, so resolve the child path after removing either root prefix.
+            string relativePath = nodePath;
+            string contractPrefix = contractRoot + "/";
+            string prefabPrefix = rootName + "/";
+            if (relativePath.StartsWith(contractPrefix, StringComparison.Ordinal))
+                relativePath = relativePath.Substring(contractPrefix.Length);
+            else if (relativePath.StartsWith(prefabPrefix, StringComparison.Ordinal))
+                relativePath = relativePath.Substring(prefabPrefix.Length);
+
+            if (!string.Equals(relativePath, nodePath, StringComparison.Ordinal))
+            {
+                if (index.TryGetValue(relativePath, out go)) return go;
+                if (index.TryGetValue(rootName + "/" + relativePath, out go)) return go;
+                if (index.TryGetValue(contractRoot + "/" + relativePath, out go)) return go;
+            }
+            // Existing prefabs may use a different UIForm root name while preserving the
+            // contract's child path. Resolve that suffix only when it is unique; this keeps
+            // node movement safe while allowing legacy root renames to be migrated once.
+            string suffix = "/" + relativePath;
+            GameObject suffixMatch = null;
+            int suffixDepth = int.MaxValue;
+            bool ambiguousAtBestDepth = false;
+            foreach (var pair in index)
+            {
+                if (!pair.Key.EndsWith(suffix, StringComparison.Ordinal)) continue;
+                int depth = pair.Key.Split('/').Length;
+                if (depth < suffixDepth)
+                {
+                    suffixDepth = depth;
+                    suffixMatch = pair.Value;
+                    ambiguousAtBestDepth = false;
+                }
+                else if (depth == suffixDepth)
+                {
+                    ambiguousAtBestDepth = true;
+                }
+            }
+            if (suffixMatch != null && !ambiguousAtBestDepth) return suffixMatch;
             return null;
         }
 

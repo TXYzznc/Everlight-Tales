@@ -15,6 +15,7 @@ namespace Everlight.Tales.UI
         public static readonly Color BgDark = new Color(0.10f, 0.12f, 0.16f, 0.92f);
         public static readonly Color ButtonBlue = new Color(0.30f, 0.42f, 0.55f, 1f);
         public static readonly Color ButtonGreen = new Color(0.26f, 0.52f, 0.34f, 1f);
+        public static readonly Color ButtonGold = new Color(1f, 0.85f, 0.35f, 1f);
         public static readonly Color ButtonGrey = new Color(0.28f, 0.28f, 0.30f, 1f);
 
         /// <summary>
@@ -23,20 +24,7 @@ namespace Everlight.Tales.UI
         /// </summary>
         public static void SetSelected(Button button, bool selected)
         {
-            if (button == null) return;
-            Image image = button.targetGraphic as Image;
-            if (image == null) image = button.GetComponent<Image>();
-            if (image == null) return;
-            SpriteState state = button.spriteState;
-            if (selected && state.selectedSprite != null)
-            {
-                image.sprite = state.selectedSprite;
-            }
-            else if (!selected && state.disabledSprite != null)
-            {
-                // 本项目正式按钮把 Disabled Sprite 配置为 normal Sprite，用于稳定恢复未选中态。
-                image.sprite = state.disabledSprite;
-            }
+            UIButtonStateUtility.SetSelected(button, selected);
         }
 
         /// <summary>全屏拉伸子面板（挂在 Content 容器下）。</summary>

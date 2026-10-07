@@ -30,6 +30,7 @@ namespace Everlight.Tales.Editor
         private int _height = 1920;
         private string _folder = "Assets/Screenshots/AllPages";
         private bool _capture = true;
+        private bool _normalFlow;
         private bool _showAdvanced;
         private Vector2 _scroll;
         private string _lastAction = "等待操作";
@@ -49,6 +50,7 @@ namespace Everlight.Tales.Editor
             _height = UIValidationHarness.CaptureHeight;
             _folder = UIValidationHarness.CaptureFolder;
             _capture = UIValidationHarness.CaptureEnabled;
+            _normalFlow = UIValidationHarness.NormalFlow;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
@@ -89,6 +91,13 @@ namespace Everlight.Tales.Editor
                 }
                 _folder = EditorGUILayout.TextField("截图目录", _folder);
                 _capture = EditorGUILayout.ToggleLeft("运行时自动截图", _capture);
+                bool normalFlow = EditorGUILayout.ToggleLeft("启用测试数据（走正常游戏流程）", _normalFlow);
+                if (normalFlow != _normalFlow)
+                {
+                    _normalFlow = normalFlow;
+                    UIValidationHarness.ConfigureNormalFlow(_normalFlow);
+                    _lastAction = _normalFlow ? "已启用测试数据：进入 PlayMode 后走正常流程" : "已关闭测试数据";
+                }
                 if (GUILayout.Button("保存参数")) SaveSettings();
             }
         }
@@ -110,6 +119,7 @@ namespace Everlight.Tales.Editor
                 if (GUILayout.Button("打开当前页面", GUILayout.Height(32f))) RunSelectedPage();
                 if (GUILayout.Button("截图当前页面", GUILayout.Height(32f))) CaptureCurrentPage();
             }
+            if (GUILayout.Button("安全刷新当前界面", GUILayout.Height(32f))) RefreshCurrentPage();
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button("20 页烟雾测试", GUILayout.Height(32f))) RunSmokeTest();
@@ -159,6 +169,7 @@ namespace Everlight.Tales.Editor
             _width = Mathf.Clamp(_width, 320, 7680);
             _height = Mathf.Clamp(_height, 320, 7680);
             UIValidationHarness.ConfigureCapture(_width, _height, _folder, _capture);
+            UIValidationHarness.ConfigureNormalFlow(_normalFlow);
             _lastAction = "参数已保存: " + _width + "×" + _height;
         }
 
@@ -166,8 +177,10 @@ namespace Everlight.Tales.Editor
         {
             SaveSettings();
             UIValidationHarness.Configure(Pages[_selectedPage]);
+            UIValidationHarness.SetNormalFlow(_normalFlow);
             _lastAction = "已配置 " + Pages[_selectedPage] + "，正在进入 PlayMode";
             if (!EditorApplication.isPlaying) EditorApplication.isPlaying = true;
+            else if (_normalFlow) UIValidationHarness.OpenNormalFlowEntry();
             else UIValidationHarness.Start();
         }
 
@@ -181,6 +194,29 @@ namespace Everlight.Tales.Editor
             }
             UIValidationHarness.CaptureCurrentScreenshot(Pages[_selectedPage]);
             _lastAction = "已请求当前页面截图";
+        }
+
+        private void RefreshCurrentPage()
+        {
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            {
+                _lastAction = "等待脚本编译和资源导入完成后再刷新";
+                return;
+            }
+            if (!EditorApplication.isPlaying)
+            {
+                _lastAction = "请先进入 PlayMode，再安全刷新当前界面";
+                return;
+            }
+
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            if (EditorApplication.isCompiling)
+            {
+                _lastAction = "资源已导入，等待脚本编译完成后再刷新";
+                return;
+            }
+            UIValidationHarness.SafeRefreshCurrentPage(Pages[_selectedPage]);
+            _lastAction = "已请求安全刷新：" + Pages[_selectedPage];
         }
 
         private void RunSmokeTest()

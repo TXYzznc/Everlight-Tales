@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
 using UnityEngine;
@@ -10,7 +10,7 @@ namespace Everlight.Tales.UI
     /// <summary>
     /// 通用对话界面（P2 叙事层，D-060 前置表现）：背景 + 立绘占位 + 说话人/台词 + 选项。
     /// 沿 <see cref="DialogueService"/> 推进，选项跳转，结束回调后自毁。
-    /// 程序化构建，自带 ScreenSpaceOverlay Canvas（sortingOrder 600，弹窗之上）。
+    /// 运行时正式入口为 DialoguePage UIForm；本组件仅保留旧调用兼容层。
     /// 立绘正式美术到位后替换占位色块（人物立绘见 Sprites/人物/）。
     /// </summary>
     public sealed class DialoguePanel : MonoBehaviour
@@ -35,14 +35,8 @@ namespace Everlight.Tales.UI
         /// <summary>创建全屏对话面板并播放对话图；结束回调后自毁。</summary>
         public static DialoguePanel Show(DialogueGraph graph, Action onComplete)
         {
-            var go = new GameObject("dialogue_panel", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster), typeof(DialoguePanel));
-            var canvas = go.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.overrideSorting = true;
-            canvas.sortingOrder = 600;
-            var panel = go.GetComponent<DialoguePanel>();
-            panel.Play(graph, onComplete);
-            return panel;
+            Debug.LogError("DialoguePanel.Show 已禁用：对话必须通过 DialoguePage UIForm 预制体打开。");
+            return null;
         }
 
         public void Play(DialogueGraph graph, Action onComplete)
@@ -120,57 +114,22 @@ namespace Everlight.Tales.UI
 
         private void AddChoice(int index, string label)
         {
-            GameObject template = m_ChoiceTemplate;
-            if (template != null)
+            if (m_ChoiceTemplate == null)
             {
-                GameObject instance = Instantiate(template, m_ChoiceRoot);
-                instance.name = "choice_" + index;
-                RectTransform itemRect = instance.transform as RectTransform;
-                itemRect.anchorMin = new Vector2(0f, 1f);
-                itemRect.anchorMax = new Vector2(1f, 1f);
-                itemRect.pivot = new Vector2(0.5f, 1f);
-                itemRect.sizeDelta = new Vector2(0f, 56f);
-                itemRect.anchoredPosition = new Vector2(0f, -index * 62f);
-                int capturedItemIndex = index;
-                instance.GetComponent<DialogueChoiceItem>()?.Bind(label, () =>
-                {
-                    m_Service?.Choose(capturedItemIndex);
-                    Refresh();
-                });
+                Debug.LogError("DialoguePanel 缺少通用列表行预制体。", this);
                 return;
             }
-            var go = new GameObject("choice_" + index, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(m_ChoiceRoot, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.sizeDelta = new Vector2(0f, 56f);
-            rt.anchoredPosition = new Vector2(0f, -index * 62f);
-
-            go.GetComponent<Image>().color = new Color(0.16f, 0.19f, 0.24f, 1f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.offsetMin = new Vector2(16f, 0f);
-            labelRt.offsetMax = new Vector2(-16f, 0f);
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 22;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = label;
-
+            GameObject instance = Instantiate(m_ChoiceTemplate, m_ChoiceRoot);
+            RectTransform itemRect = (RectTransform)instance.transform;
+            itemRect.anchorMin = new Vector2(0f, 1f);
+            itemRect.anchorMax = new Vector2(1f, 1f);
+            itemRect.pivot = new Vector2(0.5f, 1f);
+            itemRect.sizeDelta = new Vector2(0f, 64f);
+            itemRect.anchoredPosition = new Vector2(0f, -index * 70f);
             int captured = index;
-            go.GetComponent<Button>().transition = Selectable.Transition.SpriteSwap;
-            go.GetComponent<Button>().onClick.AddListener(() =>
+            instance.GetComponent<ListRowItem>().Bind(new ListRowData(label)
             {
-                m_Service?.Choose(captured);
-                Refresh();
+                OnClick = () => { m_Service?.Choose(captured); Refresh(); }
             });
         }
 

@@ -1,8 +1,15 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Everlight.Tales.UI
 {
+    /// <summary>被 MainPageShell 承载的子页面初始化契约。</summary>
+    public interface IHostedPageForm
+    {
+        void InitializeHostedPage();
+    }
+
     /// <summary>
     /// 竖屏页面壳（P0-006）。
     ///
@@ -31,31 +38,14 @@ namespace Everlight.Tales.UI
         [SerializeField] private Button[] m_TabButtons = null;
         [SerializeField] private Graphic[] m_TabSelectedIndicators = null;
 
-        [Header("Dynamic Item Templates")]
-        [SerializeField] private GameObject m_JournalItemTemplate = null;
-        [SerializeField] private GameObject m_WorkbenchHostItemTemplate = null;
-        [SerializeField] private GameObject m_WorkbenchFormItemTemplate = null;
-        [SerializeField] private GameObject m_WorkbenchMaterialItemTemplate = null;
-        [SerializeField] private GameObject m_WorkbenchLedgerItemTemplate = null;
-
         private int m_CurrentTab = -1;
+        private int m_ActivePageFormId = -1;
+        [SerializeField] private Canvas m_NavigationCanvas;
+        [SerializeField] private Canvas m_TopCanvas;
+        [SerializeField] private RectTransform m_Content;
 
-        private MapPanel m_MapPanel;
-
-        private JournalPanel m_Journal;
-
-        private HomePanel m_Home;
-
-        private GameObject m_MapObject;
-        private GameObject m_JournalObject;
-        private GameObject m_HomeObject;
-        private bool m_MapBuilt;
-        private bool m_JournalBuilt;
-        private bool m_HomeBuilt;
-
-        private RectTransform m_Content;
-
-        private OpeningOverlay m_Opening;
+        [SerializeField] private OpeningOverlay m_Opening;
+        private bool m_HostedPageRefreshPending;
 
         protected override void OnInit(object userData)
         {
@@ -81,6 +71,7 @@ namespace Everlight.Tales.UI
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
+            Debug.Log($"[UI诊断][MainPageShell] OnOpen id={Id}, sort={SortOrder}, active={gameObject.activeInHierarchy}, parent={gameObject.transform.parent?.name ?? "null"}", this);
 
             if (m_SafeArea != null)
             {
@@ -93,13 +84,30 @@ namespace Everlight.Tales.UI
             {
                 WorldSession.LoadOrNew(WorldSession.DemoSeed);
             }
-            m_Content = FindContent();
+            // 内容由独立 UIForm 作为子界面承载，MainPageShell 只保留导航壳。
 
-            // Prefab 中的三个内容面板默认可能都是 active。先缓存并关闭非当前面板，
-            // 避免透明/空面板覆盖 Journal 页签的按钮命中区域。
-            CacheContentPanels();
+            if (m_NavigationCanvas == null || m_TopCanvas == null || m_Content == null)
+            {
+                Debug.LogError("[MainPageShell][Contract] 导航 Canvas、顶部 Canvas 或内容根引用未绑定。", this);
+                return;
+            }
+            Transform tabBar = m_NavigationCanvas.transform;
+            Transform topBar = m_TopCanvas.transform;
+            Transform content = m_Content;
+            Debug.Log($"[UI诊断][MainPageShell] Layout top={(topBar != null ? topBar.name : "null")}, tab={(tabBar != null ? tabBar.name : "null")}, content={(m_Content != null ? m_Content.name : "null")}, contentPath={GetTransformPath(m_Content)}", this);
+            if (m_NavigationCanvas != null)
+            {
+                m_NavigationCanvas.overrideSorting = true;
+                m_NavigationCanvas.sortingOrder = SortOrder + 10;
+            }
+            if (m_TopCanvas != null)
+            {
+                m_TopCanvas.overrideSorting = true;
+                m_TopCanvas.sortingOrder = SortOrder + 10;
+            }
 
             SelectTab(0);
+            Debug.Log("[UI诊断][MainPageShell] 默认页签=0(Map)，开始加载 MapPage", this);
             ShowTab(0);
 
             // 恢复面板：有未完成维修尝试时弹「继续/放弃」。
@@ -129,7 +137,7 @@ namespace Everlight.Tales.UI
             }
 
             // 序章：新档且未播完 → 显示覆盖层。
-            if (session.IsNewGame && !session.OpeningDone && m_Opening == null)
+            if (session.IsNewGame && !session.OpeningDone && (m_Opening == null || !m_Opening.gameObject.activeSelf))
             {
                 ShowOpening();
             }
@@ -137,9 +145,9 @@ namespace Everlight.Tales.UI
 
         private void ShowOpening()
         {
-            Transform staticOverlay = FindDescendant(transform, "Panel_OpeningOverlay");
-            GameObject go = staticOverlay != null ? staticOverlay.gameObject : new GameObject("opening_overlay", typeof(RectTransform));
-            if (staticOverlay == null) go.transform.SetParent(transform, false);
+            Transform staticOverlay = m_Opening != null ? m_Opening.transform : null;
+            if (staticOverlay == null) { Debug.LogError("MainPageShell 缺少 Panel_OpeningOverlay 静态布局。", this); return; }
+            GameObject go = staticOverlay.gameObject;
             go.SetActive(true);
             var overlay = go.GetComponent<OpeningOverlay>() ?? go.AddComponent<OpeningOverlay>();
             if (staticOverlay != null) overlay.BindStaticLayout();
@@ -155,8 +163,12 @@ namespace Everlight.Tales.UI
 
         private void OnBackClicked()
         {
-            // 与返回键（Escape）共用框架关闭流程。
+            // 返回到存档选择页，而不是让主壳关闭后停留在空白入口。
+            // 先关闭主壳及其托管子页面，再打开存档页，避免两个顶层 UIForm 交接时
+            // 被 GF 的同组刷新逻辑置为暂停或不可见状态。
+            Debug.Log("[UI诊断][MainPageShell] 返回按钮：关闭主壳并打开 SaveSlotPage", this);
             OnClickClose();
+            GF.UI.OpenUIForm(UIViews.SaveSlotPage);
         }
 
         private void OpenSettings()
@@ -168,15 +180,13 @@ namespace Everlight.Tales.UI
 
         private void OnTabClicked(int index)
         {
-            Debug.Log("[UI诊断][MainPageShell] 点击页签 index=" + index + ", current=" + m_CurrentTab + ", journal=" + (m_Journal != null ? m_Journal.GetInstanceID().ToString() : "null"));
+            Debug.Log("[UI诊断][MainPageShell] 点击页签 index=" + index + ", current=" + m_CurrentTab);
+            if (index == m_CurrentTab)
+            {
+                return;
+            }
             SelectTab(index);
             ShowTab(index);
-        }
-
-        private RectTransform FindContent()
-        {
-            Transform found = FindDescendant(transform, "Content");
-            return found != null ? (RectTransform)found : null;
         }
 
         private static Transform FindDescendant(Transform root, string name)
@@ -201,148 +211,132 @@ namespace Everlight.Tales.UI
         /// <summary>切换页签：构建/刷新目标面板并整体显隐（地图 0 / 任务 1 / 家园 2 / 工作台 3）。</summary>
         private void ShowTab(int index)
         {
-            if (m_Content == null)
+            OpenHostedPage(index);
+        }
+
+        /// <summary>
+        /// Rebuilds the currently hosted page while keeping the shell and selected
+        /// bottom tab alive.  This is used by the Editor UI validation window after
+        /// a prefab or hot-reloaded script was changed during PlayMode.
+        /// </summary>
+        public void RefreshHostedPageForValidation()
+        {
+            if (!Application.isPlaying || m_HostedPageRefreshPending || m_CurrentTab < 0)
             {
                 return;
             }
 
-            switch (index)
+            int tab = m_CurrentTab;
+            var oldForm = m_ActivePageFormId >= 0 ? GF.UI.GetUIForm(m_ActivePageFormId) : null;
+            GameObject oldInstance = oldForm != null ? oldForm.gameObject : null;
+            string oldAssetName = oldForm != null ? oldForm.UIFormAssetName : null;
+            m_HostedPageRefreshPending = true;
+            if (m_ActivePageFormId >= 0)
             {
-                case 0: BuildMapPanel(); break;
-                case 1: BuildJournal(); break;
-                case 2: BuildHome(); m_Home.ShowZone(2); break;   // 家园 → 收藏区（原图鉴用途）
-                case 3: BuildHome(); m_Home.ShowZone(1); break;   // 工作台 → 加工区快捷入口
+                CloseSubUIForm(m_ActivePageFormId);
+                m_ActivePageFormId = -1;
             }
 
-            if (m_MapPanel != null)
-            {
-                m_MapPanel.gameObject.SetActive(index == 0);
-            }
-            else if (m_MapObject != null)
-            {
-                m_MapObject.SetActive(index == 0);
-            }
+            StartCoroutine(ReopenHostedPageAfterRefresh(tab, oldInstance, oldAssetName));
+        }
 
-            if (m_Journal != null)
+        private IEnumerator ReopenHostedPageAfterRefresh(int tab, GameObject oldInstance, string oldAssetName)
+        {
+            // Let GF finish the close/unspawn pass before loading a fresh UIForm
+            // instance.  This avoids reusing the old hierarchy in the same frame.
+            yield return null;
+            yield return null;
+            bool released = UIValidationHarness.ReleaseClosedPageForRefresh(oldInstance, oldAssetName);
+            // ReleaseUIForm destroys the hierarchy at the end of this frame.
+            yield return null;
+            m_HostedPageRefreshPending = false;
+            if (released && gameObject.activeInHierarchy && m_CurrentTab == tab)
             {
-                m_Journal.gameObject.SetActive(index == 1);
-            }
-            else if (m_JournalObject != null)
-            {
-                m_JournalObject.SetActive(index == 1);
-            }
-
-            if (m_Home != null)
-            {
-                m_Home.gameObject.SetActive(index == 2 || index == 3);
-            }
-            else if (m_HomeObject != null)
-            {
-                m_HomeObject.SetActive(index == 2 || index == 3);
+                OpenHostedPage(tab);
             }
         }
 
-        private void CacheContentPanels()
+        private void OpenHostedPage(int index)
         {
-            m_MapObject = FindDescendant(transform, "Panel_Map")?.gameObject;
-            m_JournalObject = FindDescendant(transform, "Panel_Journal")?.gameObject;
-            m_HomeObject = FindDescendant(transform, "Panel_Home")?.gameObject;
+            UIViews[] pages = { UIViews.MapPage, UIViews.JournalPage, UIViews.HomePage, UIViews.WorkbenchPage };
+            if (index < 0 || index >= pages.Length) return;
+            Debug.Log($"[UI诊断][MainPageShell][时序] 请求子页面 index={index}, view={pages[index]}, currentTab={m_CurrentTab}, worldReady={WorldSession.Current != null}, contentReady={m_Content != null}, frame={Time.frameCount}", this);
+            if (m_ActivePageFormId >= 0)
+            {
+                Debug.Log($"[UI诊断][MainPageShell] 关闭旧子页面 id={m_ActivePageFormId}", this);
+                CloseSubUIForm(m_ActivePageFormId);
+            }
 
-            if (m_MapObject != null)
+            UIParams parameters = UIParams.Create(false);
+            parameters.OpenCallback = form =>
             {
-                m_MapPanel = m_MapObject.GetComponent<MapPanel>();
-                m_MapObject.SetActive(false);
+                if (form is UIFormBase hosted)
+                {
+                    Debug.Log($"[UI诊断][MainPageShell] 子页面 OpenCallback page={pages[index]}, id={hosted.Id}, beforeParent={GetTransformPath(hosted.transform)}, canvas={(hosted.GetComponent<Canvas>() != null ? "yes" : "no")}", this);
+                    AttachHostedPage(hosted);
+                    Debug.Log("[UI安全刷新/页面打开] view=" + pages[index] + ", instance=" + hosted.gameObject.GetInstanceID(), hosted);
+                }
+            };
+            m_ActivePageFormId = OpenSubUIForm(pages[index], 0, parameters);
+            Debug.Log($"[UI诊断][MainPageShell][时序] OpenSubUIForm 返回 page={pages[index]}, returnedId={m_ActivePageFormId}, content={GetTransformPath(m_Content)}, frame={Time.frameCount}", this);
+        }
+
+        /// <summary>
+        /// 独立 UIForm 预制体仍由 GF 加载，但运行时挂到宿主 Content 下。
+        /// 关闭 MainPageShell 时由 UIFormBase 的子窗体链路统一回收。
+        /// </summary>
+        private void AttachHostedPage(UIFormBase hosted)
+        {
+            if (hosted == null || m_Content == null) return;
+
+            RectTransform page = hosted.transform as RectTransform;
+            if (page == null) return;
+            Debug.Log($"[UI诊断][MainPageShell][时序] 挂载前 page={hosted.GetType().Name}, id={hosted.Id}, parent={GetTransformPath(hosted.transform)}, activeSelf={hosted.gameObject.activeSelf}, activeHierarchy={hosted.gameObject.activeInHierarchy}, frame={Time.frameCount}", this);
+            page.SetParent(m_Content, false);
+            page.anchorMin = Vector2.zero;
+            page.anchorMax = Vector2.one;
+            page.anchoredPosition = Vector2.zero;
+            page.sizeDelta = Vector2.zero;
+
+            // UIFormBase 默认会给每个窗体创建 ScreenSpaceOverlay Canvas。
+            // 子页面必须保持 Canvas 激活，并使用明确排序：页面位于宿主之上，
+            // TopBar/TabBar 由宿主额外提升到更高层级，避免相互覆盖。
+            Canvas pageCanvas = hosted.GetComponent<Canvas>();
+            if (pageCanvas != null)
+            {
+                pageCanvas.overrideSorting = true;
+                pageCanvas.sortingOrder = SortOrder + 1;
+                pageCanvas.enabled = true;
             }
-            if (m_JournalObject != null)
+
+            if (m_NavigationCanvas != null) m_NavigationCanvas.transform.SetAsLastSibling();
+            if (m_TopCanvas != null) m_TopCanvas.transform.SetAsLastSibling();
+            Debug.Log($"[UI诊断][MainPageShell][时序] 子页面已挂载 page={hosted.GetType().Name}, path={GetTransformPath(hosted.transform)}, active={hosted.gameObject.activeInHierarchy}, pageCanvasEnabled={(pageCanvas != null && pageCanvas.enabled)}, renderMode={(pageCanvas != null ? pageCanvas.renderMode.ToString() : "null")}, overrideSorting={(pageCanvas != null && pageCanvas.overrideSorting)}, canvasSort={(pageCanvas != null ? pageCanvas.sortingOrder : -1)}, rect={page.rect.width}x{page.rect.height}, contentChildCount={m_Content.childCount}, frame={Time.frameCount}", this);
+
+            // OpenCallback 在 UIFormBase.OnOpen 的早期触发，派生 PageForm 尚未完成其余初始化。
+            // 挂载完成后再次通过明确契约初始化，确保数据刷新发生在最终父节点和可见性状态确定之后。
+            if (hosted is IHostedPageForm hostedPage)
             {
-                m_Journal = m_JournalObject.GetComponent<JournalPanel>();
-                m_JournalObject.SetActive(false);
-            }
-            if (m_HomeObject != null)
-            {
-                m_Home = m_HomeObject.GetComponent<HomePanel>();
-                m_HomeObject.SetActive(false);
+                if (hosted is HomePageForm homePage)
+                {
+                    homePage.SetNavigateAction(OnTabClicked);
+                }
+                Debug.Log($"[UI诊断][MainPageShell] 开始挂载后初始化 page={hosted.GetType().Name}, id={hosted.Id}", this);
+                hostedPage.InitializeHostedPage();
+                Debug.Log($"[UI诊断][MainPageShell] 完成挂载后初始化 page={hosted.GetType().Name}, id={hosted.Id}, active={hosted.gameObject.activeInHierarchy}", this);
             }
         }
 
-        private void BuildMapPanel()
+        private static string GetTransformPath(Transform target)
         {
-            if (m_MapPanel == null)
+            if (target == null) return "null";
+            string path = target.name;
+            while (target.parent != null)
             {
-                Transform layout = m_MapObject != null ? m_MapObject.transform : FindDescendant(transform, "Panel_Map");
-                GameObject panel = layout != null ? layout.gameObject : CreatePanelGo("map_panel");
-                m_MapPanel = panel.GetComponent<MapPanel>() ?? panel.AddComponent<MapPanel>();
+                target = target.parent;
+                path = target.name + "/" + path;
             }
-
-            if (!m_MapBuilt)
-            {
-                m_MapPanel.BindStaticLayout();
-                m_MapPanel.Build();
-                m_MapBuilt = true;
-            }
-
-            m_MapPanel.Refresh();
-        }
-
-        private void BuildJournal()
-        {
-            if (m_Journal == null)
-            {
-                Transform journalLayout = m_JournalObject != null ? m_JournalObject.transform : FindDescendant(transform, "Panel_Journal");
-                GameObject journalObject = journalLayout != null ? journalLayout.gameObject : CreatePanelGo("journal_panel");
-                m_Journal = journalObject.GetComponent<JournalPanel>() ?? journalObject.AddComponent<JournalPanel>();
-            }
-
-            Debug.Log("[UI诊断][MainPageShell] BuildJournal panel=" + (m_Journal != null ? m_Journal.GetInstanceID().ToString() : "null") + ", object=" + (m_JournalObject != null ? m_JournalObject.name : "null") + ", template=" + (m_JournalItemTemplate != null ? m_JournalItemTemplate.name : "null"));
-            m_Journal.SetItemTemplate(m_JournalItemTemplate);
-            Debug.Log("[UI诊断][MainPageShell] BuildJournal template assigned");
-
-            if (!m_JournalBuilt)
-            {
-                m_Journal.BindStaticLayout();
-                Debug.Log("[UI诊断][MainPageShell] BuildJournal BindStaticLayout done");
-                m_Journal.Build();
-                Debug.Log("[UI诊断][MainPageShell] BuildJournal Build done");
-                m_JournalBuilt = true;
-            }
-
-            m_Journal.Refresh();
-            Debug.Log("[UI诊断][MainPageShell] BuildJournal Refresh done");
-        }
-
-        private void BuildHome()
-        {
-            if (m_Home == null)
-            {
-                Transform homeLayout = m_HomeObject != null ? m_HomeObject.transform : FindDescendant(transform, "Panel_Home");
-                GameObject homeObject = homeLayout != null ? homeLayout.gameObject : CreatePanelGo("home_panel");
-                m_Home = homeObject.GetComponent<HomePanel>() ?? homeObject.AddComponent<HomePanel>();
-            }
-
-            m_Home.OnNavigate = ShowTab;
-            m_Home.SetWorkbenchItemTemplates(m_WorkbenchHostItemTemplate, m_WorkbenchFormItemTemplate, m_WorkbenchMaterialItemTemplate, m_WorkbenchLedgerItemTemplate);
-
-            if (!m_HomeBuilt)
-            {
-                m_Home.BindStaticLayout();
-                m_Home.Build();
-                m_HomeBuilt = true;
-            }
-
-            m_Home.Refresh();
-        }
-
-        private GameObject CreatePanelGo(string name)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(m_Content, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = Vector2.zero;
-            return go;
+            return path;
         }
 
         private void SelectTab(int index)
@@ -361,7 +355,7 @@ namespace Everlight.Tales.UI
                 {
                     // 选中 Sprite 由 Button.SpriteState.Selected 管理；保持按钮可交互，避免 Select() 被忽略。
                     m_TabButtons[i].interactable = true;
-                    UIFactory.SetSelected(m_TabButtons[i], selected);
+                    UIButtonStateUtility.SetSelected(m_TabButtons[i], selected);
                 }
 
                 if (m_TabSelectedIndicators != null

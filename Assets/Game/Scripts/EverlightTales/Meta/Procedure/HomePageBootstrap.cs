@@ -38,24 +38,32 @@ namespace Everlight.Tales.Procedure
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            UnityEngine.Debug.Log($"[UI诊断][Bootstrap] SceneLoaded scene={scene.name}, mode={mode}, opened={s_Opened}");
             if (s_Opened || scene.name != EverlightTalesProcedure.EntrySceneName)
             {
                 return;
             }
 
             // Home 加载完成时，框架预加载（UITable/UIGroupTable）已就绪，UI 系统可用。
-            // 验证模式直接注入完整数据并打开目标页；正常模式仍从存档选择开始。
+            // 验证模式可选择走正常选档流程；关闭时保留原有的直接打开目标页能力。
             s_Opened = true;
             SceneManager.sceneLoaded -= OnSceneLoaded;
             System.Type validationType = System.Type.GetType("Everlight.Tales.UI.UIValidationHarness, Everlight.Tales.UI");
             bool validationEnabled = validationType != null
                 && (bool)validationType.GetProperty("Enabled").GetValue(null, null);
-            if (validationEnabled)
+            bool normalFlow = validationType != null
+                && (bool)validationType.GetProperty("NormalFlow").GetValue(null, null);
+            if (validationEnabled && normalFlow)
+            {
+                GF.UI.OpenUIForm(UIViews.SaveSlotPage);
+            }
+            else if (validationEnabled)
             {
                 validationType.GetMethod("Start").Invoke(null, null);
             }
             else
             {
+                UnityEngine.Debug.Log("[UI诊断][Bootstrap] 正常流程：打开 SaveSlotPage");
                 GF.UI.OpenUIForm(UIViews.SaveSlotPage);
             }
         }

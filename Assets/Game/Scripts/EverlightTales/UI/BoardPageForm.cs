@@ -33,6 +33,7 @@ namespace Everlight.Tales.UI
         [SerializeField] private GameObject _formPickerPanel;
         [SerializeField] private TextMeshProUGUI _formPickerTitle;
         [SerializeField] private RectTransform _formPickerList;
+        [SerializeField] private GameObject _formChoiceItemTemplate;
         [SerializeField] private GameObject _pausePanel;
         [SerializeField] private Button _pauseBackdrop;
         [SerializeField] private Button _pauseResume;
@@ -69,7 +70,7 @@ namespace Everlight.Tales.UI
             var game = new BoardGame(evt.Board, settle, evt.Level.Session, evt.Level);
 
             m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList);
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate);
 
             BindSettleButton();
             BindPauseButton();
@@ -82,7 +83,7 @@ namespace Everlight.Tales.UI
             var game = new BoardGame(stage.Board, stage.Settle, stage.Session, stage.Level);
 
             m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList);
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate);
         }
 
         private void BindSettleButton()

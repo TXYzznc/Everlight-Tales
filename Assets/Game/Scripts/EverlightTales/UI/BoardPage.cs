@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -47,13 +47,16 @@ namespace Everlight.Tales.UI
         private GameObject m_FormPickerRoot;
         private Transform m_FormPickerContent;
         private TextMeshProUGUI m_FormPickerTitle;
+        private GameObject m_FormChoiceItemTemplate;
+        private UIFormBase m_Form;
+        private readonly ListRowCollection m_FormRows = new ListRowCollection();
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
         public void Bind(BoardGame game, Button rotateLeft, Button rotateRight, Button armButton,
             Button tap, TextMeshProUGUI resultText, TextMeshProUGUI eventTitle = null,
             TextMeshProUGUI hudScore = null, TextMeshProUGUI hudRound = null, TextMeshProUGUI hudEnergy = null,
             TextMeshProUGUI leftPortrait = null, TextMeshProUGUI rightPortrait = null,
-            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null)
+            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null, GameObject formChoiceItemTemplate = null)
         {
             Game = game;
             m_RotateLeft = rotateLeft;
@@ -70,6 +73,8 @@ namespace Everlight.Tales.UI
             m_FormPickerRoot = formPickerPanel;
             m_FormPickerTitle = formPickerTitle;
             m_FormPickerContent = formPickerList;
+            m_FormChoiceItemTemplate = formChoiceItemTemplate;
+            m_Form = GetComponentInParent<UIFormBase>(true);
 
             if (m_RotateLeft == null || m_RotateRight == null || m_ArmButton == null || m_Tap == null || m_ResultText == null)
             {
@@ -104,9 +109,9 @@ namespace Everlight.Tales.UI
 
             // 现场立绘占位（盘面两侧，登场短暂出现；正式人物立绘待美术替换）。
             if (m_LeftPortrait != null) m_LeftPortrait.text = "左立绘";
-            else CreatePortrait(new Vector2(-430f, 240f), "左立绘");
+            else Debug.LogError("BoardPage 缺少左侧立绘静态节点。", this);
             if (m_RightPortrait != null) m_RightPortrait.text = "右立绘";
-            else CreatePortrait(new Vector2(430f, 240f), "右立绘");
+            else Debug.LogError("BoardPage 缺少右侧立绘静态节点。", this);
         }
 
         /// <summary>左旋一个相位（只改重力方向与盘面旋转动画，不重建盘面）。</summary>
@@ -331,27 +336,18 @@ namespace Everlight.Tales.UI
                 m_FormPickerRoot.SetActive(true);
                 if (m_FormPickerContent != null)
                 {
-                    for (int i = m_FormPickerContent.childCount - 1; i >= 0; i--) Destroy(m_FormPickerContent.GetChild(i).gameObject);
+                    m_FormRows.Clear();
                 }
             }
-            else
-            {
-                m_FormPicker = new GameObject("form_picker", typeof(RectTransform), typeof(Image));
-                m_FormPicker.transform.SetParent(transform, false);
-                var rt = (RectTransform)m_FormPicker.transform;
-                rt.anchoredPosition = new Vector2(0f, 60f);
-                rt.sizeDelta = new Vector2(560f, 560f);
-                m_FormPicker.GetComponent<Image>().color = new Color(0.09f, 0.10f, 0.125f, 0.98f);
-                m_FormPickerContent = m_FormPicker.transform;
-            }
+            else { Debug.LogError("BoardPage 缺少 Panel_FormPicker 静态布局。", this); return; }
 
             PartCodexConfig codex = PartCodexCatalog.Get(host);
             string hostName = codex != null ? codex.Name : host.ToString();
-            if (m_FormPickerTitle != null) m_FormPickerTitle.text = "形态切换 · " + hostName;
-            else AddPickerLabel("形态切换 · " + hostName, new Vector2(0f, 240f), 30);
+            if (m_FormPickerTitle == null) { Debug.LogError("BoardPage 缺少 Txt_FormPickerTitle。", this); return; }
+            m_FormPickerTitle.text = "形态切换 · " + hostName;
 
             // 基础形态 + 已解锁形态（D7：只列已解锁）。
-            AddPickerButton(IsCurrentForm(host, null) ? "基础形态（当前）" : "基础形态", new Vector2(0f, 160f), () => ApplyTempForm(host, null));
+            AddPickerButton(IsCurrentForm(host, null) ? "基础形态（当前）" : "基础形态", () => ApplyTempForm(host, null));
 
             var world = WorldSession.Current != null ? WorldSession.Current.World : null;
             int y = 90;
@@ -365,11 +361,11 @@ namespace Everlight.Tales.UI
                 }
 
                 string label = form.Name + (IsCurrentForm(host, form.Id) ? "（当前）" : "");
-                AddPickerButton(label, new Vector2(0f, y), () => ApplyTempForm(host, form.Id));
+                AddPickerButton(label, () => ApplyTempForm(host, form.Id));
                 y -= 68;
             }
 
-            AddPickerButton("关闭", new Vector2(0f, y - 40f), ClearFormPicker);
+            AddPickerButton("关闭", ClearFormPicker);
         }
 
         private bool IsCurrentForm(PartType host, string formId)
@@ -404,60 +400,22 @@ namespace Everlight.Tales.UI
 
         private void ClearFormPicker()
         {
-            if (m_FormPicker != null)
-            {
-                Destroy(m_FormPicker);
-                m_FormPicker = null;
-            }
+            if (m_FormPicker != null) m_FormPicker.SetActive(false);
             if (m_FormPickerRoot != null)
             {
                 m_FormPickerRoot.SetActive(false);
                 if (m_FormPickerContent != null)
                 {
-                    for (int i = m_FormPickerContent.childCount - 1; i >= 0; i--) Destroy(m_FormPickerContent.GetChild(i).gameObject);
+                    m_FormRows.Clear();
                 }
             }
         }
 
-        private void AddPickerLabel(string text, Vector2 position, int fontSize)
+        private void AddPickerButton(string label, System.Action onClick)
         {
-            var go = new GameObject("picker_label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(m_FormPickerContent != null ? m_FormPickerContent : m_FormPicker.transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = position;
-            rt.sizeDelta = new Vector2(480f, 44f);
-            var label = go.GetComponent<TextMeshProUGUI>();
-            label.font = TMP_Settings.defaultFontAsset;
-            label.fontSize = fontSize;
-            label.color = new Color(1f, 0.85f, 0.35f, 1f);
-            label.alignment = TextAlignmentOptions.Center;
-            label.text = text;
-            label.raycastTarget = false;
-        }
-
-        private void AddPickerButton(string label, Vector2 position, System.Action onClick)
-        {
-            var go = new GameObject("picker_btn", typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(m_FormPickerContent != null ? m_FormPickerContent : m_FormPicker.transform, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = position;
-            rt.sizeDelta = new Vector2(380f, 56f);
-            go.GetComponent<Image>().color = new Color(0.30f, 0.42f, 0.55f, 1f);
-
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(go.transform, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = new Vector2(380f, 56f);
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 22;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.text = label;
-            text.raycastTarget = false;
-
-            go.GetComponent<Button>().onClick.AddListener(() => onClick());
+            if (m_Form == null || m_FormChoiceItemTemplate == null) { Debug.LogError("BoardPage 缺少形态选项 UIItem 预制体。", this); return; }
+            ListRowItemObject item = m_FormRows.Spawn(m_Form, m_FormChoiceItemTemplate, m_FormPickerContent);
+            item.Bind(new ListRowData(label) { OnClick = () => onClick() });
         }
 
         private TextMeshProUGUI CreatePortrait(Vector2 position, string label)

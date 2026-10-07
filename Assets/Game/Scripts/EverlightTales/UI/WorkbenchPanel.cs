@@ -6,96 +6,170 @@ using Everlight.Tales.Meta;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Serialization;
 
 namespace Everlight.Tales.UI
 {
     /// <summary>
     /// 工作台 + 背包 + 经济（b44，工作台页签）：宿主零件 → 形态卡 → 解锁/切换，
     /// 材料背包与收支账目折叠区。纯逻辑复用 b26 WorkbenchLayout / FormService，本类只做表现与调用。
-    /// 挂在 MainPageShell 内容容器，切页签显隐。
+    /// 挂在对应独立 UIForm 的内容容器，由对应 UIForm 管理页签显隐。
     /// </summary>
     public sealed class WorkbenchPanel : MonoBehaviour
     {
+        // 支持 HomePage 嵌入完整 WorkbenchPage 预制体时的显式宿主注入。
         [SerializeField] private GameObject _hostItemTemplate;
-        [SerializeField] private GameObject _formItemTemplate;
-        [SerializeField] private GameObject _materialItemTemplate;
-        [SerializeField] private GameObject _ledgerItemTemplate;
+        [FormerlySerializedAs("_formItemTemplate")]
+        [SerializeField] private GameObject _rowItemTemplate;
+        private readonly ListRowCollection _formRows = new ListRowCollection();
+        private readonly ListRowCollection _materialRows = new ListRowCollection();
+        private readonly ListRowCollection _ledgerRows = new ListRowCollection();
         [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
-        private const float TopBarHeight = 96f;
 
         private int m_SubTab; // 0 加工 / 1 材料 / 2 账目
-        private TextMeshProUGUI m_FeeLabel;
-        private readonly Button[] m_SubButtons = new Button[3];
+        [SerializeField] private TextMeshProUGUI m_FeeLabel;
+        [SerializeField] private Button[] m_SubButtons = new Button[3];
 
-        private RectTransform m_WorkbenchRoot;
-        private RectTransform m_HostRow;
-        private RectTransform m_FormList;
-        private TextMeshProUGUI m_DetailText;
-        private Button m_ActionButton;
-        private TextMeshProUGUI m_ActionHint;
+        [SerializeField] private RectTransform m_WorkbenchRoot;
+        [SerializeField] private RectTransform m_HostRow;
+        [SerializeField] private RectTransform m_FormList;
+        [SerializeField] private TextMeshProUGUI m_DetailText;
+        [SerializeField] private Button m_ActionButton;
+        [SerializeField] private TextMeshProUGUI m_ActionHint;
 
-        private RectTransform m_MaterialsRoot;
-        private RectTransform m_LedgerRoot;
+        [SerializeField] private RectTransform m_MaterialsRoot;
+        [SerializeField] private RectTransform _materialsContent;
+        [SerializeField] private TMP_Text _materialTitle;
+        [SerializeField] private TMP_Text _materialUsage;
+        [SerializeField] private TMP_Text _materialSource;
+        [SerializeField] private TMP_Text _materialFlavor;
+        [SerializeField] private Image _materialIcon;
+        private string _selectedMaterialKey;
+        private readonly Dictionary<string, Button> _materialButtons = new Dictionary<string, Button>();
+        [SerializeField] private RectTransform m_LedgerRoot;
 
-        private Transform m_StaticRoot;
+        [SerializeField] private Transform m_StaticRoot;
+        [SerializeField] private Transform m_TopRoot;
+        [SerializeField] private Transform m_BodyRoot;
         private UIFormBase _form;
+        private bool m_TemplateLoadStarted;
 
         private PartType m_SelectedHost;
         private string m_SelectedFormId;
+        private readonly UISelectionState<PartType> m_HostSelection = new UISelectionState<PartType>();
+        private readonly UISelectionState<FormCardEntry> m_FormSelection = new UISelectionState<FormCardEntry>();
 
         public void SetItemTemplates(GameObject host, GameObject form, GameObject material, GameObject ledger)
         {
             _hostItemTemplate = host;
-            _formItemTemplate = form;
-            _materialItemTemplate = material;
-            _ledgerItemTemplate = ledger;
+            _rowItemTemplate = form;
+            Debug.Log($"[WorkbenchPanel][Templates] host={_hostItemTemplate != null}, row={_rowItemTemplate != null}", this);
+            if (m_StaticRoot != null)
+            {
+                Build();
+                Refresh();
+            }
+        }
+
+        /// <summary>
+        /// 为嵌入 HomePage 的工作台显式指定 UIForm 宿主。
+        /// 这样 HomePage 与独立 WorkbenchPage 可以共享同一套 Item 生命周期。
+        /// </summary>
+        public void SetFormHost(UIFormBase form)
+        {
+            _form = form;
+            Debug.Log($"[WorkbenchPanel][Host] form={(_form != null ? _form.name : "null")}", this);
+        }
+
+        [ContextMenu("Validate UI Contract")]
+        private void ValidateUiContract()
+        {
+            bool valid = m_StaticRoot != null && m_TopRoot != null && m_BodyRoot != null && m_FeeLabel != null && m_WorkbenchRoot != null
+                && m_MaterialsRoot != null && m_LedgerRoot != null && m_HostRow != null
+                && m_FormList != null && _materialsContent != null && m_SubButtons != null
+                && m_SubButtons.Length == 3 && m_SubButtons[0] != null && m_SubButtons[1] != null
+                && m_SubButtons[2] != null && m_DetailText != null && m_ActionButton != null
+                && m_ActionHint != null;
+            if (!valid)
+            {
+                Debug.LogError("[WorkbenchPanel][Contract] 页面级必选引用未完整绑定。请在 Prefab 上检查序列化 View 引用。", this);
+            }
+            else
+            {
+                Debug.Log("[WorkbenchPanel][Contract] 页面级必选引用校验通过。", this);
+            }
+            if (_materialTitle == null || _materialUsage == null || _materialSource == null || _materialFlavor == null)
+            {
+                Debug.LogWarning("[WorkbenchPanel][Contract] 材料详情存在缺失字段；材料列表仍可正常生成。", this);
+            }
         }
 
         public void BindStaticLayout()
         {
             ResolveItemTemplates();
-            m_StaticRoot = transform.name == "Panel_Workbench" ? transform : transform.Find("Panel_Workbench");
+            if (m_StaticRoot == null)
+                m_StaticRoot = transform.name == "Panel_Workbench" ? transform : transform.Find("Panel_Workbench");
             if (m_StaticRoot == null) return;
-            Transform top = m_StaticRoot.Find("Panel_WorkbenchTop");
-            Transform body = m_StaticRoot.Find("Panel_WorkbenchBody");
-            m_FeeLabel = top != null ? top.Find("Txt_Fee")?.GetComponent<TextMeshProUGUI>() : null;
+            Transform top = m_TopRoot != null ? m_TopRoot : m_StaticRoot.Find("Panel_WorkbenchTop");
+            Transform body = m_BodyRoot != null ? m_BodyRoot : m_StaticRoot.Find("Panel_WorkbenchBody");
+            if (m_FeeLabel == null) m_FeeLabel = top != null ? top.Find("Txt_Fee")?.GetComponent<TextMeshProUGUI>() : null;
+            if (m_SubButtons == null || m_SubButtons.Length != 3) m_SubButtons = new Button[3];
             for (int i = 0; i < m_SubButtons.Length; i++)
             {
-                m_SubButtons[i] = top != null ? top.Find("Btn_Sub_" + i)?.GetComponent<Button>() : null;
+                if (m_SubButtons[i] == null) m_SubButtons[i] = top != null ? top.Find("Btn_Sub_" + i)?.GetComponent<Button>() : null;
             }
-            m_WorkbenchRoot = body != null ? body.Find("Panel_Workbench") as RectTransform : null;
-            m_MaterialsRoot = body != null ? body.Find("Panel_Materials") as RectTransform : null;
-            m_LedgerRoot = body != null ? body.Find("Panel_Ledger") as RectTransform : null;
+            if (m_WorkbenchRoot == null) m_WorkbenchRoot = body != null ? body.Find("Panel_Workbench") as RectTransform : null;
+            if (m_MaterialsRoot == null) m_MaterialsRoot = body != null ? body.Find("Panel_Materials") as RectTransform : null;
+            if (m_MaterialsRoot != null)
+            {
+                if (_materialsContent == null) _materialsContent = m_MaterialsRoot.Find("MaterialsScroll/Viewport/MaterialsContent") as RectTransform;
+                Transform detail = m_MaterialsRoot.Find("Panel_MaterialDetail");
+                if (_materialTitle == null) _materialTitle = detail != null ? detail.Find("Txt_Title")?.GetComponent<TMP_Text>() : null;
+                if (_materialUsage == null) _materialUsage = detail != null ? detail.Find("Txt_Usage")?.GetComponent<TMP_Text>() : null;
+                if (_materialSource == null) _materialSource = detail != null ? detail.Find("Txt_Source")?.GetComponent<TMP_Text>() : null;
+                if (_materialFlavor == null) _materialFlavor = detail != null ? detail.Find("Txt_Flavor")?.GetComponent<TMP_Text>() : null;
+                if (_materialIcon == null) _materialIcon = detail != null ? detail.Find("Icon")?.GetComponent<Image>() : null;
+            }
+            if (m_LedgerRoot == null) m_LedgerRoot = body != null ? body.Find("Panel_Ledger") as RectTransform : null;
             if (m_WorkbenchRoot != null)
             {
-                m_HostRow = m_WorkbenchRoot.Find("HostScroll/HostContent") as RectTransform;
+                if (m_HostRow == null) m_HostRow = m_WorkbenchRoot.Find("HostScroll/HostContent") as RectTransform;
                 // 兼容旧的已缓存 GF UIForm 资源：旧页面没有 HostContent，直接使用 HostScroll。
                 if (m_HostRow == null) m_HostRow = m_WorkbenchRoot.Find("HostScroll") as RectTransform;
             }
-            if (m_WorkbenchRoot != null) m_FormList = m_WorkbenchRoot.Find("FormScroll") as RectTransform;
             if (m_WorkbenchRoot != null)
             {
-                if (m_DetailText == null) m_DetailText = MakeFullText(m_WorkbenchRoot, "detail", -560f, 140f, 18, new Color(0.92f, 0.92f, 0.92f, 1f), TextAlignmentOptions.TopLeft);
-                if (m_ActionButton == null)
+                Transform formViewport = m_WorkbenchRoot.Find("FormScroll");
+                if (m_FormList == null)
                 {
-                    m_ActionButton = MakeFullButton(m_WorkbenchRoot, "action", -820f, 64f, "加工", 26);
-                    m_ActionButton.onClick.AddListener(OnAction);
+                    m_FormList = formViewport != null && formViewport.Find("FormContent") != null
+                        ? formViewport.Find("FormContent") as RectTransform
+                        : formViewport as RectTransform;
                 }
-                if (m_ActionHint == null) m_ActionHint = MakeFullText(m_WorkbenchRoot, "action_hint", -720f, 40f, 18, new Color(0.6f, 0.65f, 0.7f, 1f), TextAlignmentOptions.Center);
             }
-            _form = GetComponentInParent<UIFormBase>();
+            if (m_WorkbenchRoot != null)
+            {
+                if (m_DetailText == null) m_DetailText = m_WorkbenchRoot.Find("Txt_Detail")?.GetComponent<TextMeshProUGUI>();
+                if (m_ActionButton == null) m_ActionButton = m_WorkbenchRoot.Find("Btn_Action")?.GetComponent<Button>();
+                if (m_ActionHint == null) m_ActionHint = m_WorkbenchRoot.Find("Txt_ActionHint")?.GetComponent<TextMeshProUGUI>();
+            }
+            _form = GetComponentInParent<UIFormBase>(true);
             if (_form == null) _form = FindObjectOfType<UIFormBase>();
+            Debug.Log($"[WorkbenchPanel][Bind] static={m_StaticRoot != null}, top={top != null}, body={body != null}, workbench={m_WorkbenchRoot != null}, materials={m_MaterialsRoot != null}, materialsContent={_materialsContent != null}, detailTitle={_materialTitle != null}, form={_form != null}", this);
         }
 
         private void ResolveItemTemplates()
         {
-            if (_hostItemTemplate == null || _formItemTemplate == null || _materialItemTemplate == null || _ledgerItemTemplate == null)
-                Debug.LogError("[WorkbenchPanel] UIItem 模板未绑定，请在 WorkbenchPage.prefab 中绑定 Assets/Game/Prefabs/UI/Item 下的正式预制体。");
+            if (_hostItemTemplate == null || _rowItemTemplate == null)
+            {
+                Debug.LogError($"[UI诊断][WorkbenchPanel] Item 模板未绑定，拒绝运行时异步回退。请在当前 Prefab 的 WorkbenchPanel 或宿主 HomePanel 上绑定宿主和通用列表行模板。path={GetPath(transform)}", this);
+            }
         }
 
         public void Build()
         {
-            if (m_StaticRoot != null && m_FeeLabel != null && m_WorkbenchRoot != null && m_MaterialsRoot != null && m_LedgerRoot != null && m_SubButtons[0] != null && _hostItemTemplate != null && _formItemTemplate != null && _materialItemTemplate != null && _ledgerItemTemplate != null && m_HostRow != null && m_FormList != null && _form != null)
+            bool staticReady = m_StaticRoot != null && m_FeeLabel != null && m_WorkbenchRoot != null && m_MaterialsRoot != null && m_LedgerRoot != null && m_SubButtons[0] != null && m_DetailText != null && m_ActionButton != null && m_ActionHint != null && m_HostRow != null && m_FormList != null && _form != null;
+            if (staticReady)
             {
                 for (int i = 0; i < m_SubButtons.Length; i++)
                 {
@@ -103,49 +177,34 @@ namespace Everlight.Tales.UI
                     m_SubButtons[i].onClick.RemoveAllListeners();
                     m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
                 }
-                SelectSubTab(0);
-                if (WorldSession.Current != null)
+                m_ActionButton.onClick.RemoveListener(OnAction);
+                m_ActionButton.onClick.AddListener(OnAction);
+                if (_hostItemTemplate != null && _rowItemTemplate != null)
                 {
-                    m_FeeLabel.text = "维修费 " + WorldSession.Current.World.RepairFee;
+                    SelectSubTab(m_SubTab);
+                    if (WorldSession.Current != null)
+                    {
+                        m_FeeLabel.text = "维修费 " + WorldSession.Current.World.RepairFee;
+                    }
+                    return;
                 }
+                Debug.Log($"[WorkbenchPanel][Build] 静态布局已就绪，等待 Item 模板；保留子页签={m_SubTab}", this);
                 return;
             }
-            var topGo = new GameObject("workbench_top", typeof(RectTransform), typeof(Image));
-            topGo.transform.SetParent(transform, false);
-            var topRt = (RectTransform)topGo.transform;
-            topRt.anchorMin = new Vector2(0f, 1f);
-            topRt.anchorMax = new Vector2(1f, 1f);
-            topRt.pivot = new Vector2(0.5f, 1f);
-            topRt.anchoredPosition = Vector2.zero;
-            topRt.sizeDelta = new Vector2(0f, TopBarHeight);
-            topGo.GetComponent<Image>().color = UIFactory.BgDark;
-
-            m_FeeLabel = UIFactory.MakeText(topGo.transform, "fee", new Vector2(-24f, -24f), new Vector2(240f, 36f), 26, TextAlignmentOptions.Right);
-
-            string[] names = { "加工", "材料", "账目" };
-            for (int i = 0; i < names.Length; i++)
+            if (_hostItemTemplate == null || _rowItemTemplate == null)
             {
-                int index = i;
-                m_SubButtons[i] = UIFactory.MakeButton(topGo.transform, "sub_" + names[i], new Vector2(-430f + i * 150f, -24f), new Vector2(140f, 56f), names[i], 26);
-                m_SubButtons[i].onClick.AddListener(() => SelectSubTab(index));
+                Debug.Log($"[UI诊断][WorkbenchPanel] 等待 Item 模板后再构建 path={GetPath(transform)}", this);
+                return;
             }
+            Debug.LogError($"[UI诊断][WorkbenchPanel] 静态布局不完整 path={GetPath(transform)}, staticRoot={(m_StaticRoot != null ? m_StaticRoot.name : "null")}, workbench={(m_WorkbenchRoot != null ? "ok" : "null")}, materials={(m_MaterialsRoot != null ? "ok" : "null")}, ledger={(m_LedgerRoot != null ? "ok" : "null")}, host={(m_HostRow != null ? "ok" : "null")}, forms={(m_FormList != null ? "ok" : "null")}, form={( _form != null ? "ok" : "null")}", this);
+        }
 
-            var bodyGo = new GameObject("workbench_body", typeof(RectTransform));
-            bodyGo.transform.SetParent(transform, false);
-            var bodyRt = (RectTransform)bodyGo.transform;
-            bodyRt.anchorMin = new Vector2(0f, 0f);
-            bodyRt.anchorMax = new Vector2(1f, 1f);
-            bodyRt.pivot = new Vector2(0.5f, 0.5f);
-            bodyRt.anchoredPosition = new Vector2(0f, -TopBarHeight * 0.5f);
-            bodyRt.sizeDelta = new Vector2(0f, -TopBarHeight);
-
-            m_WorkbenchRoot = MakeSubRoot(bodyRt, "workbench");
-            m_MaterialsRoot = MakeSubRoot(bodyRt, "materials");
-            m_LedgerRoot = MakeSubRoot(bodyRt, "ledger");
-
-            BuildWorkbenchView(m_WorkbenchRoot);
-
-            SelectSubTab(0);
+        private static string GetPath(Transform target)
+        {
+            if (target == null) return "null";
+            string path = target.name;
+            while (target.parent != null) { target = target.parent; path = target.name + "/" + path; }
+            return path;
         }
 
         public void Refresh()
@@ -155,10 +214,25 @@ namespace Everlight.Tales.UI
             {
                 return;
             }
+            if (_hostItemTemplate == null || _rowItemTemplate == null)
+            {
+                return;
+            }
 
+            for (int i = 0; i < m_SubButtons.Length; i++)
+            {
+                UIButtonStateUtility.SetSelected(m_SubButtons[i], i == m_SubTab);
+            }
             m_FeeLabel.text = "维修费 " + session.World.RepairFee;
-            m_SelectedHost = ResolveSelectedHost(session.World);
-            m_SelectedFormId = string.Empty;
+            IReadOnlyList<PartType> hosts = WorkbenchLayout.OwnedHostParts(session.World);
+            PartType previousHost = m_SelectedHost;
+            m_HostSelection.Restore(hosts, host => host == m_SelectedHost);
+            m_SelectedHost = m_HostSelection.HasSelection ? m_HostSelection.Selected : PartType.None;
+            if (m_SelectedHost != previousHost)
+            {
+                m_FormSelection.Clear();
+                m_SelectedFormId = string.Empty;
+            }
             Rebuild();
             if (UIValidationHarness.Enabled)
             {
@@ -169,9 +243,10 @@ namespace Everlight.Tales.UI
         private void SelectSubTab(int index)
         {
             m_SubTab = index;
+            Debug.Log($"[WorkbenchPanel][Tab] select={index}, templates={_rowItemTemplate != null}, materialsContent={_materialsContent != null}, detailTitle={_materialTitle != null}", this);
             for (int i = 0; i < m_SubButtons.Length; i++)
             {
-                UIFactory.SetSelected(m_SubButtons[i], i == index);
+                UIButtonStateUtility.SetSelected(m_SubButtons[i], i == index);
             }
 
             m_WorkbenchRoot.gameObject.SetActive(index == 0);
@@ -216,53 +291,32 @@ namespace Everlight.Tales.UI
 
         // ---- 加工 ----
 
-        private void BuildWorkbenchView(RectTransform root)
-        {
-            var hostGo = new GameObject("host_row", typeof(RectTransform));
-            hostGo.transform.SetParent(root, false);
-            var hostRt = (RectTransform)hostGo.transform;
-            hostRt.anchorMin = new Vector2(0f, 1f);
-            hostRt.anchorMax = new Vector2(1f, 1f);
-            hostRt.pivot = new Vector2(0.5f, 1f);
-            hostRt.anchoredPosition = Vector2.zero;
-            hostRt.sizeDelta = new Vector2(0f, 90f);
-            m_HostRow = hostRt;
-
-            var formGo = new GameObject("form_list", typeof(RectTransform));
-            formGo.transform.SetParent(root, false);
-            var formRt = (RectTransform)formGo.transform;
-            formRt.anchorMin = new Vector2(0f, 1f);
-            formRt.anchorMax = new Vector2(1f, 1f);
-            formRt.pivot = new Vector2(0.5f, 1f);
-            formRt.anchoredPosition = new Vector2(0f, -100f);
-            formRt.sizeDelta = new Vector2(0f, 300f);
-            m_FormList = formRt;
-
-            m_DetailText = MakeFullText(root, "detail", -560f, 140f, 18, new Color(0.92f, 0.92f, 0.92f, 1f), TextAlignmentOptions.TopLeft);
-            m_ActionButton = MakeFullButton(root, "action", -820f, 64f, "加工", 26);
-            m_ActionButton.onClick.AddListener(OnAction);
-            m_ActionHint = MakeFullText(root, "action_hint", -720f, 40f, 18, new Color(0.6f, 0.65f, 0.7f, 1f), TextAlignmentOptions.Center);
-        }
-
         private void RebuildWorkbench(WorldState world)
         {
-            if (_form == null || _hostItemTemplate == null || _formItemTemplate == null || m_HostRow == null || m_FormList == null)
+            if (_form == null || _hostItemTemplate == null || _rowItemTemplate == null || m_HostRow == null || m_FormList == null)
             {
                 Debug.LogWarning("[WorkbenchPanel] 当前宿主未完成 UIItem 绑定，跳过动态列表刷新。", this);
                 return;
             }
             ClearItems<WorkbenchItemObject>(_hostItemTemplate, m_HostRow);
-            ClearItems<WorkbenchItemObject>(_formItemTemplate, m_FormList);
-
             IReadOnlyList<PartType> hosts = WorkbenchLayout.OwnedHostParts(world);
             if (hosts.Count == 0)
             {
+                ClearItems<WorkbenchItemObject>(_hostItemTemplate, m_HostRow);
+                _formRows.Clear();
                 m_DetailText.text = "暂无已拥有的宿主零件。\n（先通过事件/委托获取零件与图样）";
                 m_ActionButton.gameObject.SetActive(false);
                 m_ActionHint.text = string.Empty;
                 return;
             }
 
+            RebuildHostItems(world, hosts);
+            RebuildFormItems(world);
+        }
+
+        private void RebuildHostItems(WorldState world, IReadOnlyList<PartType> hosts)
+        {
+            ClearItems<WorkbenchItemObject>(_hostItemTemplate, m_HostRow);
             foreach (PartType host in hosts)
             {
                 PartCodexConfig codex = PartCodexCatalog.Get(host);
@@ -273,30 +327,63 @@ namespace Everlight.Tales.UI
                 Button b = item.gameObject.GetComponent<Button>();
                 if (b != null) b.onClick.AddListener(() => SelectHost(captured));
             }
+        }
 
+        private void RebuildFormItems(WorldState world)
+        {
+            _formRows.Clear();
             IReadOnlyList<FormCardEntry> cards = WorkbenchLayout.FormCards(world, m_SelectedHost);
-            foreach (FormCardEntry card in cards)
+            if (cards == null || cards.Count == 0)
             {
-                WorkbenchItemObject item = _form.SpawnChildItem<WorkbenchItemObject>(_formItemTemplate, m_FormList);
-                Color color = card.State == FormCardState.Current ? UIFactory.ButtonGreen : Color.white;
-                item.Bind(CardLabel(card), card.IsBase ? "基础形态" : card.Description, ActionLabel(card), Icon("ICO-061形态"), Background("SHR-005-normal"), color, card.State != FormCardState.Unknown);
-                string captured = card.Id;
-                Button b = item.gameObject.GetComponent<Button>();
-                if (b != null) b.onClick.AddListener(() => SelectForm(captured));
+                ClearFormSelection();
+                return;
             }
 
-            m_ActionButton.gameObject.SetActive(true);
-            SelectForm(m_SelectedFormId);
+            m_FormSelection.Restore(cards, card => card.Id == m_SelectedFormId);
+            m_SelectedFormId = m_FormSelection.HasSelection ? m_FormSelection.Selected.Id : string.Empty;
+            foreach (FormCardEntry card in cards)
+            {
+                ListRowItemObject item = _formRows.Spawn(_form, _rowItemTemplate, m_FormList);
+                bool selected = card.Id == m_SelectedFormId;
+                Color color = selected
+                    ? UIFactory.ButtonGold
+                    : card.State == FormCardState.Current ? UIFactory.ButtonGreen : Color.white;
+                string captured = card.Id;
+                item.Bind(new ListRowData(CardLabel(card)) { Detail = card.IsBase ? "基础形态" : card.Description,
+                    RightText = ActionLabel(card), Icon = Icon("ICO-061形态"), TextColor = color, Selected = selected,
+                    Interactable = card.State != FormCardState.Unknown, OnClick = () => SelectForm(captured) });
+            }
+
+            RenderFormSelection(world, m_SelectedFormId);
         }
 
         private void SelectHost(PartType host)
         {
             m_SelectedHost = host;
+            m_HostSelection.Select(host);
             m_SelectedFormId = string.Empty;
+            m_FormSelection.Clear();
             WorldSession session = WorldSession.Current;
             if (session != null)
             {
-                RebuildWorkbench(session.World);
+                RefreshHostSelection(session.World);
+                RebuildFormItems(session.World);
+            }
+        }
+
+        private void RefreshHostSelection(WorldState world)
+        {
+            if (m_HostRow == null) return;
+            IReadOnlyList<PartType> hosts = WorkbenchLayout.OwnedHostParts(world);
+            int count = Mathf.Min(hosts.Count, m_HostRow.childCount);
+            for (int i = 0; i < count; i++)
+            {
+                WorkbenchItem item = m_HostRow.GetChild(i).GetComponent<WorkbenchItem>();
+                if (item == null) continue;
+                PartType host = hosts[i];
+                PartCodexConfig codex = PartCodexCatalog.Get(host);
+                string label = codex != null ? codex.Name : host.ToString();
+                item.Bind(label, host == m_SelectedHost ? "当前宿主" : "选择宿主", "", Icon("ICO-060零件"), Background(host == m_SelectedHost ? "SHR-046-selected" : "SHR-046-normal"), host == m_SelectedHost ? UIFactory.ButtonGreen : Color.white, true);
             }
         }
 
@@ -308,10 +395,24 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            m_SelectedFormId = formId;
             FormCardEntry card = FindCard(session.World, m_SelectedHost, formId);
             if (card == null)
             {
+                ClearFormSelection();
+                return;
+            }
+
+            m_FormSelection.Select(card);
+            m_SelectedFormId = card.Id;
+            RebuildFormItems(session.World);
+        }
+
+        private void RenderFormSelection(WorldState world, string formId)
+        {
+            FormCardEntry card = FindCard(world, m_SelectedHost, formId);
+            if (card == null)
+            {
+                ClearFormSelection();
                 return;
             }
 
@@ -336,6 +437,15 @@ namespace Everlight.Tales.UI
             UpdateAction(card);
         }
 
+        private void ClearFormSelection()
+        {
+            m_FormSelection.Clear();
+            m_SelectedFormId = string.Empty;
+            if (m_DetailText != null) m_DetailText.text = string.Empty;
+            if (m_ActionHint != null) m_ActionHint.text = string.Empty;
+            if (m_ActionButton != null) m_ActionButton.gameObject.SetActive(false);
+        }
+
         private void UpdateAction(FormCardEntry card)
         {
             m_ActionButton.gameObject.SetActive(true);
@@ -347,21 +457,27 @@ namespace Everlight.Tales.UI
                     m_ActionButton.interactable = false;
                     UIFactory.SetButtonLabel(m_ActionButton, "使用中");
                     m_ActionButton.image.color = Color.white;
+                    m_ActionHint.text = "当前正在使用此形态";
                     break;
                 case FormCardState.Unlocked:
                     m_ActionButton.interactable = true;
                     UIFactory.SetButtonLabel(m_ActionButton, "切换");
                     m_ActionButton.image.color = Color.white;
+                    m_ActionHint.text = "点击“切换”使用此形态";
                     break;
                 case FormCardState.Craftable:
                     m_ActionButton.interactable = true;
                     UIFactory.SetButtonLabel(m_ActionButton, "加工");
                     m_ActionButton.image.color = Color.white;
+                    m_ActionHint.text = "材料和维修费满足，可加工此形态";
                     break;
                 default:
                     m_ActionButton.interactable = false;
                     UIFactory.SetButtonLabel(m_ActionButton, "未取得图样");
                     m_ActionButton.image.color = Color.white;
+                    m_ActionHint.text = string.IsNullOrWhiteSpace(card.SourceHint)
+                        ? "需要先取得此形态图样"
+                        : "图样来源：" + card.SourceHint;
                     break;
             }
         }
@@ -418,7 +534,7 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            return cards.Count > 0 ? cards[0] : null;
+            return null;
         }
 
         private static string CardLabel(FormCardEntry card)
@@ -455,49 +571,128 @@ namespace Everlight.Tales.UI
 
         private void RebuildMaterials(WorldState world)
         {
-            if (_form == null || _materialItemTemplate == null || m_MaterialsRoot == null)
+            int stackCount = world != null && world.Materials != null ? world.Materials.Stacks.Count : -1;
+            Debug.Log($"[WorkbenchPanel][Materials] rebuild begin form={_form != null}, template={_rowItemTemplate != null}, content={_materialsContent != null}, title={_materialTitle != null}, stacks={stackCount}", this);
+            // 材料列表和详情面板是两个独立契约。详情字段缺失不能阻止列表生成。
+            if (_form == null || _rowItemTemplate == null || _materialsContent == null)
             {
-                Debug.LogWarning("[WorkbenchPanel] 材料 Item 模板未绑定，跳过材料页签刷新。", this);
+                Debug.LogWarning("[WorkbenchPanel][Materials] 跳过刷新：列表依赖未就绪。请检查 form/template/content 状态。", this);
                 return;
             }
-            ClearItems<WorkbenchItemObject>(_materialItemTemplate, m_MaterialsRoot);
-
+            _materialRows.Clear();
+            _materialButtons.Clear();
             IReadOnlyList<MaterialStack> stacks = world.Materials.Stacks;
-            if (stacks.Count == 0)
+            MaterialStack selected = null;
+            foreach (MaterialStack stack in stacks)
             {
-                MakeRow(m_MaterialsRoot, -18f, "背包为空。", new Color(0.6f, 0.65f, 0.7f, 1f));
-                return;
+                if (stack.Key == _selectedMaterialKey) { selected = stack; break; }
             }
-
-            float y = -18f;
+            if (selected == null && stacks.Count > 0) selected = stacks[0];
+            _selectedMaterialKey = selected != null ? selected.Key : null;
+            Debug.Log($"[WorkbenchPanel][Materials] selected={_selectedMaterialKey ?? "<none>"}, stacks={stacks.Count}", this);
+            SetEmptyState(m_MaterialsRoot, selected == null ? "背包为空。" : null);
             foreach (MaterialStack stack in stacks)
             {
                 MaterialConfig cfg = MaterialCatalog.Get(stack.MaterialId);
                 string name = cfg != null ? cfg.Name : stack.MaterialId;
-                string source = string.IsNullOrEmpty(stack.SourceCase) ? "" : "（" + stack.SourceCase + "）";
-                WorkbenchItemObject item = _form.SpawnChildItem<WorkbenchItemObject>(_materialItemTemplate, m_MaterialsRoot);
-                item.Bind(name, source, "× " + stack.Count, Icon(MaterialIconKey(stack.MaterialId)), Background("SHR-005-normal"), new Color(0.92f, 0.92f, 0.92f, 1f));
-                y -= 52f;
+                string source = string.IsNullOrEmpty(stack.SourceCase) ? "" : "（" + MaterialSourceName(stack.SourceCase) + "）";
+                ListRowItemObject item = _materialRows.Spawn(_form, _rowItemTemplate, _materialsContent);
+                if (item == null || item.gameObject == null)
+                {
+                    Debug.LogError($"[WorkbenchPanel][Materials] Item 生成失败 material={stack.MaterialId}", this);
+                    continue;
+                }
+                item.gameObject.transform.SetAsLastSibling();
+                Debug.Log($"[WorkbenchPanel][Materials] spawned key={stack.Key}, contentChildren={_materialsContent.childCount}", this);
+                string key = stack.Key;
+                item.Bind(new ListRowData(name) { Detail = source, RightText = "× " + stack.Count,
+                    Icon = Icon(MaterialIconKey(stack.MaterialId)), Selected = key == _selectedMaterialKey,
+                    OnClick = () => SelectMaterial(key) });
+                Button button = item.View.Button;
+                if (button == null) continue;
+                _materialButtons[key] = button;
+                UIButtonStateUtility.SetSelected(button, key == _selectedMaterialKey);
             }
+            RenderMaterialDetail(selected);
+        }
+
+        private void SelectMaterial(string key)
+        {
+            WorldSession session = WorldSession.Current;
+            if (session == null) return;
+            foreach (MaterialStack stack in session.World.Materials.Stacks)
+            {
+                if (stack.Key != key) continue;
+                _selectedMaterialKey = key;
+                foreach (KeyValuePair<string, Button> entry in _materialButtons)
+                    UIButtonStateUtility.SetSelected(entry.Value, entry.Key == key);
+                RenderMaterialDetail(stack);
+                return;
+            }
+        }
+
+        private static string MaterialSourceName(string sourceCase)
+        {
+            CaseState state = WorldSession.Current != null ? WorldSession.Current.GetCase(sourceCase) : null;
+            return state != null && state.Config != null ? state.Config.Name : sourceCase;
+        }
+
+        private void RenderMaterialDetail(MaterialStack stack)
+        {
+            if (_materialTitle == null) return;
+            MaterialConfig cfg = stack != null ? MaterialCatalog.Get(stack.MaterialId) : null;
+            _materialTitle.text = stack == null ? "材料详情" : (cfg != null ? cfg.Name : stack.MaterialId) + "  × " + stack.Count;
+            if (_materialIcon != null)
+            {
+                _materialIcon.sprite = stack != null ? Icon(MaterialIconKey(stack.MaterialId)) : null;
+                _materialIcon.enabled = _materialIcon.sprite != null;
+            }
+            if (stack == null)
+            {
+                _materialUsage.text = "取得材料后，点击上方条目查看详情。";
+                _materialSource.text = string.Empty;
+                _materialFlavor.text = string.Empty;
+                return;
+            }
+            var usage = new StringBuilder("用法\n用于加工形态，按配方消耗。\n");
+            int matches = 0;
+            foreach (FormConfig form in FormCatalog.All())
+            {
+                foreach (FormMaterialCost cost in form.Materials)
+                {
+                    if (cost.MaterialId != stack.MaterialId) continue;
+                    if (!string.IsNullOrEmpty(cost.SourceCase) && cost.SourceCase != stack.SourceCase && cost.SourceCase != MaterialSourceName(stack.SourceCase)) continue;
+                    if (matches < 3) usage.Append("· ").Append(form.Name).Append(" × ").Append(cost.Count).AppendLine();
+                    matches++;
+                    break;
+                }
+            }
+            if (matches == 0) usage.Append("当前配方中暂无对应需求。");
+            if (matches > 3) usage.Append("另有 ").Append(matches - 3).Append(" 种形态使用此材料，可在加工页查看配方。");
+            if (cfg != null && cfg.IsTypedByCase) usage.Append("\n不同来源的异常纹样不能互相替代。");
+            _materialUsage.text = usage.ToString().TrimEnd();
+            _materialSource.text = "来源\n" + (string.IsNullOrEmpty(stack.SourceCase) ? "这份材料未记录具体来源。" : MaterialSourceName(stack.SourceCase));
+            _materialFlavor.text = cfg != null && !string.IsNullOrEmpty(cfg.FlavorText) ? cfg.FlavorText : "一件不起眼的材料，也许会在合适的时候派上用场。";
         }
 
         // ---- 账目（经济） ----
 
         private void RebuildLedger(WorldState world)
         {
-            if (_form == null || _ledgerItemTemplate == null || m_LedgerRoot == null)
+            if (_form == null || _rowItemTemplate == null || m_LedgerRoot == null)
             {
                 Debug.LogWarning("[WorkbenchPanel] 账目 Item 模板未绑定，跳过账目页签刷新。", this);
                 return;
             }
-            ClearItems<WorkbenchItemObject>(_ledgerItemTemplate, m_LedgerRoot);
+            _ledgerRows.Clear();
 
             List<LedgerEntry> ledger = world.Ledger;
             if (ledger.Count == 0)
             {
-                MakeRow(m_LedgerRoot, -18f, "暂无收支记录。", new Color(0.6f, 0.65f, 0.7f, 1f));
+                SetEmptyState(m_LedgerRoot, "暂无收支记录。");
                 return;
             }
+            SetEmptyState(m_LedgerRoot, null);
 
             float y = -18f;
             for (int i = ledger.Count - 1; i >= 0; i--)
@@ -505,8 +700,8 @@ namespace Everlight.Tales.UI
                 LedgerEntry e = ledger[i];
                 string dir = e.Direction == LedgerDirection.Income ? "+" : "-";
                 Color color = e.Direction == LedgerDirection.Income ? new Color(0.5f, 0.9f, 0.55f, 1f) : new Color(0.95f, 0.6f, 0.5f, 1f);
-                WorkbenchItemObject item = _form.SpawnChildItem<WorkbenchItemObject>(_ledgerItemTemplate, m_LedgerRoot);
-                item.Bind(dir + e.Amount + " 费", ChannelText(e.Channel), e.Reason, null, Background("SHR-005-normal"), color);
+                ListRowItemObject item = _ledgerRows.Spawn(_form, _rowItemTemplate, m_LedgerRoot);
+                item.Bind(new ListRowData(dir + e.Amount + " 费") { Detail = ChannelText(e.Channel), RightText = e.Reason, TextColor = color, Interactable = false });
                 y -= 52f;
             }
         }
@@ -558,116 +753,16 @@ namespace Everlight.Tales.UI
 
         // ---- 工具 ----
 
-        private static RectTransform MakeSubRoot(RectTransform body, string name)
+        private static void SetEmptyState(RectTransform root, string message)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(body, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = Vector2.zero;
-            return rt;
-        }
-
-        private static TextMeshProUGUI MakeFullText(RectTransform parent, string name, float y, float height, int fontSize, Color color, TextAlignmentOptions anchor)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-40f, height);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = fontSize;
-            text.color = color;
-            text.alignment = anchor;
-            text.raycastTarget = false;
-            return text;
-        }
-
-        private static Button MakeFullButton(RectTransform parent, string name, float y, float height, string label, int fontSize, Color? bg = null)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-40f, height);
-            go.GetComponent<Image>().color = bg ?? UIFactory.ButtonBlue;
-            AttachLabel(go.transform, label, fontSize);
-            Button button = go.GetComponent<Button>();
-            button.transition = Selectable.Transition.SpriteSwap;
-            return button;
-        }
-
-        private static Button MakeLeftButton(RectTransform parent, string name, float x, float y, Vector2 size, string label, int fontSize, Color? bg = null)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.anchoredPosition = new Vector2(x, y);
-            rt.sizeDelta = size;
-            go.GetComponent<Image>().color = bg ?? UIFactory.ButtonBlue;
-            AttachLabel(go.transform, label, fontSize);
-            Button button = go.GetComponent<Button>();
-            button.transition = Selectable.Transition.SpriteSwap;
-            return button;
-        }
-
-        private static void AttachLabel(Transform parent, string label, int fontSize)
-        {
-            var labelGo = new GameObject("label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelGo.transform.SetParent(parent, false);
-            var labelRt = (RectTransform)labelGo.transform;
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = Vector2.zero;
-            var text = labelGo.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = fontSize;
-            text.color = Color.white;
-            text.alignment = TextAlignmentOptions.Center;
-            text.text = label;
-            text.raycastTarget = false;
-        }
-
-        private static float MakeRow(RectTransform parent, float y, string label, Color color)
-        {
-            var go = new GameObject("row", typeof(RectTransform), typeof(TextMeshProUGUI));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, y);
-            rt.sizeDelta = new Vector2(-40f, 52f);
-            var text = go.GetComponent<TextMeshProUGUI>();
-            text.font = UIFactory.BuiltinFont;
-            text.fontSize = 26;
-            text.color = color;
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            text.text = label;
-            return y - 52f;
-        }
-
-        private static void ClearChildren(RectTransform root)
-        {
-            for (int i = root.childCount - 1; i >= 0; i--)
+            TextMeshProUGUI text = root != null ? root.Find("EmptyState")?.GetComponent<TextMeshProUGUI>() : null;
+            if (text == null)
             {
-                Destroy(root.GetChild(i).gameObject);
+                Debug.LogError("[WorkbenchPanel] 缺少静态 EmptyState 节点。", root);
+                return;
             }
+            text.text = message ?? string.Empty;
+            text.gameObject.SetActive(!string.IsNullOrEmpty(message));
         }
     }
 }

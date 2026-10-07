@@ -1,21 +1,10 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+﻿using UnityEngine;
 
 namespace Everlight.Tales.UI
 {
-    /// <summary>
-    /// 池化的 Toast 条目（P0-007）。由 GlobalUIRoot 管理，不派生 UIFormBase。
-    /// </summary>
+    /// <summary>遗留类型，仅为旧资源兼容保留；运行时 Toast 已统一走 DialogView UIDialog。</summary>
+    [System.Obsolete("Toast 已迁移到 DialogView UIDialog。")]
     public sealed class ToastItem : MonoBehaviour
     {
-        public void SetMessage(string message)
-        {
-            var text = GetComponentInChildren<TextMeshProUGUI>(true);
-            if (text != null)
-            {
-                text.text = message;
-            }
-        }
     }
 }
