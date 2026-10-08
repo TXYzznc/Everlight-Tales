@@ -84,6 +84,8 @@ namespace Everlight.Tales.UI
             bool action = Has(data.Fields, ListRowFields.Action) && !string.IsNullOrEmpty(data.ActionText);
             _actionText.text = action ? data.ActionText : string.Empty;
             _actionText.color = data.TextColor;
+            // 每次绑定恢复普通小按钮，避免池中的领奖行把金色样式带给其他操作。
+            SetRewardAction(false);
             _actionButton.gameObject.SetActive(action);
             _button.onClick.RemoveAllListeners();
             _button.interactable = data.Interactable && data.OnClick != null;
@@ -91,9 +93,7 @@ namespace Everlight.Tales.UI
             _actionButton.onClick.RemoveAllListeners();
             _actionButton.interactable = action && data.ActionInteractable && data.OnAction != null;
             if (_actionButton.interactable) _actionButton.onClick.AddListener(data.OnAction);
-            float rowHeight = detail ? 96f : 64f;
-            _height.minHeight = _height.preferredHeight = rowHeight;
-            _rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rowHeight);
+            // 行高由预制体的布局配置与父容器决定，详情只控制显示内容。
             // 对外部临时焦点和旧租用的视觉状态作完整重置。
             Image background = _button.targetGraphic as Image;
             if (background != null) background.overrideSprite = null;
@@ -104,11 +104,14 @@ namespace Everlight.Tales.UI
 
         public void ResetForPool() => Bind(new ListRowData(string.Empty) { Interactable = false, Fields = ListRowFields.None });
 
+        /// <summary>由页面指定动作语义，列表行不根据按钮文案判断是否领奖。</summary>
+        public void SetRewardAction(bool reward) => UIFactory.ApplyListActionStyle(_actionButton, reward);
+
         private bool HasContract()
         {
             bool valid = _button != null && _actionButton != null && _title != null && _detail != null
                 && _id != null && _rightText != null && _actionText != null && _icon != null
-                && _stateFrame != null && _iconRoot != null && _height != null && _rect != null
+                && _stateFrame != null && _iconRoot != null && _rect != null
                 && _statusGroup != null && _statusIcon != null && _statusText != null;
             if (!valid) Debug.LogError("[ListRowItem][Contract] 缺少序列化显示引用。", this);
             return valid;

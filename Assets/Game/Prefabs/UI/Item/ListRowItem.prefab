@@ -332,7 +332,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 24
+    m_Left: 30
     m_Right: 20
     m_Top: 8
     m_Bottom: 8
@@ -1368,7 +1368,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -1587,7 +1587,7 @@ MonoBehaviour:
   m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f1db6bb75db0cd045a37b72cae95b787, type: 2}
-  m_sharedMaterial: {fileID: 1551785620450567033, guid: f1db6bb75db0cd045a37b72cae95b787,
+  m_sharedMaterial: {fileID: 7480903474397453528, guid: f1db6bb75db0cd045a37b72cae95b787,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}

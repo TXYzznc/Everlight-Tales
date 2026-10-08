@@ -137,7 +137,7 @@ namespace Everlight.Tales.UI
                     rect.anchorMax = new Vector2(1f, 1f);
                     rect.pivot = new Vector2(0.5f, 1f);
                     rect.anchoredPosition = new Vector2(0f, -i * 72f);
-                    rect.sizeDelta = new Vector2(-32f, 64f);
+                    rect.sizeDelta = new Vector2(-32f, rect.sizeDelta.y);
                 }
                 item.Bind(new ListRowData(option.Label) { Icon = _spriteCatalog.Get(option.Kind == RewardKind.Buff ? "ICO-063" : option.Kind == RewardKind.ArmMove ? "ICO-064" : "ICO-060"), OnClick = () => OnChoose(option) });
             }

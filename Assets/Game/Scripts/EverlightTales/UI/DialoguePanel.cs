@@ -124,7 +124,7 @@ namespace Everlight.Tales.UI
             itemRect.anchorMin = new Vector2(0f, 1f);
             itemRect.anchorMax = new Vector2(1f, 1f);
             itemRect.pivot = new Vector2(0.5f, 1f);
-            itemRect.sizeDelta = new Vector2(0f, 64f);
+            itemRect.sizeDelta = new Vector2(0f, itemRect.sizeDelta.y);
             itemRect.anchoredPosition = new Vector2(0f, -index * 70f);
             int captured = index;
             instance.GetComponent<ListRowItem>().Bind(new ListRowData(label)

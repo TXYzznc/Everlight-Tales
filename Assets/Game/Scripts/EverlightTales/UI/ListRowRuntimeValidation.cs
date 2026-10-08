@@ -279,10 +279,11 @@ namespace Everlight.Tales.UI
             {
                 int details = 0, actions = 0;
                 ListRowItemObject rich = rowsA.Spawn(form, template, a.transform);
+                float configuredHeight = ((RectTransform)rich.gameObject.transform).rect.height;
                 Sprite icon = template.GetComponent<UnityEngine.UI.Image>().sprite;
                 rich.Bind(new ListRowData("rich") { Detail = "secondary", Id = "ID", Icon = icon, StateFrame = icon,
                     StatusText = "进行中", StatusIcon = icon, StatusColor = Color.cyan, RightText = "value", ActionText = "action", Selected = true, OnClick = () => details++, OnAction = () => actions++ });
-                Require(((RectTransform)rich.gameObject.transform).rect.height == 96f, "rich height");
+                Require(((RectTransform)rich.gameObject.transform).rect.height == configuredHeight, "rich binding preserves configured height");
                 rich.gameObject.SetActive(false); rich.gameObject.SetActive(true);
                 Require(((UnityEngine.UI.Image)rich.View.Button.targetGraphic).overrideSprite == rich.View.Button.spriteState.selectedSprite, "selected sprite survives hide/show");
                 rich.View.Button.onClick.Invoke();
@@ -294,7 +295,7 @@ namespace Everlight.Tales.UI
                 Require(simpleB.IsSpawned && simpleB.gameObject.activeSelf, "clear A preserves B");
                 ListRowItemObject simpleA = rowsA.Spawn(form, template, a.transform);
                 simpleA.Bind(new ListRowData("simple"));
-                Require(((RectTransform)simpleA.gameObject.transform).rect.height == 64f, "simple height");
+                Require(((RectTransform)simpleA.gameObject.transform).rect.height == configuredHeight, "simple binding preserves configured height");
                 Require(!simpleA.gameObject.transform.Find("IconRoot").gameObject.activeSelf, "old icon/frame hidden");
                 Require(!simpleA.gameObject.transform.Find("Action").gameObject.activeSelf, "old Action hidden");
                 Require(!simpleA.gameObject.transform.Find("StatusGroup").gameObject.activeSelf, "old status hidden");
@@ -311,7 +312,7 @@ namespace Everlight.Tales.UI
                 rowsA.Clear(); rowsB.Clear();
                 Require(newOwner.IsSpawned && newOwner.gameObject.activeSelf, "stale collections preserve new lease");
                 reopened.Clear();
-                Debug.Log("[ListRow][Validation] PASS: heights=64/96; optionalFieldsReset; dualCallbacks; hideShow; containerIsolation; staleLeaseAfterClose.");
+                Debug.Log("[ListRow][Validation] PASS: configuredHeightPreserved; optionalFieldsReset; dualCallbacks; hideShow; containerIsolation; staleLeaseAfterClose.");
             }
             finally
             {

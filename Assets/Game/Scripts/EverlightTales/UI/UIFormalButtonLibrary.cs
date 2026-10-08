@@ -14,6 +14,31 @@ namespace Everlight.Tales.UI
 
         [SerializeField] private UIFormalSpriteCatalog _catalog;
         public enum ButtonRole { Main, Secondary, Small, Danger, Tab, Filter, Icon, AutoFill }
+        public void ApplyRewardAction(UnityEngine.UI.Button button)
+        {
+            if (button == null || _catalog == null || button.image == null) return;
+            Sprite normal = _catalog.Get("SHR-023-gold-normal");
+            Sprite hover = _catalog.Get("SHR-023-gold-hover");
+            Sprite pressed = _catalog.Get("SHR-023-gold-pressed");
+            Sprite disabled = _catalog.Get("SHR-023-gold-disabled");
+            if (normal == null || hover == null || pressed == null || disabled == null)
+            {
+                Debug.LogError("[UIFormalButtonLibrary][RewardAction] 金色小按钮四态资源不完整。", this);
+                Apply(button, ButtonRole.Small);
+                return;
+            }
+            button.image.overrideSprite = null;
+            button.image.sprite = normal;
+            button.image.color = Color.white;
+            button.image.type = UnityEngine.UI.Image.Type.Sliced;
+            button.transition = UnityEngine.UI.Selectable.Transition.SpriteSwap;
+            button.spriteState = new UnityEngine.UI.SpriteState
+            {
+                highlightedSprite = hover, pressedSprite = pressed,
+                selectedSprite = normal, disabledSprite = disabled
+            };
+        }
+
         public void Apply(UnityEngine.UI.Button button, ButtonRole role, int tabCount = 3)
         {
             if (button == null || _catalog == null || button.image == null) return;

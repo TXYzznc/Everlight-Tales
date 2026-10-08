@@ -13,6 +13,14 @@ namespace Everlight.Tales.UI
         private static UIFormalButtonLibrary _buttons;
         public static void Configure(UIFormalButtonLibrary buttons) => _buttons = buttons;
 
+        public static void ApplyListActionStyle(Button button, bool reward)
+        {
+            if (_buttons == null || button == null) return;
+            if (button.image != null) button.image.overrideSprite = null;
+            if (reward) _buttons.ApplyRewardAction(button);
+            else _buttons.Apply(button, UIFormalButtonLibrary.ButtonRole.Small);
+        }
+
         public static readonly TMP_FontAsset BuiltinFont = TMP_Settings.defaultFontAsset;
 
         public static readonly Color BgDark = new Color(0.10f, 0.12f, 0.16f, 0.92f);
