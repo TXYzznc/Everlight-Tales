@@ -43,6 +43,28 @@ namespace Everlight.Tales.UI
             Transform root = m_Root != null ? m_Root.parent : (transform.name == "Panel_Guest" ? transform : transform.Find("Panel_Guest"));
             Transform content = m_Root != null ? m_Root : (root != null ? root.Find("Panel_GuestContent") : null);
             if (m_Root == null) m_Root = content as RectTransform;
+            // 与 Journal 相同的三个固定分区；引用从各区内部查找，避免同名 Content 串区。
+            Transform thanksSection = content != null ? content.Find("Section_0") : null;
+            Transform delegationSection = content != null ? content.Find("Section_1") : null;
+            Transform modSection = content != null ? content.Find("Section_2") : null;
+            if (thanksSection != null)
+            {
+                m_ThanksContent = thanksSection.Find("ScrollRect/Viewport/Content") as RectTransform;
+                _thanks = thanksSection.Find("Header/Txt_Label")?.GetComponent<TMP_Text>();
+                _thanksEmpty = thanksSection.Find("ScrollRect/EmptyState")?.GetComponent<TMP_Text>();
+            }
+            if (delegationSection != null)
+            {
+                m_DelegationContent = delegationSection.Find("ScrollRect/Viewport/Content") as RectTransform;
+                _delegationHeader = delegationSection.Find("Header/Txt_Label")?.GetComponent<TMP_Text>();
+                _delegationEmpty = delegationSection.Find("ScrollRect/EmptyState")?.GetComponent<TMP_Text>();
+            }
+            if (modSection != null)
+            {
+                m_ModContent = modSection.Find("ScrollRect/Viewport/Content") as RectTransform;
+                _modHeader = modSection.Find("Header/Txt_Label")?.GetComponent<TMP_Text>();
+                _modEmpty = modSection.Find("ScrollRect/EmptyState")?.GetComponent<TMP_Text>();
+            }
             if (m_ThanksContent == null) m_ThanksContent = FindDescendant(content, "ThanksContent") as RectTransform;
             if (m_DelegationContent == null) m_DelegationContent = FindDescendant(content, "DelegationContent") as RectTransform;
             if (m_ModContent == null) m_ModContent = FindDescendant(content, "ModContent") as RectTransform;
@@ -188,6 +210,7 @@ namespace Everlight.Tales.UI
             ListRowCollection rows = parent == m_ThanksContent ? _thanksRows : parent == m_DelegationContent ? _delegationRows : _modRows;
             ListRowItemObject item = rows.Spawn(_form, _delegationItemTemplate, parent);
             item.Bind(new ListRowData(title) { Icon = _spriteCatalog.Get(parent == m_ModContent ? "ICO-004" : parent == m_ThanksContent ? "ICO-045" : "ICO-005"), ActionText = buttonLabel, ActionInteractable = interactable, OnAction = action, OnClick = onClick });
+            item.View.SetRewardAction(parent == m_ThanksContent);
             return item;
         }
 
@@ -212,8 +235,13 @@ namespace Everlight.Tales.UI
         private static void SetEmptyState(TMP_Text label, int count, string fallback)
         {
             if (label == null) return;
-            if (string.IsNullOrWhiteSpace(label.text)) label.text = fallback;
-            label.gameObject.SetActive(count == 0);
+            bool showEmpty = count == 0;
+            label.text = fallback;
+            label.gameObject.SetActive(showEmpty);
+            // 新分区的插画是 Mask 下的独立节点，必须与空态文字一起切换。
+            Transform emptyArt = label.transform.parent != null
+                ? FindDescendant(label.transform.parent, "Img_Empty") : null;
+            if (emptyArt != null) emptyArt.gameObject.SetActive(showEmpty);
         }
 
         private static Transform FindDescendant(Transform root, string name)

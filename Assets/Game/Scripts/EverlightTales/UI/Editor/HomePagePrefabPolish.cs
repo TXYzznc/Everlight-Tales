@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using TMPro;
 using UnityEditor;
@@ -56,6 +56,8 @@ namespace Everlight.Tales.UI.Editor
             Transform panel = Find(root.transform, "Panel_Guest");
             Transform content = Find(panel, "Panel_GuestContent");
             if (panel == null || content == null) throw new InvalidOperationException("GuestPage 缺少 Panel_Guest 或 Panel_GuestContent。");
+            // 新版固定分区以预制体为准，不再生成旧的平铺标题和滚动区。
+            if (content.Find("Section_0") != null) return;
             Stretch(panel as RectTransform);
             Inset(content as RectTransform, 24f, 24f, 24f, 24f);
 
@@ -155,7 +157,7 @@ namespace Everlight.Tales.UI.Editor
             ScrollRect sr = scrollObject.GetComponent<ScrollRect>() ?? scrollObject.AddComponent<ScrollRect>();
             sr.horizontal = false;
             sr.vertical = true;
-            sr.movementType = ScrollRect.MovementType.Clamped;
+            sr.movementType = ScrollRect.MovementType.Elastic; sr.scrollSensitivity = 10f;
             Transform viewport = scroll.Find("Viewport");
             GameObject viewportObject = viewport != null ? viewport.gameObject : new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
             if (viewport == null) viewportObject.transform.SetParent(scroll, false);

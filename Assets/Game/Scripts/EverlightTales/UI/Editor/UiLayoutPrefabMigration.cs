@@ -69,6 +69,7 @@ namespace Everlight.Tales.UI.Editor
         {
             Transform content = root.transform.Find("Panel_Guest/Panel_GuestContent");
             if (content == null) throw new InvalidOperationException("GuestPage 缺少 Panel_GuestContent");
+            if (content.Find("Section_0") != null) return;
             EnsureText(content, "Txt_Title", new Vector2(0, 400), new Vector2(600, 50), 30, TextAlignmentOptions.Center);
             EnsureText(content, "Txt_Thanks", new Vector2(0, 320), new Vector2(720, 40), 26, TextAlignmentOptions.Left);
             EnsureButton(content, "Btn_Claim", "领取感谢", new Vector2(260, 250), new Vector2(220, 56));

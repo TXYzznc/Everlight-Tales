@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -198,7 +198,7 @@ namespace Everlight.Tales.UI.EditorTools
             ScrollRect scroll = scrollObject.GetComponent<ScrollRect>() ?? scrollObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.movementType = ScrollRect.MovementType.Elastic; scroll.scrollSensitivity = 10f;
             scroll.inertia = true;
 
             Transform viewportTransform = scrollObject.transform.Find("Viewport");
@@ -244,6 +244,7 @@ namespace Everlight.Tales.UI.EditorTools
 
     private static void ConfigureGuestContent(Transform content)
     {
+            if (content != null && content.Find("Section_0") != null) return;
             // 来客页按顶部向下排列，避免原先大量正向 top-anchor 坐标把内容推到页面外。
             SetGuestTopRect(FindDescendant(content, "Txt_Title"), new Vector2(720f, 40f), new Vector2(0f, -28f));
             RectTransform scroll = FindDescendant(content, "GuestScrollRect") as RectTransform;
@@ -258,6 +259,7 @@ namespace Everlight.Tales.UI.EditorTools
 
         private static void EnsureGuestScrollLayout(Transform content)
         {
+            if (content.Find("Section_0") != null) return;
             Transform scrollTransform = content.Find("GuestScrollRect");
             GameObject scrollObject = scrollTransform != null ? scrollTransform.gameObject : new GameObject("GuestScrollRect", typeof(RectTransform), typeof(ScrollRect));
             if (scrollTransform == null) scrollObject.transform.SetParent(content, false);
@@ -270,7 +272,7 @@ namespace Everlight.Tales.UI.EditorTools
             ScrollRect scroll = scrollObject.GetComponent<ScrollRect>() ?? scrollObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.movementType = ScrollRect.MovementType.Elastic; scroll.scrollSensitivity = 10f;
             scroll.inertia = true;
 
             Transform viewportTransform = scrollObject.transform.Find("Viewport");
@@ -863,7 +865,7 @@ namespace Everlight.Tales.UI.EditorTools
             ScrollRect scroll = scrollObject.GetComponent<ScrollRect>() ?? scrollObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.movementType = ScrollRect.MovementType.Elastic; scroll.scrollSensitivity = 10f;
 
             Transform existingViewport = scrollObject.transform.Find("Viewport");
             GameObject viewport = existingViewport != null ? existingViewport.gameObject : CreateRect("Viewport", scrollObject.transform);

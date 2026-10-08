@@ -1,0 +1,28 @@
+{
+  "scope": "GuestPage 的 Panel_GuestContent 对齐 JournalEntriesRoot",
+  "confirmed": [
+    {
+      "decision": "同时沿用 JournalPage 的节点层级、布局和样式",
+      "source": "用户确认：按布局一起沿用"
+    },
+    {
+      "decision": "三个分区始终保留；无数据时显示空态文字和插画，不隐藏或重排分区",
+      "source": "用户更正：没有数据就不显示数据，显示空状态就行。不隐藏和修改布局"
+    }
+  ],
+  "existingBehavior": [
+    "GuestPanel 分为感谢、当天到店委托、改装支线三个区域",
+    "HomePage 使用 GuestPage 预制体作为嵌入的来客区域",
+    "现有业务数据与入口无需因布局变更而调整"
+  ],
+  "pending": [],
+  "implementation": {
+    "status": "已完成",
+    "sections": ["Section_0：可领取感谢", "Section_1：当天到店委托", "Section_2：改装支线"],
+    "structure": "每区使用 Header/Txt_Label、ScrollRect/Viewport/Content、ScrollRect/EmptyState、ScrollRect/Mask/Img_Empty 和 VerticalScrollbar",
+    "binding": "GuestPanel 和 GuestPanelContractMigration 按分区查找并绑定引用",
+    "toolCompatibility": "旧平铺布局整理工具遇到 Section_0 时保留当前预制体结构",
+    "validation": "仅检查保存后的层级和本地 fileID 引用；未主动编译或运行测试"
+  },
+  "sizeAssessment": "单个页面的布局及绑定调整，不涉及框架核心；按局部变更处理"
+}

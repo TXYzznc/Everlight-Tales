@@ -31,6 +31,20 @@ namespace Everlight.Tales.UI.Editor
                 Set(so, "_thanksEmpty", Component<TMP_Text>(content, "Txt_ThanksEmpty"));
                 Set(so, "_delegationEmpty", Component<TMP_Text>(content, "Txt_DelegationEmpty"));
                 Set(so, "_modEmpty", Component<TMP_Text>(content, "Txt_ModEmpty"));
+                if (content != null && content.Find("Section_0") != null)
+                {
+                    string[] contents = { "m_ThanksContent", "m_DelegationContent", "m_ModContent" };
+                    string[] headers = { "_thanks", "_delegationHeader", "_modHeader" };
+                    string[] empties = { "_thanksEmpty", "_delegationEmpty", "_modEmpty" };
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Transform section = content.Find("Section_" + i);
+                        if (section == null) throw new System.InvalidOperationException("GuestPage 缺少 Section_" + i);
+                        Set(so, contents[i], section.Find("ScrollRect/Viewport/Content"));
+                        Set(so, headers[i], section.Find("Header/Txt_Label")?.GetComponent<TMP_Text>());
+                        Set(so, empties[i], section.Find("ScrollRect/EmptyState")?.GetComponent<TMP_Text>());
+                    }
+                }
                 so.ApplyModifiedPropertiesWithoutUndo();
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 Debug.Log("[GuestPanelContractMigration] GuestPanel 序列化引用绑定完成。");
