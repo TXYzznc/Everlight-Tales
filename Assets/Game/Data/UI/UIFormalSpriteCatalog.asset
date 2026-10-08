@@ -961,3 +961,99 @@ MonoBehaviour:
     Sprite: {fileID: 21300000, guid: 98349f2127f3100458b6556c7547d6fc, type: 3}
   - Key: "\u9F7F\u8F6E"
     Sprite: {fileID: 21300000, guid: ea2eaed5d94b3d04ab0d421fc3707791, type: 3}
+  - Key: SHR-023-gold-normal
+    Sprite: {fileID: 21300000, guid: 82777fd778764234f861b1d661aa2476, type: 3}
+  - Key: SHR-023-gold-hover
+    Sprite: {fileID: 21300000, guid: 1bceb2e0144156a40b4b94bdd8b10a7e, type: 3}
+  - Key: SHR-023-gold-pressed
+    Sprite: {fileID: 21300000, guid: d80b2e9f94423e049855fe5d8bc67dcd, type: 3}
+  - Key: SHR-023-gold-disabled
+    Sprite: {fileID: 21300000, guid: 324400e4e6e2fca429ac02d8e958a99b, type: 3}
+  - Key: SCR-07-08-community-day
+    Sprite: {fileID: 21300000, guid: 827e4435eeabf6546a411c2e98e3367e, type: 3}
+  - Key: "SCR-07-08-community-day\u793E\u533A\u6D3B\u52A8\u4E2D\u5FC3\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: 827e4435eeabf6546a411c2e98e3367e, type: 3}
+  - Key: SCR-07-08-community-night
+    Sprite: {fileID: 21300000, guid: d2637b3ba1307de4c89f2efad6a5b699, type: 3}
+  - Key: "SCR-07-08-community-night\u793E\u533A\u6D3B\u52A8\u4E2D\u5FC3\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: d2637b3ba1307de4c89f2efad6a5b699, type: 3}
+  - Key: SCR-07-08-dance-day
+    Sprite: {fileID: 21300000, guid: 4387fe3d889dbb0488c58df52dfd36dc, type: 3}
+  - Key: "SCR-07-08-dance-day\u821E\u8E48\u6559\u5BA4\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: 4387fe3d889dbb0488c58df52dfd36dc, type: 3}
+  - Key: SCR-07-08-dance-night
+    Sprite: {fileID: 21300000, guid: a09915409126b864b9cdda17444735e7, type: 3}
+  - Key: "SCR-07-08-dance-night\u821E\u8E48\u6559\u5BA4\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: a09915409126b864b9cdda17444735e7, type: 3}
+  - Key: SCR-07-08-street-day
+    Sprite: {fileID: 21300000, guid: 70d9c4dd897c7e346a87d35709ebaaaa, type: 3}
+  - Key: "SCR-07-08-street-day\u8857\u533A\u5C0F\u5E97\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: 70d9c4dd897c7e346a87d35709ebaaaa, type: 3}
+  - Key: SCR-07-08-street-night
+    Sprite: {fileID: 21300000, guid: 1a699b2a8d648fa4d99f3d48665cccdc, type: 3}
+  - Key: "SCR-07-08-street-night\u8857\u533A\u5C0F\u5E97\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: 1a699b2a8d648fa4d99f3d48665cccdc, type: 3}
+  - Key: SCR-07-08-tailor-day
+    Sprite: {fileID: 21300000, guid: 633c5cd14d68a684c9e5f9b48fa059c4, type: 3}
+  - Key: "SCR-07-08-tailor-day\u88C1\u7F1D\u94FA\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: 633c5cd14d68a684c9e5f9b48fa059c4, type: 3}
+  - Key: SCR-07-08-tailor-night
+    Sprite: {fileID: 21300000, guid: da03dd47e6ca8934b8fb9c04713da767, type: 3}
+  - Key: "SCR-07-08-tailor-night\u88C1\u7F1D\u94FA\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: da03dd47e6ca8934b8fb9c04713da767, type: 3}
+  - Key: SCR-07-08-home-day
+    Sprite: {fileID: 21300000, guid: dd2f5ebae308f9146870d1b86b9f070c, type: 3}
+  - Key: "SCR-07-08-home-day\u957F\u660E\u4FEE\u7406\u94FA\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: dd2f5ebae308f9146870d1b86b9f070c, type: 3}
+  - Key: SCR-07-08-home-night
+    Sprite: {fileID: 21300000, guid: 4160e1dc52082ca42a65b65a39437269, type: 3}
+  - Key: "SCR-07-08-home-night\u957F\u660E\u4FEE\u7406\u94FA\u5C40\u5185\u80CC\u666F"
+    Sprite: {fileID: 21300000, guid: 4160e1dc52082ca42a65b65a39437269, type: 3}
+  - Key: SCR-07-01-hover
+    Sprite: {fileID: 21300000, guid: 0413fb1850d89894382be7907c52d2fd, type: 3}
+  - Key: "SCR-07-01-hover\u76D8\u9762\u683C"
+    Sprite: {fileID: 21300000, guid: 0413fb1850d89894382be7907c52d2fd, type: 3}
+  - Key: SCR-07-01-normal
+    Sprite: {fileID: 21300000, guid: e46e197d3edf65a4ca51b6314a3fb0a1, type: 3}
+  - Key: "SCR-07-01-normal\u76D8\u9762\u683C"
+    Sprite: {fileID: 21300000, guid: e46e197d3edf65a4ca51b6314a3fb0a1, type: 3}
+  - Key: SCR-07-01-selected
+    Sprite: {fileID: 21300000, guid: c753a8737992a1a428c6c3d39f5c7368, type: 3}
+  - Key: "SCR-07-01-selected\u76D8\u9762\u683C"
+    Sprite: {fileID: 21300000, guid: c753a8737992a1a428c6c3d39f5c7368, type: 3}
+  - Key: SCR-07-02
+    Sprite: {fileID: 21300000, guid: e193f6c77cbd3a8469810587ad68fea9, type: 3}
+  - Key: "SCR-07-02\u5899\u683C"
+    Sprite: {fileID: 21300000, guid: e193f6c77cbd3a8469810587ad68fea9, type: 3}
+  - Key: SCR-07-03
+    Sprite: {fileID: 21300000, guid: a6d473cb846d7ec44b8c2175edf05b07, type: 3}
+  - Key: "SCR-07-03\u673A\u68B0\u81C2\u76EE\u6807\u683C"
+    Sprite: {fileID: 21300000, guid: a6d473cb846d7ec44b8c2175edf05b07, type: 3}
+  - Key: SCR-07-04
+    Sprite: {fileID: 21300000, guid: 744ff1bdaa1eb7348b455c784b2c82fa, type: 3}
+  - Key: "SCR-07-04\u76D8\u9762\u5916\u6846"
+    Sprite: {fileID: 21300000, guid: 744ff1bdaa1eb7348b455c784b2c82fa, type: 3}
+  - Key: SCR-07-05
+    Sprite: {fileID: 21300000, guid: d08ab2fe13b0df944a060b53d2d58d34, type: 3}
+  - Key: "SCR-07-05\u76D8\u9762\u6D41\u5149\u906E\u7F69"
+    Sprite: {fileID: 21300000, guid: d08ab2fe13b0df944a060b53d2d58d34, type: 3}
+  - Key: SCR-07-06
+    Sprite: {fileID: 21300000, guid: 6c67e8a656fccf64089d911f60c79e79, type: 3}
+  - Key: "SCR-07-06\u76D8\u9762\u5E95\u5EA7"
+    Sprite: {fileID: 21300000, guid: 6c67e8a656fccf64089d911f60c79e79, type: 3}
+  - Key: SCR-07-07-active
+    Sprite: {fileID: 21300000, guid: a734834831c1ed6498cc8e27db0d9515, type: 3}
+  - Key: "SCR-07-07-active\u5B9A\u52BF\u5EA7"
+    Sprite: {fileID: 21300000, guid: a734834831c1ed6498cc8e27db0d9515, type: 3}
+  - Key: SCR-07-07-normal
+    Sprite: {fileID: 21300000, guid: a64e2f4f6adac1f439aa9c5a5c9fcf0d, type: 3}
+  - Key: "SCR-07-07-normal\u5B9A\u52BF\u5EA7"
+    Sprite: {fileID: 21300000, guid: a64e2f4f6adac1f439aa9c5a5c9fcf0d, type: 3}
+  - Key: SCR-07-09
+    Sprite: {fileID: 21300000, guid: b92109057a30fa949b2fe211174573a5, type: 3}
+  - Key: "SCR-07-09\u91CD\u529B\u65B9\u5411\u7BAD\u5934"
+    Sprite: {fileID: 21300000, guid: b92109057a30fa949b2fe211174573a5, type: 3}
+  - Key: SCR-07-25
+    Sprite: {fileID: 21300000, guid: 3001bbef5d05a9d489709a69846d4334, type: 3}
+  - Key: "SCR-07-25\u51B2\u51FB\u706B\u82B1"
+    Sprite: {fileID: 21300000, guid: 3001bbef5d05a9d489709a69846d4334, type: 3}
