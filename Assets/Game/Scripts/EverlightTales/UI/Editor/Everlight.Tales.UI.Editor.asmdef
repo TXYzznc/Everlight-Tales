@@ -5,7 +5,11 @@
         "Everlight.Tales.UI",
         "Everlight.Tales.Meta",
         "Everlight.Tales.Data",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Hotfix",
+        "Builtin.Runtime",
+        "UnityGameFramework.Runtime",
+        "GameFramework"
     ],
     "includePlatforms": [
         "Editor"

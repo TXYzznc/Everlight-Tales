@@ -499,47 +499,7 @@ namespace Everlight.Tales.Editor
 
         private static UIFormalSpriteCatalog CreateFormalSpriteCatalog()
         {
-            UIFormalSpriteCatalog catalog = AssetDatabase.LoadAssetAtPath<UIFormalSpriteCatalog>(CatalogPath);
-            if (catalog == null)
-            {
-                catalog = ScriptableObject.CreateInstance<UIFormalSpriteCatalog>();
-                AssetDatabase.CreateAsset(catalog, CatalogPath);
-            }
-            SerializedObject serialized = new SerializedObject(catalog);
-            SerializedProperty entries = serialized.FindProperty("_entries");
-            entries.ClearArray();
-            string[,] assets =
-            {
-                { "ICO-008保管", "图标/ICO-008保管.png" },
-                { "ICO-051维修费", "图标/ICO-051维修费.png" },
-                { "ICO-052铜芯线", "图标/ICO-052铜芯线.png" },
-                { "ICO-053精密齿轮", "图标/ICO-053精密齿轮.png" },
-                { "ICO-054玻璃镜片", "图标/ICO-054玻璃镜片.png" },
-                { "ICO-055校准簧片", "图标/ICO-055校准簧片.png" },
-                { "ICO-056定势残晶", "图标/ICO-056定势残晶.png" },
-                { "ICO-057异常纹样", "图标/ICO-057异常纹样.png" },
-                { "ICO-058图样", "图标/ICO-058图样.png" },
-                { "ICO-060零件", "图标/ICO-060零件.png" },
-                { "ICO-061形态", "图标/ICO-061形态.png" },
-                { "SHR-005-normal", "九宫格/SHR-005-normal列表行.png" },
-                { "SHR-005-selected", "九宫格/SHR-005-selected列表行.png" },
-                { "SHR-003-normal", "九宫格/SHR-003-normal卡片.png" },
-                { "SHR-046-normal", "控件/SHR-046-normal六边形框.png" },
-                { "SHR-046-selected", "控件/SHR-046-selected六边形框.png" },
-                { "SHR-048-empty-list", "插画/SHR-048-empty-list.png" }
-            };
-            for (int i = 0; i < assets.GetLength(0); i++)
-            {
-                Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Game/Sprites/UI/" + assets[i, 1]);
-                if (sprite == null) continue;
-                entries.InsertArrayElementAtIndex(entries.arraySize);
-                SerializedProperty entry = entries.GetArrayElementAtIndex(entries.arraySize - 1);
-                entry.FindPropertyRelative("Key").stringValue = assets[i, 0];
-                entry.FindPropertyRelative("Sprite").objectReferenceValue = sprite;
-            }
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(catalog);
-            return catalog;
+            return Everlight.Tales.UI.Editor.FormalResourceMigration.BuildCatalog();
         }
 
         private static string CommonRow()
@@ -551,8 +511,15 @@ namespace Everlight.Tales.Editor
         private static string CreateWorkbenchItem(string prefabName, string backgroundPrefix)
         {
             string path = ItemDir + "/" + prefabName + ".prefab";
-            // Workbench Item 的布局契约发生变化时必须重建模板，避免旧版宽文本节点残留。
-            if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
+            // 增量升级，保留已被 Home/Workbench 引用的 Prefab GUID。
+            if (File.Exists(path))
+            {
+                FormalResourceMigration.BuildCatalog();
+                GameObject existing = PrefabUtility.LoadPrefabContents(path);
+                try { FormalResourceMigration.Upgrade(existing,path); PrefabUtility.SaveAsPrefabAsset(existing,path); }
+                finally { PrefabUtility.UnloadPrefabContents(existing); }
+                return path;
+            }
             return CreateItemVisual(path, prefabName, backgroundPrefix, (root, background) =>
             {
                 // WorkbenchPanel binds selection listeners to the item root.  Keep
@@ -569,6 +536,8 @@ namespace Everlight.Tales.Editor
                 SetRef(logic, "_title", FindComponent<TMP_Text>(root, "Txt_Title"));
                 SetRef(logic, "_detail", FindComponent<TMP_Text>(root, "Txt_Detail"));
                 SetRef(logic, "_value", FindComponent<TMP_Text>(root, "Txt_Value"));
+                FormalResourceMigration.BuildCatalog();
+                FormalResourceMigration.Upgrade(root,path);
             });
         }
 

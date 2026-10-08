@@ -442,6 +442,8 @@ namespace Everlight.Tales.UI.EditorTools
                     count++;
                 }
 
+                Everlight.Tales.UI.Editor.FormalResourceMigration.BuildCatalog();
+                Everlight.Tales.UI.Editor.FormalResourceMigration.Upgrade(root,prefabPath);
                 PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
                 Debug.Log($"[EverlightFormalUiResourceBinder] {prefabPath} 绑定 {count} 个 Sprite。");
             }
@@ -623,7 +625,7 @@ namespace Everlight.Tales.UI.EditorTools
                 {
                     GameObject button = CreateRect("Btn_Zone_" + buttonIds[i], top.transform);
                     SetRect(button.GetComponent<RectTransform>(), new Vector2(i * 0.25f, 0f), new Vector2((i + 1) * 0.25f, 1f), new Vector2(0.5f, 0.5f), new Vector2(-16f, -32f), Vector2.zero);
-                    var image = button.AddComponent<Image>(); image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-028-normal页签5.png"); image.type = Image.Type.Sliced; image.color = Color.white;
+                    var image = button.AddComponent<Image>(); image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-027-normal页签4.png"); image.type = Image.Type.Sliced; image.color = Color.white;
                     var buttonComp = button.AddComponent<Button>(); buttonComp.targetGraphic = image;
                     AddText(button.transform, "Txt_Label", labels[i], 24f, Vector2.zero, Vector2.one, new Vector2(-12f, -8f), Vector2.zero, Color.white);
                 }
@@ -689,12 +691,12 @@ namespace Everlight.Tales.UI.EditorTools
             var image = top.AddComponent<Image>(); image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "九宫格/SHR-001面板.png"); image.type = Image.Type.Sliced; image.color = new Color(0.08f, 0.10f, 0.14f, 0.94f);
             AddText(top.transform, "Txt_Progress", "已拥有 0/0", 26f, new Vector2(0.5f, 0.5f), Vector2.one, new Vector2(-40f, 36f), new Vector2(-24f, -24f));
             top.transform.Find("Txt_Progress").GetComponent<TMPro.TextMeshProUGUI>().alignment = TMPro.TextAlignmentOptions.Right;
-            string[] labels = { "零件 P", "形态 M", "资料台" };
+            string[] labels = { "零件 P", "形态 M", "怪谈" };
             for (int i = 0; i < labels.Length; i++)
             {
                 GameObject button = CreateRect("Btn_Sub_" + i, top.transform);
                 SetRect(button.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(140f, 56f), new Vector2(-430f + i * 150f, -24f));
-                var btnImage = button.AddComponent<Image>(); btnImage.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-028-normal页签5.png"); btnImage.type = Image.Type.Sliced; btnImage.color = Color.white;
+                var btnImage = button.AddComponent<Image>(); btnImage.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-026-normal页签3.png"); btnImage.type = Image.Type.Sliced; btnImage.color = Color.white;
                 var btn = button.AddComponent<Button>(); btn.targetGraphic = btnImage;
                 AddText(button.transform, "Txt_Label", labels[i], 24f, Vector2.zero, Vector2.one, new Vector2(-12f, -8f), Vector2.zero, Color.white);
             }
@@ -724,7 +726,7 @@ namespace Everlight.Tales.UI.EditorTools
             {
                 GameObject button = CreateRect("Btn_Sub_" + i, top.transform);
                 SetRect(button.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(140f, 56f), new Vector2(-430f + i * 150f, -24f));
-                var image = button.AddComponent<Image>(); image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-028-normal页签5.png"); image.type = Image.Type.Sliced; image.color = Color.white;
+                var image = button.AddComponent<Image>(); image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-026-normal页签3.png"); image.type = Image.Type.Sliced; image.color = Color.white;
                 var buttonComp = button.AddComponent<Button>(); buttonComp.targetGraphic = image;
                 AddText(button.transform, "Txt_Label", labels[i], 24f, Vector2.zero, Vector2.one, new Vector2(-12f, -8f), Vector2.zero, Color.white);
             }
@@ -766,7 +768,7 @@ namespace Everlight.Tales.UI.EditorTools
                 {
                     GameObject button = CreateRect("Btn_Sub_" + i, top.transform);
                     SetRect(button.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(140f, 56f), new Vector2(-430f + i * 150f, -24f));
-                    var image = button.AddComponent<Image>(); image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-028-normal页签5.png"); image.type = Image.Type.Sliced; image.color = Color.white;
+                    var image = button.AddComponent<Image>(); image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(UiRoot + "控件/SHR-026-normal页签3.png"); image.type = Image.Type.Sliced; image.color = Color.white;
                     var buttonComp = button.AddComponent<Button>(); buttonComp.targetGraphic = image;
                     AddText(button.transform, "Txt_Label", labels[i], 24f, Vector2.zero, Vector2.one, new Vector2(-12f, -8f), Vector2.zero, Color.white);
                     AddText(top.transform, "Txt_Badge_" + i, "", 20f, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(36f, 26f), new Vector2(-376f + i * 150f, -6f), new Color(0.88f, 0.66f, 0.35f, 1f));
@@ -937,7 +939,7 @@ namespace Everlight.Tales.UI.EditorTools
             {
                 if (nodeName.StartsWith("Tab_", StringComparison.Ordinal))
                 {
-                    return "控件/SHR-028-normal页签5.png";
+                    return "控件/SHR-027-normal页签4.png";
                 }
 
                 if (nodeName == "TopBar")

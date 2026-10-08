@@ -11,7 +11,7 @@ namespace Everlight.Tales.Editor
     /// <summary>把正式按钮状态 Sprite 绑定到全部 UIForm 和 UIItem Prefab。</summary>
     public static class EverlightButtonSpriteBinder
     {
-        private enum ButtonVisualRole { Main, Secondary, Small, Danger, Icon, Tab, Filter, Card, ListRow, Hex }
+        private enum ButtonVisualRole { Main, Secondary, Small, Danger, Icon, Tab, Filter, AutoFill, Card, ListRow, Hex }
         private const string UiRoot = "Assets/Game/Sprites/UI/";
         private const string LibraryPath = "Assets/Game/Config/UI/FormalButtonLibrary.asset";
 
@@ -47,8 +47,12 @@ namespace Everlight.Tales.Editor
                 {
                     Image image = button.GetComponent<Image>();
                     if (image == null) continue;
+                    if (button.name == "Dimed" || button.name == "Panel_Dim" || button.name == "Panel_Pause" || button.name.Contains("Backdrop")) continue;
+                    // 专用状态组件拥有这些图片，通用按钮工具不得覆盖。
+                    if (button.GetComponent<InvestigationHotspotItem>() != null || button.GetComponent<MapNodeItem>() != null || button.GetComponent<CarrySlotVisual>() != null || button.GetComponent<WorkbenchItem>() != null
+                        || button.name.StartsWith("Slot", StringComparison.Ordinal) || button.name.StartsWith("Btn_Slot", StringComparison.Ordinal)) continue;
                     ButtonVisualRole role = InferRole(button.gameObject, image);
-                    SpriteSet set = LoadSet(role);
+                    SpriteSet set = LoadSet(role, path.Contains("ArchivePage") ? 5 : path.Contains("MainPageShell") || path.Contains("HomePage") ? 4 : 3);
                     if (set.Normal == null) continue;
                     image.sprite = set.Normal;
                     image.type = Image.Type.Sliced;
@@ -79,6 +83,19 @@ namespace Everlight.Tales.Editor
         private static ButtonVisualRole InferRole(GameObject go, Image image)
         {
             string name = go.name.ToLowerInvariant();
+            if (name.Contains("autofill") || name.Contains("auto_fill")) return ButtonVisualRole.AutoFill;
+            if (name.Contains("filter")) return ButtonVisualRole.Filter;
+            if (name.StartsWith("tab_") || name.StartsWith("btn_sub_") || name.StartsWith("btn_zone_")) return ButtonVisualRole.Tab;
+            if (name.Contains("delete") || name.Contains("retreat") || name.Contains("abandon")) return ButtonVisualRole.Danger;
+            if (name == "action") return ButtonVisualRole.Small;
+            switch (name)
+            {
+                case "btn_pause": return ButtonVisualRole.Icon;
+                case "btn_settings": return ((RectTransform)go.transform).rect.width <= 100 ? ButtonVisualRole.Icon : ButtonVisualRole.Secondary;
+                case "btn_tap": case "btn_action": case "btn_submit": case "btn_confirm": case "btn_confirmevent": case "btn_start": case "btn_finish":
+                case "btn_continue": case "btn_settle": case "btn_recover": case "btn_backtomap": case "btn_pauseresume": case "btn_openingaction": return ButtonVisualRole.Main;
+                case "btn_close": case "btn_back": case "btn_cancel": case "btn_form": case "btn_loadout": case "btn_rotateright": case "btn_rotateleft": case "btn_arm": return ButtonVisualRole.Secondary;
+            }
             string sprite = image.sprite == null ? string.Empty : image.sprite.name;
             if (sprite.Contains("SHR-021")) return ButtonVisualRole.Main;
             if (sprite.Contains("SHR-022")) return ButtonVisualRole.Secondary;
@@ -106,7 +123,7 @@ namespace Everlight.Tales.Editor
             { Normal = normal; Highlighted = highlighted; Pressed = pressed; Disabled = disabled; Selected = selected; }
         }
 
-        private static SpriteSet LoadSet(ButtonVisualRole role)
+        private static SpriteSet LoadSet(ButtonVisualRole role, int tabCount = 3)
         {
             string prefix; string folder = "控件/";
             switch (role)
@@ -116,18 +133,19 @@ namespace Everlight.Tales.Editor
                 case ButtonVisualRole.Small: prefix = "SHR-023-"; break;
                 case ButtonVisualRole.Danger: prefix = "SHR-024-"; break;
                 case ButtonVisualRole.Icon: prefix = "SHR-025-"; break;
-                case ButtonVisualRole.Tab: prefix = "SHR-028-"; break;
+                case ButtonVisualRole.Tab: prefix = tabCount == 4 ? "SHR-027-" : tabCount == 5 ? "SHR-028-" : "SHR-026-"; break;
+                case ButtonVisualRole.AutoFill: prefix = "SHR-030-"; break;
                 case ButtonVisualRole.Filter: prefix = "SHR-029-"; break;
                 case ButtonVisualRole.Card: folder = "九宫格/"; prefix = "SHR-003-"; break;
                 case ButtonVisualRole.ListRow: folder = "九宫格/"; prefix = "SHR-005-"; break;
                 case ButtonVisualRole.Hex: prefix = "SHR-046-"; break;
                 default: prefix = "SHR-022-"; break;
             }
-            Sprite normal = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "normal页签5.png" : role == ButtonVisualRole.Filter ? "normal筛选片.png" : role == ButtonVisualRole.Card ? "normal卡片.png" : role == ButtonVisualRole.ListRow ? "normal列表行.png" : role == ButtonVisualRole.Hex ? "normal六边形框.png" : "normal" + Label(role) + ".png"));
-            Sprite highlighted = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "hover页签5.png" : role == ButtonVisualRole.Filter ? "hover筛选片.png" : role == ButtonVisualRole.Card ? "hover卡片.png" : role == ButtonVisualRole.ListRow ? "hover列表行.png" : role == ButtonVisualRole.Hex ? "hover六边形框.png" : "hover" + Label(role) + ".png"));
-            Sprite pressed = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "active页签5.png" : role == ButtonVisualRole.Filter ? "active筛选片.png" : role == ButtonVisualRole.Card ? "pressed卡片.png" : role == ButtonVisualRole.ListRow ? "selected列表行.png" : role == ButtonVisualRole.Hex ? "selected六边形框.png" : "pressed" + Label(role) + ".png"));
-            Sprite disabled = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "normal页签5.png" : role == ButtonVisualRole.Filter ? "normal筛选片.png" : role == ButtonVisualRole.Card ? "disabled卡片.png" : role == ButtonVisualRole.ListRow ? "normal列表行.png" : role == ButtonVisualRole.Hex ? "disabled六边形框.png" : "disabled" + Label(role) + ".png"));
-            Sprite selected = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "active页签5.png" : role == ButtonVisualRole.Filter ? "active筛选片.png" : role == ButtonVisualRole.Card ? "selected卡片.png" : role == ButtonVisualRole.ListRow ? "selected列表行.png" : role == ButtonVisualRole.Hex ? "selected六边形框.png" : "normal" + Label(role) + ".png"));
+            Sprite normal = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "normal页签" + tabCount + ".png" : role == ButtonVisualRole.Filter ? "normal筛选片.png" : role == ButtonVisualRole.Card ? "normal卡片.png" : role == ButtonVisualRole.ListRow ? "normal列表行.png" : role == ButtonVisualRole.Hex ? "normal六边形框.png" : "normal" + Label(role) + ".png"));
+            Sprite highlighted = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "hover页签" + tabCount + ".png" : role == ButtonVisualRole.Filter ? "hover筛选片.png" : role == ButtonVisualRole.Card ? "hover卡片.png" : role == ButtonVisualRole.ListRow ? "hover列表行.png" : role == ButtonVisualRole.Hex ? "hover六边形框.png" : "hover" + Label(role) + ".png"));
+            Sprite pressed = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "active页签" + tabCount + ".png" : role == ButtonVisualRole.Filter ? "active筛选片.png" : role == ButtonVisualRole.Card ? "pressed卡片.png" : role == ButtonVisualRole.ListRow ? "selected列表行.png" : role == ButtonVisualRole.Hex ? "selected六边形框.png" : "pressed" + Label(role) + ".png"));
+            Sprite disabled = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "normal页签" + tabCount + ".png" : role == ButtonVisualRole.Filter ? "normal筛选片.png" : role == ButtonVisualRole.Card ? "disabled卡片.png" : role == ButtonVisualRole.ListRow ? "normal列表行.png" : role == ButtonVisualRole.Hex ? "disabled六边形框.png" : "disabled" + Label(role) + ".png"));
+            Sprite selected = Load(folder + prefix + (role == ButtonVisualRole.Tab ? "active页签" + tabCount + ".png" : role == ButtonVisualRole.Filter ? "active筛选片.png" : role == ButtonVisualRole.Card ? "selected卡片.png" : role == ButtonVisualRole.ListRow ? "selected列表行.png" : role == ButtonVisualRole.Hex ? "selected六边形框.png" : "normal" + Label(role) + ".png"));
             return new SpriteSet(normal, highlighted, pressed, disabled, selected);
         }
 
@@ -140,6 +158,7 @@ namespace Everlight.Tales.Editor
                 case ButtonVisualRole.Small: return "小按钮";
                 case ButtonVisualRole.Danger: return "危险按钮";
                 case ButtonVisualRole.Icon: return "图标按钮";
+                case ButtonVisualRole.AutoFill: return "一键补充按钮";
                 default: return "次按钮";
             }
         }

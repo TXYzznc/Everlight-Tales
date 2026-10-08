@@ -168,7 +168,8 @@ namespace Everlight.Tales.UI.Editor
         {
             bool existing = File.Exists(path);
             GameObject root = existing ? PrefabUtility.LoadPrefabContents(path) : Rect(Path.GetFileNameWithoutExtension(path), null);
-            try { action(root); PrefabUtility.SaveAsPrefabAsset(root, path); }
+            try { action(root); FormalResourceMigration.BuildCatalog(); FormalResourceMigration.Upgrade(root, path);
+                PrefabUtility.SaveAsPrefabAsset(root, path); }
             finally { if (existing) PrefabUtility.UnloadPrefabContents(root); else UnityEngine.Object.DestroyImmediate(root); }
             AssetDatabase.SaveAssets();
         }

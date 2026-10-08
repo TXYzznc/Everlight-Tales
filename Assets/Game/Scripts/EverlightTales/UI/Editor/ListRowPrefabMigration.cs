@@ -22,7 +22,13 @@ namespace Everlight.Tales.UI.Editor
         public static void CreatePrefab()
         {
             StopRequired();
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(RowPath) != null) return;
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(RowPath) != null)
+            {
+                GameObject existing = PrefabUtility.LoadPrefabContents(RowPath);
+                try { FormalResourceMigration.UpgradeRow(existing.GetComponent<ListRowItem>()); PrefabUtility.SaveAsPrefabAsset(existing, RowPath); }
+                finally { PrefabUtility.UnloadPrefabContents(existing); }
+                return;
+            }
             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Game/Font/Common/SIMHEI SDF.asset");
             if (font == null) throw new InvalidOperationException("缺少正式 UI 字体 SIMHEI SDF。");
             GameObject root = Rect("ListRowItem", null);
@@ -66,6 +72,7 @@ namespace Everlight.Tales.UI.Editor
                 Ref(so, "_icon", icon); Ref(so, "_stateFrame", frame); Ref(so, "_iconRoot", iconRoot.transform); Ref(so, "_height", height); Ref(so, "_rect", rect);
                 so.ApplyModifiedPropertiesWithoutUndo();
                 id.gameObject.SetActive(false); iconRoot.SetActive(false); detail.gameObject.SetActive(false); right.gameObject.SetActive(false); actionRoot.SetActive(false);
+                FormalResourceMigration.UpgradeRow(root.GetComponent<ListRowItem>());
                 PrefabUtility.SaveAsPrefabAsset(root, RowPath);
                 Debug.Log("[ListRow][Asset] 通用 SHR-005 列表行创建完成。");
             }
