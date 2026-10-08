@@ -14054,6 +14054,402 @@
         "verification_document": "06-实施与截图验收.md"
       },
       "import_max_size": 128
+    },
+    {
+      "name": "SCR-07-08-home-day长明修理铺局内背景",
+      "resource_id": "SCR-07-08-home-day",
+      "planned_path": "Assets/Game/Sprites/场景/局内/长明修理铺/SCR-07-08-home-day长明修理铺局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:home:day",
+      "target_use": "board:bg:home:day",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/03-局内背景-长明修理铺.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-home-night长明修理铺局内背景",
+      "resource_id": "SCR-07-08-home-night",
+      "planned_path": "Assets/Game/Sprites/场景/局内/长明修理铺/SCR-07-08-home-night长明修理铺局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:home:night",
+      "target_use": "board:bg:home:night",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/03-局内背景-长明修理铺.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-street-day街区小店局内背景",
+      "resource_id": "SCR-07-08-street-day",
+      "planned_path": "Assets/Game/Sprites/场景/局内/街区小店/SCR-07-08-street-day街区小店局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:street:day",
+      "target_use": "board:bg:street:day",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/04-局内背景-街区小店.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-street-night街区小店局内背景",
+      "resource_id": "SCR-07-08-street-night",
+      "planned_path": "Assets/Game/Sprites/场景/局内/街区小店/SCR-07-08-street-night街区小店局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:street:night",
+      "target_use": "board:bg:street:night",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/04-局内背景-街区小店.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-dance-day舞蹈教室局内背景",
+      "resource_id": "SCR-07-08-dance-day",
+      "planned_path": "Assets/Game/Sprites/场景/局内/舞蹈教室/SCR-07-08-dance-day舞蹈教室局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:dance:day",
+      "target_use": "board:bg:dance:day",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/05-局内背景-舞蹈教室.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-dance-night舞蹈教室局内背景",
+      "resource_id": "SCR-07-08-dance-night",
+      "planned_path": "Assets/Game/Sprites/场景/局内/舞蹈教室/SCR-07-08-dance-night舞蹈教室局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:dance:night",
+      "target_use": "board:bg:dance:night",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/05-局内背景-舞蹈教室.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-tailor-day裁缝铺局内背景",
+      "resource_id": "SCR-07-08-tailor-day",
+      "planned_path": "Assets/Game/Sprites/场景/局内/裁缝铺/SCR-07-08-tailor-day裁缝铺局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:tailor:day",
+      "target_use": "board:bg:tailor:day",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/06-局内背景-裁缝铺.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-tailor-night裁缝铺局内背景",
+      "resource_id": "SCR-07-08-tailor-night",
+      "planned_path": "Assets/Game/Sprites/场景/局内/裁缝铺/SCR-07-08-tailor-night裁缝铺局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:tailor:night",
+      "target_use": "board:bg:tailor:night",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/06-局内背景-裁缝铺.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-community-day社区活动中心局内背景",
+      "resource_id": "SCR-07-08-community-day",
+      "planned_path": "Assets/Game/Sprites/场景/局内/社区活动中心/SCR-07-08-community-day社区活动中心局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:community:day",
+      "target_use": "board:bg:community:day",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/07-局内背景-社区活动中心.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-08-community-night社区活动中心局内背景",
+      "resource_id": "SCR-07-08-community-night",
+      "planned_path": "Assets/Game/Sprites/场景/局内/社区活动中心/SCR-07-08-community-night社区活动中心局内背景.png",
+      "source_size": [
+        1080,
+        1920
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:bg:community:night",
+      "target_use": "board:bg:community:night",
+      "art_group": "局内背景/五场景昼夜族",
+      "art_requirement_document": "新增正式美术资源需求/07-局内背景-社区活动中心.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-01-normal盘面格",
+      "resource_id": "SCR-07-01-normal",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-01-normal盘面格.png",
+      "source_size": [
+        128,
+        128
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:cell:normal",
+      "target_use": "board:cell:normal",
+      "art_group": "局内棋盘/格子族",
+      "art_requirement_document": "新增正式美术资源需求/08-盘面-普通格三态.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-01-hover盘面格",
+      "resource_id": "SCR-07-01-hover",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-01-hover盘面格.png",
+      "source_size": [
+        128,
+        128
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:cell:hover",
+      "target_use": "board:cell:hover",
+      "art_group": "局内棋盘/格子族",
+      "art_requirement_document": "新增正式美术资源需求/08-盘面-普通格三态.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-01-selected盘面格",
+      "resource_id": "SCR-07-01-selected",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-01-selected盘面格.png",
+      "source_size": [
+        128,
+        128
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:cell:selected",
+      "target_use": "board:cell:selected",
+      "art_group": "局内棋盘/格子族",
+      "art_requirement_document": "新增正式美术资源需求/08-盘面-普通格三态.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-02墙格",
+      "resource_id": "SCR-07-02",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-02墙格.png",
+      "source_size": [
+        128,
+        128
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:cell:wall",
+      "target_use": "board:cell:wall",
+      "art_group": "局内棋盘/格子族",
+      "art_requirement_document": "新增正式美术资源需求/09-盘面-墙格.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-03机械臂目标格",
+      "resource_id": "SCR-07-03",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-03机械臂目标格.png",
+      "source_size": [
+        128,
+        128
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:cell:target",
+      "target_use": "board:cell:target",
+      "art_group": "局内棋盘/格子族",
+      "art_requirement_document": "新增正式美术资源需求/10-盘面-机械臂目标提示.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-04盘面外框",
+      "resource_id": "SCR-07-04",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-04盘面外框.png",
+      "source_size": [
+        1456,
+        1456
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:frame",
+      "target_use": "board:frame",
+      "art_group": "局内棋盘/结构族",
+      "art_requirement_document": "新增正式美术资源需求/11-盘面-盘框流光与底座.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-05盘面流光遮罩",
+      "resource_id": "SCR-07-05",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-05盘面流光遮罩.png",
+      "source_size": [
+        1456,
+        1456
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:frame:flow-mask",
+      "target_use": "board:frame:flow-mask",
+      "art_group": "局内棋盘/结构族",
+      "art_requirement_document": "新增正式美术资源需求/11-盘面-盘框流光与底座.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-06盘面底座",
+      "resource_id": "SCR-07-06",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-06盘面底座.png",
+      "source_size": [
+        1500,
+        1500
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:base",
+      "target_use": "board:base",
+      "art_group": "局内棋盘/结构族",
+      "art_requirement_document": "新增正式美术资源需求/11-盘面-盘框流光与底座.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-07-normal定势座",
+      "resource_id": "SCR-07-07-normal",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-07-normal定势座.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:phase:normal",
+      "target_use": "board:phase:normal",
+      "art_group": "局内棋盘/定势座族",
+      "art_requirement_document": "新增正式美术资源需求/12-盘面-定势座与方向箭头.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-07-active定势座",
+      "resource_id": "SCR-07-07-active",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-07-active定势座.png",
+      "source_size": [
+        256,
+        256
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:phase:active",
+      "target_use": "board:phase:active",
+      "art_group": "局内棋盘/定势座族",
+      "art_requirement_document": "新增正式美术资源需求/12-盘面-定势座与方向箭头.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-09重力方向箭头",
+      "resource_id": "SCR-07-09",
+      "planned_path": "Assets/Game/Sprites/盘面/结构/SCR-07-09重力方向箭头.png",
+      "source_size": [
+        128,
+        128
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:phase:arrow",
+      "target_use": "board:phase:arrow",
+      "art_group": "局内棋盘/定势座族",
+      "art_requirement_document": "新增正式美术资源需求/12-盘面-定势座与方向箭头.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
+    },
+    {
+      "name": "SCR-07-25冲击火花",
+      "resource_id": "SCR-07-25",
+      "planned_path": "Assets/Game/Sprites/盘面/特效/SCR-07-25冲击火花.png",
+      "source_size": [
+        64,
+        64
+      ],
+      "guid": null,
+      "kind": "局内新增",
+      "disposition": "待制作",
+      "semantic_key": "board:fx:spark",
+      "target_use": "board:fx:spark",
+      "art_group": "局内棋盘/粒子族",
+      "art_requirement_document": "新增正式美术资源需求/13-盘面特效-冲击火花.md",
+      "rule": "本轮仅为制作需求；未出图、未绑定，实际文件与GUID待交付登记",
+      "fallback": "沿用当前程序几何与纯色回退；不使用其它场景冒充"
     }
   ],
   "new_art_requirements_root": "README.md",
@@ -14074,6 +14470,127 @@
       ],
       "new_png_count": 1,
       "repair_png_count": 5
+    },
+    {
+      "document": "新增正式美术资源需求/03-局内背景-长明修理铺.md",
+      "new_assets": [
+        "SCR-07-08-home-day",
+        "SCR-07-08-home-night"
+      ],
+      "new_png_count": 2,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/04-局内背景-街区小店.md",
+      "new_assets": [
+        "SCR-07-08-street-day",
+        "SCR-07-08-street-night"
+      ],
+      "new_png_count": 2,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/05-局内背景-舞蹈教室.md",
+      "new_assets": [
+        "SCR-07-08-dance-day",
+        "SCR-07-08-dance-night"
+      ],
+      "new_png_count": 2,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/06-局内背景-裁缝铺.md",
+      "new_assets": [
+        "SCR-07-08-tailor-day",
+        "SCR-07-08-tailor-night"
+      ],
+      "new_png_count": 2,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/07-局内背景-社区活动中心.md",
+      "new_assets": [
+        "SCR-07-08-community-day",
+        "SCR-07-08-community-night"
+      ],
+      "new_png_count": 2,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/08-盘面-普通格三态.md",
+      "new_assets": [
+        "SCR-07-01-normal",
+        "SCR-07-01-hover",
+        "SCR-07-01-selected"
+      ],
+      "new_png_count": 3,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/09-盘面-墙格.md",
+      "new_assets": [
+        "SCR-07-02"
+      ],
+      "new_png_count": 1,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/10-盘面-机械臂目标提示.md",
+      "new_assets": [
+        "SCR-07-03"
+      ],
+      "new_png_count": 1,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/11-盘面-盘框流光与底座.md",
+      "new_assets": [
+        "SCR-07-04",
+        "SCR-07-05",
+        "SCR-07-06"
+      ],
+      "new_png_count": 3,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/12-盘面-定势座与方向箭头.md",
+      "new_assets": [
+        "SCR-07-07-normal",
+        "SCR-07-07-active",
+        "SCR-07-09"
+      ],
+      "new_png_count": 3,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
+    },
+    {
+      "document": "新增正式美术资源需求/13-盘面特效-冲击火花.md",
+      "new_assets": [
+        "SCR-07-25"
+      ],
+      "new_png_count": 1,
+      "repair_png_count": 0,
+      "state": "待制作",
+      "design_change": "design-board-environment-assets"
     }
   ],
   "implementation": {
@@ -14087,5 +14604,38 @@
     "semantic_entry_count": 474,
     "report": "06-实施与截图验收.md",
     "source_pixels": "保留用户交付PNG；本轮只改导入设置和布局，未重绘或覆盖母版"
+  },
+  "board_art_design": {
+    "date": "2026-10-08",
+    "new_png_count": 22,
+    "background_png_count": 10,
+    "shared_board_png_count": 11,
+    "particle_png_count": 1,
+    "current_formal_png_count": 215,
+    "future_formal_target_after_delivery": 237,
+    "all_new_guids_pending": true,
+    "runtime_implementation": "未执行",
+    "decisions": [
+      "按关卡场景区分背景",
+      "不同状态素材、Shader、动画和粒子组合",
+      "五场景各昼夜两张"
+    ],
+    "documents": [
+      "新增正式美术资源需求/03-局内背景-长明修理铺.md",
+      "新增正式美术资源需求/04-局内背景-街区小店.md",
+      "新增正式美术资源需求/05-局内背景-舞蹈教室.md",
+      "新增正式美术资源需求/06-局内背景-裁缝铺.md",
+      "新增正式美术资源需求/07-局内背景-社区活动中心.md",
+      "新增正式美术资源需求/08-盘面-普通格三态.md",
+      "新增正式美术资源需求/09-盘面-墙格.md",
+      "新增正式美术资源需求/10-盘面-机械臂目标提示.md",
+      "新增正式美术资源需求/11-盘面-盘框流光与底座.md",
+      "新增正式美术资源需求/12-盘面-定势座与方向箭头.md",
+      "新增正式美术资源需求/13-盘面特效-冲击火花.md"
+    ],
+    "document_count": 11,
+    "max_new_png_per_document": 3,
+    "runtime_rules_document": "04-新增与淘汰资源设计.md",
+    "delivery_rule": "每次选择一份制作文档，仅完成其1～3张素材；规范与提示词自包含，同族原文一致"
   }
 }
