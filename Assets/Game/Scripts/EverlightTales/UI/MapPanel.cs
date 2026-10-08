@@ -240,52 +240,108 @@ namespace Everlight.Tales.UI
         private void UpdatePlacePanel()
         {
             WorldSession session = WorldSession.Current;
-            if (session == null)
-            {
-                return;
-            }
-
             ClearEventList();
-            _emptyArt.gameObject.SetActive(false);
-
-            if (string.IsNullOrEmpty(m_SelectedPlaceId))
+            TextMeshProUGUI emptyState = m_WaitButton != null
+                ? FindText(m_WaitButton.transform.parent, "Mask/EmptyState") : null;
+            Button startButton = m_WaitButton != null
+                ? FindComponent<Button>(m_WaitButton.transform.parent, "Btn_ConfirmEvent") : null;
+            if (startButton != null)
             {
-                m_PlaceLabel.text = "点击地图节点查看地点";
-                _emptyArt.sprite = _spriteCatalog.Get("SHR-048-empty-slot"); _emptyArt.gameObject.SetActive(true);
-                m_PlaceDesc.text = string.Empty;
-                m_WaitButton.gameObject.SetActive(true);
-                return;
+                startButton.onClick.RemoveAllListeners();
+                startButton.interactable = false;
+                startButton.gameObject.SetActive(false);
             }
 
-            PlaceState place = session.World.Map.Get(m_SelectedPlaceId);
-            if (place == null)
+            // 空态的插画、说明和列表显隐在末尾统一应用，避免锁定插画与事件内容叠加。
+            string emptySpriteKey = "SHR-048-empty-list";
+            string description = "请选择地图节点查看地点详情";
+            m_PlaceLabel.text = "点击地图节点查看地点";
+            PlaceState place = session != null && !string.IsNullOrEmpty(m_SelectedPlaceId)
+                ? session.World.Map.Get(m_SelectedPlaceId) : null;
+            if (place != null && place.Status != PlaceNodeStatus.Undiscovered)
             {
-                return;
-            }
-
-            m_PlaceLabel.text = place.Config.Name + "（" + PlaceStatusText(place.Status) + "）";
-            m_PlaceDesc.text = place.Config.Description;
-            if (place.Status == PlaceNodeStatus.KnownLocked) { _emptyArt.sprite = _spriteCatalog.Get("SHR-048-locked"); _emptyArt.gameObject.SetActive(true); }
-
-            if (m_SelectedPlaceId == "home")
-            {
-                AddEventEntry("卡住的卷帘门", "维修", "1 格",
-                    "说明：长明修理铺的卷帘门卡住了，需要用撞锤把门轴推移进轨道。\n前置：无\n奖励：40 维修费 + 精密齿轮 ×1",
-                    StartRollerDoor, kind: EventKind.Repair);
-            }
-
-            // 普通供给按地点落到事件卡。
-            foreach (SupplyInstance supply in session.Supply)
-            {
-                if (supply.PlaceId == m_SelectedPlaceId)
+                m_PlaceLabel.text = place.Config.Name + "（" + PlaceStatusText(place.Status) + "）";
+                if (place.Status == PlaceNodeStatus.KnownLocked)
                 {
-                    SupplyInstance captured = supply;
-                    AddEventEntry(supply.Template.Name, EventEntry.KindText(supply.Template.Kind), supply.Template.TimeCost + " 格",
-                        BuildSupplyDetail(supply), () => StartSupply(captured), supply.Template.OpenPeriods, supply.Template.Kind, EventPageLayout.GroupOf(EventEntry.FromSupply(supply, place.Config.Name), session.Time.Period));
+                    emptySpriteKey = "SHR-048-locked";
+                    switch (place.Config.UnlockSource)
+                    {
+                        case PlaceUnlockSource.Story:
+                            description = "解锁条件：通过主线剧情或人物对话带领前往后解锁。";
+                            break;
+                        case PlaceUnlockSource.Investigate:
+                            description = "解锁条件：查阅资料台索引并完成现场核实。";
+                            break;
+                        case PlaceUnlockSource.Stage:
+                            description = "解锁条件：推进到对应阶段，随该阶段的普通事件开放。";
+                            break;
+                        case PlaceUnlockSource.Event:
+                            description = "解锁条件：处理相关事件并认识该地点的常客。";
+                            break;
+                        default:
+                            description = "该地点尚未开放。";
+                            break;
+                    }
+                }
+                else if (place.Status == PlaceNodeStatus.Unlocked)
+                {
+                    description = place.Config.Description;
+                    emptySpriteKey = null;
+                    if (m_SelectedPlaceId == "home")
+                    {
+                        AddEventEntry("卡住的卷帘门", "维修", "1 格",
+                            "说明：长明修理铺的卷帘门卡住了，需要用撞锤把门轴推移进轨道。\n前置：无\n奖励：40 维修费 + 精密齿轮 ×1",
+                            StartRollerDoor, kind: EventKind.Repair);
+                    }
+
+                    foreach (SupplyInstance supply in session.Supply)
+                    {
+                        if (supply == null || supply.Template == null || supply.Processed
+                            || supply.PlaceId != m_SelectedPlaceId) continue;
+                        SupplyInstance captured = supply;
+                        AddEventEntry(supply.Template.Name, EventEntry.KindText(supply.Template.Kind), supply.Template.TimeCost + " 格",
+                            BuildSupplyDetail(supply), () => StartSupply(captured), supply.Template.OpenPeriods, supply.Template.Kind,
+                            EventPageLayout.GroupOf(EventEntry.FromSupply(supply, place.Config.Name), session.Time.Period));
+                    }
+                    if (m_CurrentEntries.Count == 0)
+                    {
+                        emptySpriteKey = "SHR-048-empty-list";
+                        if (emptyState == null) description = "暂无事件";
+                    }
                 }
             }
 
-            m_WaitButton.gameObject.SetActive(true);
+            if (emptyState != null)
+            {
+                bool showNoEvents = place != null && place.Status == PlaceNodeStatus.Unlocked
+                    && m_CurrentEntries.Count == 0;
+                emptyState.text = "暂无事件";
+                emptyState.gameObject.SetActive(showNoEvents);
+            }
+            m_PlaceDesc.text = description;
+            m_PlaceDesc.gameObject.SetActive(!string.IsNullOrEmpty(description));
+            if (_emptyArt != null)
+            {
+                bool showEmpty = emptySpriteKey != null;
+                _emptyArt.sprite = showEmpty && _spriteCatalog != null ? _spriteCatalog.Get(emptySpriteKey) : null;
+                _emptyArt.preserveAspect = true;
+                _emptyArt.raycastTarget = false;
+                _emptyArt.gameObject.SetActive(showEmpty);
+            }
+            if (m_EventListRoot != null) m_EventListRoot.gameObject.SetActive(emptySpriteKey == null);
+            if (m_WaitButton != null) m_WaitButton.gameObject.SetActive(session != null);
+            if (startButton != null)
+            {
+                foreach (PlaceEventEntry entry in m_CurrentEntries)
+                {
+                    if (entry.OnStart == null) continue;
+                    PlaceEventEntry captured = entry;
+                    startButton.onClick.AddListener(() => OnEventClicked(captured));
+                    startButton.interactable = true;
+                    startButton.gameObject.SetActive(true);
+                    break;
+                }
+            }
         }
 
         private static string BuildSupplyDetail(SupplyInstance supply)
@@ -315,6 +371,12 @@ namespace Everlight.Tales.UI
 
         private static void StartSupply(SupplyInstance supply)
         {
+            WorldSession session = WorldSession.Current;
+            if (session == null || supply == null || supply.Template == null || supply.Processed) return;
+            PlaceState place = session.World.Map.Get(supply.PlaceId);
+            if (place == null || place.Status != PlaceNodeStatus.Unlocked
+                || EventPageLayout.GroupOf(EventEntry.FromSupply(supply, place.Config.Name), session.Time.Period) != EventGroup.Actionable)
+                return;
             GlobalUI.ShowToast("开始处理（待接入）：" + supply.Template.Name);
         }
 
@@ -368,7 +430,23 @@ namespace Everlight.Tales.UI
 
         private void OnEventClicked(PlaceEventEntry entry)
         {
-            GlobalUI.Confirm(entry.Name, entry.Detail, () => entry.OnStart?.Invoke(), null);
+            WorldSession session = WorldSession.Current;
+            PlaceState place = session != null && !string.IsNullOrEmpty(m_SelectedPlaceId)
+                ? session.World.Map.Get(m_SelectedPlaceId) : null;
+            if (place == null || place.Status != PlaceNodeStatus.Unlocked || !m_CurrentEntries.Contains(entry)) return;
+            if (entry.OnStart == null)
+            {
+                GlobalUI.ShowDialog(entry.Name, entry.Detail + "\n\n当前时段不可进行此事件。");
+                return;
+            }
+            GlobalUI.Confirm(entry.Name, entry.Detail, () =>
+            {
+                WorldSession current = WorldSession.Current;
+                PlaceState selected = current != null && !string.IsNullOrEmpty(m_SelectedPlaceId)
+                    ? current.World.Map.Get(m_SelectedPlaceId) : null;
+                if (selected != null && selected.Status == PlaceNodeStatus.Unlocked && m_CurrentEntries.Contains(entry))
+                    entry.OnStart?.Invoke();
+            }, null);
         }
 
         private void ClearEventList()
@@ -397,7 +475,7 @@ namespace Everlight.Tales.UI
                 TypeLabel = typeLabel,
                 TimeLabel = timeLabel,
                 Detail = detail,
-                OnStart = onStart,
+                OnStart = group == EventGroup.Actionable || group == EventGroup.InProgress ? onStart : null,
             };
             m_CurrentEntries.Add(entry);
 

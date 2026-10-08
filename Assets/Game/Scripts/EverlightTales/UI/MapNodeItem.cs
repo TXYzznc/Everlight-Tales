@@ -19,13 +19,14 @@ namespace Everlight.Tales.UI
 
         public void SetSelected(bool selected)
         {
-            if (_building != null) _building.sprite = _spriteCatalog.Get("place:" + _placeId + ":" + (_locked ? "known_locked" : selected ? "selected" : "unlocked"));
-            if (_selection != null) _selection.gameObject.SetActive(selected && _locked);
+            if (_selection != null) _selection.gameObject.SetActive(selected);
         }
 
         public void SetPlaceState(bool locked, int eventCount, bool actionable)
         {
             _locked = locked;
+            if (_building != null && _spriteCatalog != null)
+                _building.sprite = _spriteCatalog.Get("place:" + _placeId + ":" + (locked ? "known_locked" : "unlocked"));
             if (_badge != null) { _badge.text = eventCount.ToString(); _badge.transform.parent.gameObject.SetActive(actionable && eventCount > 0); }
         }
 
