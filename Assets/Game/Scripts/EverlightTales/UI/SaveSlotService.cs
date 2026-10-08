@@ -72,6 +72,7 @@ namespace Everlight.Tales.UI
                 PlayerPrefs.DeleteKey(SlotKey(key, slot));
             }
 
+            PlayerPrefs.DeleteKey(SlotKey("et.world.remainingCells", slot));
             PlayerPrefs.DeleteKey(KeyMetaPrefix + slot);
             PlayerPrefs.Save();
         }

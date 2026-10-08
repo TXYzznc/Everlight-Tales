@@ -226,8 +226,10 @@ namespace Everlight.Tales.UI
         public void Save()
         {
             int slot = Slot;
-            PlayerPrefs.SetInt(SlotKey(KeyDay, slot), World.Day);
-            PlayerPrefs.SetInt(SlotKey(KeyPeriod, slot), (int)World.Period);
+            // 时间条读取 Time；存档也必须保留同一份时间状态，避免读档后剩余格数被重置。
+            PlayerPrefs.SetInt(SlotKey(KeyDay, slot), Time.Day);
+            PlayerPrefs.SetInt(SlotKey(KeyPeriod, slot), (int)Time.Period);
+            PlayerPrefs.SetInt(SlotKey("et.world.remainingCells", slot), Time.RemainingCells);
             PlayerPrefs.SetInt(SlotKey(KeyRepairFee, slot), World.RepairFee);
             PlayerPrefs.SetInt(SlotKey(KeyBatch, slot), World.BatchNumber);
             PlayerPrefs.SetInt(SlotKey(KeyTutorial, slot), World.TutorialComplete ? 1 : 0);
@@ -703,7 +705,9 @@ namespace Everlight.Tales.UI
                     BatchNumber = PlayerPrefs.GetInt(SlotKey(KeyBatch, slot), 1),
                     TutorialComplete = PlayerPrefs.GetInt(SlotKey(KeyTutorial, slot), 0) != 0,
                 },
-                Time = new TimeState(day, period, TimeState.CellsPerPeriod),
+                Time = new TimeState(day, period, Mathf.Clamp(
+                    PlayerPrefs.GetInt(SlotKey("et.world.remainingCells", slot), TimeState.CellsPerPeriod),
+                    1, TimeState.CellsPerPeriod)),
                 Rng = new RandomService(seed),
                 Intro = new RedShoeIntroService(),
                 Opening = new OpeningService(),
@@ -876,6 +880,8 @@ namespace Everlight.Tales.UI
         public TimeAdvanceResult WaitToNextPeriod()
         {
             TimeAdvanceResult result = Time.Advance(Time.RemainingCells);
+            World.Day = Time.Day;
+            World.Period = Time.Period;
             RefreshSupply();
             Save();
             return result;
