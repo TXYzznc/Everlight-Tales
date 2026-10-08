@@ -10,7 +10,8 @@ namespace Everlight.Tales.UI
     public enum ListRowFields
     {
         None = 0, Id = 1, Icon = 2, Detail = 4, RightText = 8, StateFrame = 16, Action = 32,
-        All = Id | Icon | Detail | RightText | StateFrame | Action
+        Status = 64,
+        All = Id | Icon | Detail | RightText | StateFrame | Action | Status
     }
 
     public struct ListRowData
@@ -18,6 +19,9 @@ namespace Everlight.Tales.UI
         public string Title, Detail, Id, RightText, ActionText;
         public Sprite Icon, StateFrame;
         public Color TextColor;
+        public string StatusText;
+        public Sprite StatusIcon;
+        public Color StatusColor;
         public ListRowFields Fields;
         public bool Interactable, Selected, ActionInteractable;
         public UnityAction OnClick, OnAction;
@@ -28,6 +32,7 @@ namespace Everlight.Tales.UI
             Icon = StateFrame = null; TextColor = Color.white; Fields = ListRowFields.All;
             Interactable = ActionInteractable = true; Selected = false;
             OnClick = OnAction = null;
+            StatusText = null; StatusIcon = null; StatusColor = Color.white;
         }
     }
 
@@ -41,6 +46,9 @@ namespace Everlight.Tales.UI
         [SerializeField] private RectTransform _iconRoot;
         [SerializeField] private LayoutElement _height;
         [SerializeField] private RectTransform _rect;
+        [SerializeField] private RectTransform _statusGroup;
+        [SerializeField] private Image _statusIcon;
+        [SerializeField] private TMP_Text _statusText;
 
         private bool _selected;
         public Button Button => _button;
@@ -62,10 +70,17 @@ namespace Everlight.Tales.UI
             bool icon = Has(data.Fields, ListRowFields.Icon) && data.Icon != null;
             bool frame = Has(data.Fields, ListRowFields.StateFrame) && data.StateFrame != null;
             _icon.sprite = icon ? data.Icon : null;
+            _icon.color = Color.white;
             _icon.enabled = icon;
             _stateFrame.sprite = frame ? data.StateFrame : null;
             _stateFrame.enabled = frame;
             _iconRoot.gameObject.SetActive(icon || frame);
+            bool status = Has(data.Fields, ListRowFields.Status) && !string.IsNullOrEmpty(data.StatusText);
+            _statusGroup.gameObject.SetActive(status);
+            SetText(_statusText, data.StatusText, data.StatusColor, status);
+            _statusIcon.sprite = status ? data.StatusIcon : null;
+            _statusIcon.color = Color.white;
+            _statusIcon.gameObject.SetActive(status && data.StatusIcon != null);
             bool action = Has(data.Fields, ListRowFields.Action) && !string.IsNullOrEmpty(data.ActionText);
             _actionText.text = action ? data.ActionText : string.Empty;
             _actionText.color = data.TextColor;
@@ -93,7 +108,8 @@ namespace Everlight.Tales.UI
         {
             bool valid = _button != null && _actionButton != null && _title != null && _detail != null
                 && _id != null && _rightText != null && _actionText != null && _icon != null
-                && _stateFrame != null && _iconRoot != null && _height != null && _rect != null;
+                && _stateFrame != null && _iconRoot != null && _height != null && _rect != null
+                && _statusGroup != null && _statusIcon != null && _statusText != null;
             if (!valid) Debug.LogError("[ListRowItem][Contract] 缺少序列化显示引用。", this);
             return valid;
         }

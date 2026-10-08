@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -10,6 +10,9 @@ namespace Everlight.Tales.UI
     /// </summary>
     public static class UIFactory
     {
+        private static UIFormalButtonLibrary _buttons;
+        public static void Configure(UIFormalButtonLibrary buttons) => _buttons = buttons;
+
         public static readonly TMP_FontAsset BuiltinFont = TMP_Settings.defaultFontAsset;
 
         public static readonly Color BgDark = new Color(0.10f, 0.12f, 0.16f, 0.92f);
@@ -81,6 +84,7 @@ namespace Everlight.Tales.UI
             text.text = label;
             text.raycastTarget = false;
 
+            _buttons?.Apply(go.GetComponent<Button>(), UIFormalButtonLibrary.ButtonRole.Secondary);
             return go.GetComponent<Button>();
         }
 

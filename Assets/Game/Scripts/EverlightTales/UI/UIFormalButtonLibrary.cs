@@ -12,6 +12,19 @@ namespace Everlight.Tales.UI
         [SerializeField] private Sprite _tabNormal, _tabHighlighted, _tabPressed, _tabDisabled, _tabSelected;
         [SerializeField] private Sprite _filterNormal, _filterHighlighted, _filterPressed, _filterDisabled, _filterSelected;
 
-        public enum ButtonRole { Main, Secondary, Small, Danger, Tab, Filter }
+        [SerializeField] private UIFormalSpriteCatalog _catalog;
+        public enum ButtonRole { Main, Secondary, Small, Danger, Tab, Filter, Icon, AutoFill }
+        public void Apply(UnityEngine.UI.Button button, ButtonRole role, int tabCount = 3)
+        {
+            if (button == null || _catalog == null || button.image == null) return;
+            string family = role == ButtonRole.Main ? "SHR-021" : role == ButtonRole.Small ? "SHR-023" : role == ButtonRole.Danger ? "SHR-024"
+                : role == ButtonRole.Icon ? "SHR-025" : role == ButtonRole.Tab ? (tabCount == 4 ? "SHR-027" : tabCount == 5 ? "SHR-028" : "SHR-026")
+                : role == ButtonRole.Filter ? "SHR-029" : role == ButtonRole.AutoFill ? "SHR-030" : "SHR-022";
+            bool active = role == ButtonRole.Tab || role == ButtonRole.Filter;
+            button.image.sprite = _catalog.Get(family + "-normal"); button.image.color = Color.white; button.image.type = UnityEngine.UI.Image.Type.Sliced;
+            button.transition = UnityEngine.UI.Selectable.Transition.SpriteSwap;
+            button.spriteState = new UnityEngine.UI.SpriteState { highlightedSprite = _catalog.Get(family + "-hover"), pressedSprite = _catalog.Get(family + (active ? "-active" : "-pressed")),
+                selectedSprite = _catalog.Get(family + (active ? "-active" : "-normal")), disabledSprite = _catalog.Get(family + (active ? "-normal" : "-disabled")) };
+        }
     }
 }

@@ -53,6 +53,17 @@ public sealed class PersistentButtonVisualState : MonoBehaviour, IPointerEnterHa
     }
 
     private void Awake() => Cache();
+    private void OnEnable() => ApplyVisualState();
+
+    private void LateUpdate()
+    {
+        // 宿主暂停/恢复和 CanvasGroup 变化会触发 Button 恢复 Normal，不能丢失业务选中。
+        if (_selected && _button != null && _image != null)
+        {
+            Sprite expected = _button.interactable ? _button.spriteState.selectedSprite : _button.spriteState.disabledSprite;
+            if (expected != null && _image.overrideSprite != expected) _image.overrideSprite = expected;
+        }
+    }
 
     private void Cache()
     {

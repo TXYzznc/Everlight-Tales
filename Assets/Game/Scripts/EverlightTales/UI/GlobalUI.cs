@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace Everlight.Tales.UI
@@ -9,6 +9,14 @@ namespace Everlight.Tales.UI
     public static class GlobalUI
     {
         private static GlobalUIRoot s_Root = null;
+        private static UIFormalSpriteCatalog s_Catalog;
+        private static TMPro.TMP_FontAsset s_Font;
+
+        public static void Configure(UIFormalSpriteCatalog catalog, TMPro.TMP_FontAsset font)
+        {
+            s_Catalog = catalog; s_Font = font;
+            if (s_Root != null) s_Root.Configure(catalog, font);
+        }
 
         /// <summary>单按钮弹窗。</summary>
         public static int ShowDialog(string title, string content, Action onConfirm = null)
@@ -44,13 +52,13 @@ namespace Everlight.Tales.UI
             return ShowDialog("解锁 · " + title, content);
         }
 
-        /// <summary>使用已注册的 DialogView UIDialog 显示短暂提示。</summary>
-        public static void ShowToast(string message)
+        /// <summary>非阻塞短提示；需要确认的操作使用 Confirm。</summary>
+        public static void ShowToast(string message, ToastKind kind = ToastKind.Info)
         {
-            var p = UIParams.Create(false);
-            p.OpenCallback = form => ((DialogView)form).SetupToast(message);
-            GF.UI.OpenUIForm(UIViews.DialogView, p);
+            EnsureRoot().ShowToast(message, kind);
         }
+
+        public static void SetToastBottomInset(float inset) => EnsureRoot().SetBottomInset(inset);
 
         public static void ShowLoading()
         {
@@ -75,6 +83,7 @@ namespace Everlight.Tales.UI
             var go = new GameObject("GlobalUIRoot", typeof(GlobalUIRoot));
             UnityEngine.Object.DontDestroyOnLoad(go);
             s_Root = go.GetComponent<GlobalUIRoot>();
+            s_Root.Configure(s_Catalog, s_Font);
             return s_Root;
         }
     }
