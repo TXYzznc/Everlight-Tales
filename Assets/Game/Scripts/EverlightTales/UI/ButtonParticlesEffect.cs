@@ -1,5 +1,6 @@
 ﻿using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Everlight.Tales.UI
 {
@@ -21,7 +22,9 @@ namespace Everlight.Tales.UI
         [SerializeField, Range(2f, 14f)] private float m_Size = 6f;
 
         /// <summary>在页面本地坐标处触发一次粒子爆发（火花从此点向外飞散）。</summary>
-        public void Burst(Vector2 pageLocalPosition)
+        public void Burst(Vector2 pageLocalPosition) => Burst(pageLocalPosition, null);
+
+        public void Burst(Vector2 pageLocalPosition, Sprite sprite)
         {
             for (int i = 0; i < m_BurstCount; i++)
             {
@@ -31,10 +34,22 @@ namespace Everlight.Tales.UI
                 rt.anchoredPosition = pageLocalPosition;
                 rt.sizeDelta = new Vector2(Mathf.Sqrt(3f) * m_Size, 2f * m_Size);
 
-                var graphic = go.AddComponent<HexagonGraphic>();
-                graphic.Circumradius = m_Size;
-                graphic.color = m_Color;
-                graphic.raycastTarget = false;
+                if (sprite != null)
+                {
+                    Image art = go.AddComponent<Image>();
+                    art.sprite = sprite;
+                    art.preserveAspect = true;
+                    art.color = Color.white;
+                    art.raycastTarget = false;
+                    rt.sizeDelta = new Vector2(m_Size * 2f, m_Size * 2f);
+                }
+                else
+                {
+                    var graphic = go.AddComponent<HexagonGraphic>();
+                    graphic.Circumradius = m_Size;
+                    graphic.color = m_Color;
+                    graphic.raycastTarget = false;
+                }
 
                 var group = go.AddComponent<CanvasGroup>();
                 group.interactable = false;

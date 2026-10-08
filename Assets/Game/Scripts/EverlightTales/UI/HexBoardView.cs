@@ -95,6 +95,7 @@ namespace Everlight.Tales.UI
 
         private UIFormalSpriteCatalog _spriteCatalog;
         private string _eventId;
+        public Sprite GetStructureSprite(string key) => _spriteCatalog?.Get(key);
         public void Configure(UIFormalSpriteCatalog catalog, string eventId = null) { _spriteCatalog = catalog; _eventId = eventId; }
 
         public void Refresh(BoardState board)
@@ -134,7 +135,19 @@ namespace Everlight.Tales.UI
                 }
 
                 Button button = tile.AddComponent<Button>();
-                button.targetGraphic = tile.GetComponent<HexagonGraphic>();
+                Image cellArt = tile.transform.Find("EntityArt")?.GetComponent<Image>();
+                button.targetGraphic = cellArt != null ? (Graphic)cellArt : tile.GetComponent<HexagonGraphic>();
+                if (cellArt != null)
+                {
+                    button.transition = Selectable.Transition.SpriteSwap;
+                    button.spriteState = new SpriteState
+                    {
+                        highlightedSprite = _spriteCatalog.Get("SCR-07-01-hover"),
+                        pressedSprite = _spriteCatalog.Get("SCR-07-01-selected"),
+                        selectedSprite = _spriteCatalog.Get("SCR-07-01-selected"),
+                        disabledSprite = _spriteCatalog.Get("SCR-07-01-normal")
+                    };
+                }
                 HexCoord captured = cell;
                 button.onClick.AddListener(() => CellClicked?.Invoke(captured));
             }
@@ -187,6 +200,7 @@ namespace Everlight.Tales.UI
         public void SetGravity(HexDirection gravity)
         {
             float newTarget = HexLayout.RotationAngleForGravity(gravity);
+            UpdateGravityArt(gravity);
             if (!_rotationInitialized)
             {
                 _visualAngle = newTarget;
@@ -270,6 +284,18 @@ namespace Everlight.Tales.UI
                 graphic.SetClip(-position, (float)clipShape.Apothem * m_CellSize);
             }
 
+            Sprite surface = _spriteCatalog?.Get(name.StartsWith("wall_") ? "SCR-07-02"
+                : name.StartsWith("cell_") ? "SCR-07-01-normal" : null);
+            if (surface != null)
+            {
+                // 沿用真实六边形几何作为裁切与点击面，图片只负责显示。
+                var mask = go.AddComponent<Mask>();
+                mask.showMaskGraphic = false;
+                graphic.color = Color.white;
+                graphic.StrokeWidth = 0f;
+                BoardSpriteResolver.AddArt(go.transform, surface, radius * 2f);
+            }
+
             return go;
         }
 
@@ -296,6 +322,10 @@ namespace Everlight.Tales.UI
             m_Outline.StrokeWidth = 2.5f;
             m_Outline.color = Color.clear;
             m_Outline.StrokeColor = m_OutlineColor;
+            Image frame = SetStructureArt(m_Outline.transform, "FrameArt", "SCR-07-04", outlineRadius * 2f * 1456f / 1360f);
+            if (frame != null) m_Outline.StrokeWidth = 0f;
+            Image foundation = SetStructureArt(m_BoardRoot, "BoardFoundation", "SCR-07-06", outlineRadius * 2f * 1500f / 1360f);
+            if (foundation != null) foundation.transform.SetAsFirstSibling();
 
             if (m_EdgeGlow == null)
             {
@@ -316,6 +346,72 @@ namespace Everlight.Tales.UI
             m_EdgeGlow.StrokeWidth = 5f;
             m_EdgeGlow.color = Color.clear;
             m_EdgeGlow.StrokeColor = m_EdgeGlowColor;
+            Image glow = SetStructureArt(m_EdgeGlow.transform, "GlowArt", "SCR-07-05", outlineRadius * 2f * 1456f / 1360f);
+            if (glow != null) { glow.color = m_EdgeGlowColor; m_EdgeGlow.StrokeWidth = 0f; }
+            for (int i = 0; i < 6; i++)
+            {
+                Vector2 direction = HexLayout.AxialToPixel(HexDirections.Offset((HexDirection)i), 1f).normalized;
+                Image seat = SetStructureArt(m_BoardRoot, "GravitySeat_" + i, "SCR-07-07-normal", m_CellSize * 2f);
+                if (seat == null) continue;
+                seat.rectTransform.anchoredPosition = direction * (outlineRadius + m_CellSize * 0.5f);
+                seat.rectTransform.localEulerAngles = new Vector3(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+                SetStructureArt(seat.transform, "DirectionArrow", "SCR-07-09", m_CellSize);
+            }
+            for (int i = 0; i < 6; i++)
+                if (Mathf.Abs(Mathf.DeltaAngle(_targetAngle, HexLayout.RotationAngleForGravity((HexDirection)i))) < 0.1f)
+                { UpdateGravityArt((HexDirection)i); break; }
+        }
+
+        private Image SetStructureArt(Transform parent, string name, string key, float size)
+        {
+            Sprite sprite = _spriteCatalog?.Get(key);
+            if (sprite == null) return null;
+            Transform existing = parent.Find(name);
+            Image image = existing != null ? existing.GetComponent<Image>() : null;
+            if (image == null)
+            {
+                var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(parent, false);
+                image = go.GetComponent<Image>();
+            }
+            image.sprite = sprite;
+            image.color = Color.white;
+            image.raycastTarget = false;
+            image.preserveAspect = true;
+            image.rectTransform.sizeDelta = new Vector2(size, size);
+            return image;
+        }
+
+        private void UpdateGravityArt(HexDirection gravity)
+        {
+            if (m_BoardRoot == null || _spriteCatalog == null) return;
+            for (int i = 0; i < 6; i++)
+            {
+                Transform seat = m_BoardRoot.Find("GravitySeat_" + i);
+                if (seat == null) continue;
+                bool active = i == (int)gravity;
+                seat.GetComponent<Image>().sprite = _spriteCatalog.Get(active ? "SCR-07-07-active" : "SCR-07-07-normal");
+                Transform arrow = seat.Find("DirectionArrow");
+                if (arrow != null) arrow.gameObject.SetActive(active);
+            }
+        }
+
+        public void ShowArmTargets(BoardState board, BoardEntity selected, bool enabled)
+        {
+            if (m_TileRoot == null || board == null) return;
+            foreach (HexCoord cell in board.EnumerateNormal())
+            {
+                Transform tile = m_TileRoot.Find("cell_" + cell.Q + "_" + cell.R);
+                if (tile == null) continue;
+                Image surface = tile.Find("EntityArt")?.GetComponent<Image>();
+                if (surface != null) surface.overrideSprite = enabled && selected != null && selected.Coord == cell
+                    ? _spriteCatalog?.Get("SCR-07-01-selected") : null;
+                bool target = enabled && selected != null && selected.IsMovable && board.EntityAt(cell) == null;
+                Transform existing = tile.Find("ArmTargetArt");
+                Image art = target ? SetStructureArt(tile, "ArmTargetArt", "SCR-07-03", m_CellSize * 2f) : null;
+                if (art != null) art.transform.SetAsLastSibling();
+                if (existing != null) existing.gameObject.SetActive(target);
+            }
         }
 
         /// <summary>

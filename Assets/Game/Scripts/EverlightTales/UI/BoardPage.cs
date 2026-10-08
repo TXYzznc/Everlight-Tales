@@ -61,6 +61,7 @@ namespace Everlight.Tales.UI
         {
             Game = game;
             _spriteCatalog = spriteCatalog;
+            ApplySceneBackground();
             m_RotateLeft = rotateLeft;
             m_RotateRight = rotateRight;
             m_ArmButton = armButton;
@@ -185,8 +186,41 @@ namespace Everlight.Tales.UI
             }
 
             BoardView.Refresh(Game.Board);
+            BoardView.ShowArmTargets(Game.Board, m_SelectedArmEntity, m_ArmMode && Game.Session.ArmMoves > 0);
             Hud.Refresh(Game.Session, Game.Level);
             UpdateContractHud();
+        }
+
+        private void ApplySceneBackground()
+        {
+            Image background = transform.Find("Panel_Background")?.GetComponent<Image>();
+            if (background == null || _spriteCatalog == null) return;
+            WorldSession session = WorldSession.Current;
+            string eventId = session?.CurrentEvent?.Config?.Id;
+            string place = null;
+            if (session != null && !string.IsNullOrEmpty(eventId))
+            {
+                foreach (var supply in session.Supply)
+                    if (supply != null && supply.Template != null && supply.Template.TemplateId == eventId)
+                    { place = supply.PlaceId; break; }
+                // 固定事件不一定由当天供给创建，仍沿用已有模板的地点配置。
+                if (string.IsNullOrEmpty(place))
+                    foreach (var candidate in SupplyCatalog.FirstBatch())
+                        if (candidate.TemplateId == eventId) { place = candidate.PlaceId; break; }
+            }
+            if (string.IsNullOrEmpty(place)) place = "home";
+            string period = session != null && TimePeriod.IsNight(session.Time.Period) ? "night" : "day";
+            Sprite sprite = _spriteCatalog.Get("SCR-07-08-" + place + "-" + period)
+                ?? _spriteCatalog.Get("SCR-07-08-home-" + period);
+            if (sprite == null) return;
+            background.sprite = sprite;
+            background.color = Color.white;
+            background.type = Image.Type.Simple;
+            background.raycastTarget = false;
+            background.preserveAspect = false;
+            AspectRatioFitter fit = background.GetComponent<AspectRatioFitter>() ?? background.gameObject.AddComponent<AspectRatioFitter>();
+            fit.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            fit.aspectRatio = sprite.rect.width / sprite.rect.height;
         }
 
         private void UpdateContractHud()
@@ -250,6 +284,8 @@ namespace Everlight.Tales.UI
 
         private void UpdateArmHint()
         {
+            if (BoardView != null && Game != null)
+                BoardView.ShowArmTargets(Game.Board, m_SelectedArmEntity, m_ArmMode && Game.Session.ArmMoves > 0);
             if (m_ResultText == null)
             {
                 return;

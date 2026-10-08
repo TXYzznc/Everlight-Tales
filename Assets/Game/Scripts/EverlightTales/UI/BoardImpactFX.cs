@@ -70,7 +70,7 @@ namespace Everlight.Tales.UI
 
             if (m_ButtonParticles != null && tapButton != null)
             {
-                m_ButtonParticles.Burst(tapButton.anchoredPosition);
+                m_ButtonParticles.Burst(tapButton.anchoredPosition, m_BoardView?.GetStructureSprite("SCR-07-25"));
             }
 
             if (result.TotalScore > 0)
