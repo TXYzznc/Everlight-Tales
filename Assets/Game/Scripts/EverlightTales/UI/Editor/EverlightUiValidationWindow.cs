@@ -198,9 +198,9 @@ namespace Everlight.Tales.Editor
 
         private void RefreshCurrentPage()
         {
-            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            if (EditorApplication.isUpdating)
             {
-                _lastAction = "等待脚本编译和资源导入完成后再刷新";
+                _lastAction = "等待资源导入完成后再刷新";
                 return;
             }
             if (!EditorApplication.isPlaying)
@@ -209,11 +209,28 @@ namespace Everlight.Tales.Editor
                 return;
             }
 
-            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-            if (EditorApplication.isCompiling)
+            // FSR 锁住程序集重载时 isCompiling 可能持续为 true；界面重建使用当前
+            // 已加载的脚本。只导入界面资源，避免全项目 Refresh 再次触发脚本编译。
+            var assetPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (Enum.TryParse(Pages[_selectedPage], out UIViews view))
             {
-                _lastAction = "资源已导入，等待脚本编译完成后再刷新";
-                return;
+                string selectedAsset = GF.UI.GetUIFormAssetName(view);
+                if (!string.IsNullOrEmpty(selectedAsset)) assetPaths.Add(selectedAsset);
+            }
+            // MainPageShell 的安全刷新实际重建当前子页面，也要导入它的资源。
+            foreach (var form in GF.UI.GetAllLoadedUIForms())
+            {
+                if (form.gameObject.activeInHierarchy) assetPaths.Add(form.UIFormAssetName);
+            }
+            string[] dependencies = AssetDatabase.GetDependencies(new List<string>(assetPaths).ToArray(), true);
+            foreach (string assetPath in dependencies)
+            {
+                if (!assetPath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)) continue;
+                string extension = Path.GetExtension(assetPath).ToLowerInvariant();
+                if (extension == ".cs" || extension == ".dll" || extension == ".asmdef"
+                    || extension == ".asmref" || extension == ".rsp" || extension == ".pdb"
+                    || extension == ".mdb") continue;
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
             }
             UIValidationHarness.SafeRefreshCurrentPage(Pages[_selectedPage]);
             _lastAction = "已请求安全刷新：" + Pages[_selectedPage];
