@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Collections;
 using Everlight.Tales.Data;
@@ -149,15 +149,17 @@ namespace Everlight.Tales.UI
         /// <summary>为逐页烟雾测试注入完整演示数据，但不自动打开页面。</summary>
         public static void PrepareValidationData()
         {
-            CanvasScaler scaler = Object.FindObjectOfType<CanvasScaler>();
-            if (scaler != null)
-            {
-                scaler.referenceResolution = new Vector2(1080f, 1920f);
-                scaler.matchWidthOrHeight = 0.5f;
-            }
+            // 验收使用正式根 Canvas 的缩放配置，不覆盖项目基准。
             WorldSession session = WorldSession.NewGame(WorldSession.DemoSeed);
             Populate(session.World);
             session.PrepareValidationHomeData();
+            session.OpeningDone = true;
+        }
+
+        public static void CloseValidationPages()
+        {
+            foreach (var form in GF.UI.GetAllLoadedUIForms())
+                if (GF.UI.HasUIForm(form.SerialId)) GF.UI.CloseUIForm(form.SerialId);
         }
 
         public static void RefreshOpenPanels()
@@ -445,12 +447,15 @@ namespace Everlight.Tales.UI
         private IEnumerator Start()
         {
             UIValidationHarness.PrepareValidationData();
+            UIValidationHarness.CloseValidationPages();
             yield return new WaitForSecondsRealtime(0.5f);
             string folder = UIValidationHarness.CaptureFolder.Replace('\\', '/');
             Directory.CreateDirectory(folder);
             var report = new List<string> { "resolution=" + UIValidationHarness.CaptureWidth + "x" + UIValidationHarness.CaptureHeight, "pages=20" };
             for (int i = 0; i < Pages.Length; i++)
             {
+                UIValidationHarness.CloseValidationPages();
+                yield return new WaitForSecondsRealtime(.2f);
                 int serial = 0;
                 string openError = null;
                 try

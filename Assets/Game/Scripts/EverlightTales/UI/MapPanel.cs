@@ -18,6 +18,8 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class MapPanel : MonoBehaviour
     {
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
+        [SerializeField] private Image _emptyArt;
         [SerializeField] private TimePeriodBar m_TimeBar;
 
         [SerializeField] private CityMapView m_MapView;
@@ -244,10 +246,12 @@ namespace Everlight.Tales.UI
             }
 
             ClearEventList();
+            _emptyArt.gameObject.SetActive(false);
 
             if (string.IsNullOrEmpty(m_SelectedPlaceId))
             {
                 m_PlaceLabel.text = "点击地图节点查看地点";
+                _emptyArt.sprite = _spriteCatalog.Get("SHR-048-empty-slot"); _emptyArt.gameObject.SetActive(true);
                 m_PlaceDesc.text = string.Empty;
                 m_WaitButton.gameObject.SetActive(true);
                 return;
@@ -261,12 +265,13 @@ namespace Everlight.Tales.UI
 
             m_PlaceLabel.text = place.Config.Name + "（" + PlaceStatusText(place.Status) + "）";
             m_PlaceDesc.text = place.Config.Description;
+            if (place.Status == PlaceNodeStatus.KnownLocked) { _emptyArt.sprite = _spriteCatalog.Get("SHR-048-locked"); _emptyArt.gameObject.SetActive(true); }
 
             if (m_SelectedPlaceId == "home")
             {
                 AddEventEntry("卡住的卷帘门", "维修", "1 格",
                     "说明：长明修理铺的卷帘门卡住了，需要用撞锤把门轴推移进轨道。\n前置：无\n奖励：40 维修费 + 精密齿轮 ×1",
-                    StartRollerDoor);
+                    StartRollerDoor, kind: EventKind.Repair);
             }
 
             // 普通供给按地点落到事件卡。
@@ -276,7 +281,7 @@ namespace Everlight.Tales.UI
                 {
                     SupplyInstance captured = supply;
                     AddEventEntry(supply.Template.Name, EventEntry.KindText(supply.Template.Kind), supply.Template.TimeCost + " 格",
-                        BuildSupplyDetail(supply), () => StartSupply(captured), supply.Template.OpenPeriods);
+                        BuildSupplyDetail(supply), () => StartSupply(captured), supply.Template.OpenPeriods, supply.Template.Kind, EventPageLayout.GroupOf(EventEntry.FromSupply(supply, place.Config.Name), session.Time.Period));
                 }
             }
 
@@ -384,7 +389,7 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private void AddEventEntry(string name, string typeLabel, string timeLabel, string detail, System.Action onStart, TimeOfDay[] openPeriods = null)
+        private void AddEventEntry(string name, string typeLabel, string timeLabel, string detail, System.Action onStart, TimeOfDay[] openPeriods = null, EventKind kind = EventKind.None, EventGroup group = EventGroup.Actionable)
         {
             var entry = new PlaceEventEntry
             {
@@ -402,7 +407,7 @@ namespace Everlight.Tales.UI
                 if (openPeriods != null && openPeriods.Length > 0) itemMeta += " · " + BuildPeriodsText(openPeriods);
                 PlaceEventEntry itemCaptured = entry;
                 ListRowItemObject item = _eventRows.Spawn(m_Form, _eventItemTemplate, m_EventListRoot);
-                item.Bind(new ListRowData(entry.Name) { Detail = itemMeta, OnClick = () => OnEventClicked(itemCaptured) });
+                item.Bind(new ListRowData(entry.Name) { Detail = itemMeta, Icon = _spriteCatalog.Event(kind), StatusText = UIResourceStatus.EventText(group), StatusIcon = _spriteCatalog.Get(UIResourceStatus.EventKey(group)), StatusColor = UIResourceStatus.ColorFor(UIResourceStatus.EventKey(group)), OnClick = () => OnEventClicked(itemCaptured) });
                 return;
             }
 

@@ -19,6 +19,7 @@ namespace Everlight.Tales.UI
     public sealed partial class SettlementPageForm : UIFormBase, IProjectUIForm
     {
         public string FormKey => "SettlementPage";
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
 
         private bool m_Finished;
         private readonly ListRowCollection m_RewardRows = new ListRowCollection();
@@ -138,7 +139,7 @@ namespace Everlight.Tales.UI
                     rect.anchoredPosition = new Vector2(0f, -i * 72f);
                     rect.sizeDelta = new Vector2(-32f, 64f);
                 }
-                item.Bind(new ListRowData(option.Label) { OnClick = () => OnChoose(option) });
+                item.Bind(new ListRowData(option.Label) { Icon = _spriteCatalog.Get(option.Kind == RewardKind.Buff ? "ICO-063" : option.Kind == RewardKind.ArmMove ? "ICO-064" : "ICO-060"), OnClick = () => OnChoose(option) });
             }
         }
 

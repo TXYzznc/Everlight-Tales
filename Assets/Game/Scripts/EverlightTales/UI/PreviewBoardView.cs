@@ -1,4 +1,4 @@
-using Everlight.Tales.Board;
+﻿using Everlight.Tales.Board;
 using UnityEngine;
 
 namespace Everlight.Tales.UI
@@ -24,6 +24,9 @@ namespace Everlight.Tales.UI
         private static readonly Color EntityStroke = new Color(0f, 0f, 0f, 0.45f);
 
         private RectTransform m_Root;
+        private UIFormalSpriteCatalog _spriteCatalog;
+        private string _eventId;
+        public void Configure(UIFormalSpriteCatalog catalog, string eventId = null) { _spriteCatalog = catalog; _eventId = eventId; }
 
         /// <summary>渲染预览（清空重建；格子尺寸按容器尺寸与盘面半径自适应）。</summary>
         public void Render(PreviewModel preview)
@@ -51,7 +54,7 @@ namespace Everlight.Tales.UI
                     "fixed_" + (int)element.Kind + "_" + element.Position.Q + "_" + element.Position.R,
                     HexLayout.AxialToPixel(element.Position, cellSize),
                     entityRadius,
-                    GetFixedColor(element.Kind));
+                    GetFixedColor(element.Kind), BoardSpriteResolver.Resolve(_spriteCatalog, element.CreateEntity(0), _eventId));
             }
 
             foreach (KeyPieceConfig key in preview.KeyPieces)
@@ -60,7 +63,7 @@ namespace Everlight.Tales.UI
                     "key_" + (int)key.PartType + "_" + key.Position.Q + "_" + key.Position.R,
                     HexLayout.AxialToPixel(key.Position, cellSize),
                     entityRadius,
-                    EntityVisuals.GetPartColor(key.PartType));
+                    EntityVisuals.GetPartColor(key.PartType), _spriteCatalog != null ? _spriteCatalog.Part(key.PartType) : null);
             }
         }
 
@@ -105,7 +108,7 @@ namespace Everlight.Tales.UI
             graphic.StrokeColor = OutlineColor;
         }
 
-        private void CreateHex(string name, Vector2 position, float radius, Color color)
+        private void CreateHex(string name, Vector2 position, float radius, Color color, Sprite sprite = null)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer));
             go.transform.SetParent(m_Root, false);
@@ -119,6 +122,7 @@ namespace Everlight.Tales.UI
             graphic.color = color;
             graphic.StrokeWidth = 1f;
             graphic.StrokeColor = EntityStroke;
+            BoardSpriteResolver.AddArt(go.transform, sprite, 2f * radius);
         }
 
         private static Color GetFixedColor(FixedElementKind kind)

@@ -9,6 +9,7 @@ namespace Everlight.Tales.UI
     {
         public string FormKey => "RecoveryPage";
 
+        [SerializeField] private Image _statusIcon;
         [SerializeField] private TextMeshProUGUI m_StatusText;
         [SerializeField] private Button m_ContinueButton;
         [SerializeField] private Button m_AbandonButton;
@@ -22,6 +23,7 @@ namespace Everlight.Tales.UI
                 return;
             }
             bool has = WorldSession.Current != null && WorldSession.Current.HasAttemptSave;
+            if (_statusIcon != null) _statusIcon.gameObject.SetActive(has);
             if (m_StatusText != null) m_StatusText.text = has ? "检测到未完成的维修尝试，是否继续？" : "当前没有未完成的维修尝试。";
             if (m_ContinueButton != null)
             {
@@ -32,7 +34,7 @@ namespace Everlight.Tales.UI
             if (m_AbandonButton != null)
             {
                 m_AbandonButton.onClick.RemoveAllListeners();
-                m_AbandonButton.onClick.AddListener(() => GlobalUI.ShowToast("已放弃维修尝试"));
+                m_AbandonButton.onClick.AddListener(() => GlobalUI.Confirm("放弃维修", "确认放弃当前维修尝试？", () => GlobalUI.ShowToast("已放弃维修尝试")));
             }
         }
     }

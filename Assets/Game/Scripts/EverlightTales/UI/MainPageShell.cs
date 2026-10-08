@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -156,7 +156,7 @@ namespace Everlight.Tales.UI
                 WorldSession.Current.OpeningDone = true;
                 // 序章播完即落盘，后续进入走「继续」跳过序章。
                 WorldSession.Current.Save();
-                m_Opening = null;
+                // 保留序列化覆盖层引用，供回到标题后再次开新档使用。
             });
             m_Opening = overlay;
         }

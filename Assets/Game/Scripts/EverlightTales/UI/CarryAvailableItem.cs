@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Everlight.Tales.Data;
 using TMPro;
 using UnityEngine;
@@ -18,6 +18,7 @@ namespace Everlight.Tales.UI
         [SerializeField] private TMP_Text _selectedLabel;
         [SerializeField] private Image _icon;
         [SerializeField] private Image _anomalyIcon;
+        [SerializeField] private Image _keyIcon;
         [SerializeField] private Button _formButton;
         [SerializeField] private LayoutElement _height;
         private PartType _part;
@@ -30,6 +31,7 @@ namespace Everlight.Tales.UI
         private bool _suppressClick;
         public PartType Part => _part;
         public bool IsDragging { get; private set; }
+        public void SetKey(bool key) { if (_keyIcon != null) _keyIcon.gameObject.SetActive(key); }
 
         public void Bind(PartType part, string label, Action<PartType> onClick)
         {
@@ -47,7 +49,7 @@ namespace Everlight.Tales.UI
             _formLabel.text = form ?? "基础形态";
             _hint.text = hint ?? string.Empty; _hint.gameObject.SetActive(!string.IsNullOrEmpty(hint));
             _anomalyIcon.gameObject.SetActive(mayAnomalize);
-            _height.minHeight = _height.preferredHeight = string.IsNullOrEmpty(hint) ? 120f : 144f;
+            _height.minHeight = _height.preferredHeight = string.IsNullOrEmpty(hint) ? 144f : 172f;
             _formButton.interactable = canSwitchForm && onFormClick != null;
             _button.interactable = part != PartType.None && onClick != null;
             _scroll = GetComponentInParent<ScrollRect>();
@@ -57,7 +59,7 @@ namespace Everlight.Tales.UI
         public void SetSelectedSlot(int slot)
         {
             _selected = slot >= 0;
-            _selectedLabel.text = _selected ? "✓ " + (slot + 1) : string.Empty;
+            _selectedLabel.text = _selected ? "槽" + (slot + 1) : string.Empty;
             _selectedLabel.gameObject.SetActive(_selected);
             UIButtonStateUtility.SetSelected(_button, _selected);
         }
@@ -71,7 +73,7 @@ namespace Everlight.Tales.UI
 
         private void OnEnable() { if (_button != null) UIButtonStateUtility.SetSelected(_button, _selected); }
         private void OnDisable() => CancelDrag();
-        public void ResetForPool() { CancelDrag(); _onClick = null; _onFormClick = null; _part = PartType.None; _button.interactable = false; SetSelectedSlot(-1); }
+        public void ResetForPool() { CancelDrag(); _onClick = null; _onFormClick = null; _part = PartType.None; _button.interactable = false; SetSelectedSlot(-1); SetKey(false); _icon.sprite = null; _icon.gameObject.SetActive(false); _anomalyIcon.gameObject.SetActive(false); _hint.text = string.Empty; _hint.gameObject.SetActive(false); }
         public void OnInitializePotentialDrag(PointerEventData data) { if (_scroll != null) _scroll.OnInitializePotentialDrag(data); }
         public void OnBeginDrag(PointerEventData data)
         {
@@ -89,6 +91,8 @@ namespace Everlight.Tales.UI
             RectTransform rt = (RectTransform)title.transform; rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = new Vector2(12, 0); rt.offsetMax = new Vector2(-12, 0);
             TMP_Text text = title.GetComponent<TMP_Text>(); text.font = _label.font; text.fontSize = 22; text.text = _label.text; text.alignment = TextAlignmentOptions.Center; text.raycastTarget = false;
             MoveGhost(data);
+            Image art = BoardSpriteResolver.AddArt(_ghost, _icon.sprite, 48);
+            if (art != null) art.rectTransform.anchoredPosition = new Vector2(-90, 0);
         }
         public void OnDrag(PointerEventData data) { if (_scrolling) _scroll.OnDrag(data); else MoveGhost(data); }
         public void OnEndDrag(PointerEventData data) { if (_scrolling) _scroll.OnEndDrag(data); CancelDrag(); }

@@ -1,14 +1,22 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 namespace Everlight.Tales.UI
 {
-    /// <summary>独立对话流程页：契约固定模态对话框与选项槽位，内容由 DialogView.Setup 注入。</summary>
+    /// <summary>独立对话流程页：由本页管理内容与立绘；内嵌面板不作为独立 UIForm 初始化。</summary>
     public sealed class DialoguePageForm : UIFormBase, IProjectUIForm
     {
         public string FormKey => "DialoguePage";
 
+        [SerializeField] private FormalPortrait _portrait;
+        public void SetSpeaker(string identity) => _portrait.Show(identity);
+        public void SetDialogue(string speaker, string content)
+        {
+            SetSpeaker(speaker);
+            m_TitleText.text = speaker ?? string.Empty;
+            m_ContentText.text = content ?? string.Empty;
+        }
         [SerializeField] private DialogView m_DialogView;
         [SerializeField] private TextMeshProUGUI m_TitleText;
         [SerializeField] private TextMeshProUGUI m_ContentText;

@@ -68,7 +68,12 @@ namespace Everlight.Tales.UI
 
         public void Show()
         {
-            if (m_Panel != null) m_Panel.SetActive(true);
+            if (m_Panel != null)
+            {
+                // 盘面和 HUD 在运行时追加，暂停层必须位于这些动态节点之后。
+                m_Panel.transform.SetAsLastSibling();
+                m_Panel.SetActive(true);
+            }
         }
 
         public void Hide()

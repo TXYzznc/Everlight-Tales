@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Collections.Generic;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -54,7 +54,7 @@ namespace Everlight.Tales.UI
                 Rounds.text = "轮次：—";
                 PreviewSummary.text = "无待准备的事件";
                 CarryStatus.text = "没有待准备的携带选择";
-                for (int i = 0; i < CarrySlots.Length; i++) { CarrySlotLabels[i].text = "—"; CarrySlots[i].interactable = false; CarrySlots[i].image.color = SlotEmptyColor; }
+                for (int i = 0; i < CarrySlots.Length; i++) { CarrySlotLabels[i].text = "—"; CarrySlots[i].interactable = false; CarrySlots[i].GetComponent<CarrySlotVisual>().Bind(null, false, false); }
                 AutoFillKeys.interactable = false;
                 ConfirmButton.interactable = false;
                 return;
@@ -192,6 +192,7 @@ namespace Everlight.Tales.UI
                 view = PreviewContent.gameObject.AddComponent<PreviewBoardView>();
             }
 
+            view.Configure(_spriteCatalog, WorldSession.Current?.PendingEventConfig?.Id);
             view.Render(preview);
         }
 
@@ -226,8 +227,9 @@ namespace Everlight.Tales.UI
             if (config.AdaptationHints != null && config.AdaptationHints.TryGetValue(part, out string adaptation)) hint = JoinHint(hint, adaptation);
             else if (Contains(carry.KeyParts, part)) hint = JoinHint(hint, "本关关键件");
             item.Bind(part, PartName(part), form != null ? form.Description : PartCodexCatalog.UseHint(part),
-                _spriteCatalog.Get("ICO-060零件"), form != null ? form.Name : "基础形态", hint,
+                _spriteCatalog.CurrentPart(part, form != null ? form.Id : null), form != null ? form.Name : "基础形态", hint,
                 Contains(config.PossibleAnomalyParts, part), unlocked > 1, OnAvailableClicked, OnFormClicked);
+            item.SetKey(Contains(carry.KeyParts, part));
             for (int i = 0; i < CarrySelection.MaxSlots; i++) if (carry.SlotAt(i) == part) { item.SetSelectedSlot(i); break; }
         }
         private static string JoinHint(string a, string b) => string.IsNullOrEmpty(a) ? b : a + " · " + b;
@@ -248,7 +250,7 @@ namespace Everlight.Tales.UI
         {
             CarrySelection carry = WorldSession.Current?.PendingCarry;
             if (carry == null) return;
-            if (!carry.Replace(slot, part)) GlobalUI.ShowToast("该零件已经携带，请先移除原槽位");
+            if (!carry.Replace(slot, part)) GlobalUI.ShowToast("该零件已经携带，请先移除原槽位", ToastKind.Warning);
             RefreshCarry();
         }
 
@@ -279,7 +281,7 @@ namespace Everlight.Tales.UI
             }
             else
             {
-                if (!carry.Fill(part)) GlobalUI.ShowToast("已选满 6 种，请拖到右侧槽位替换");
+                if (!carry.Fill(part)) GlobalUI.ShowToast("已选满 6 种，请拖到右侧槽位替换", ToastKind.Warning);
             }
 
             RefreshCarry();
@@ -300,7 +302,7 @@ namespace Everlight.Tales.UI
                 FormConfig form = part != PartType.None ? FormCatalog.Get(carry.FormAt(part)) : null;
                 CarrySlotLabels[i].text = part == PartType.None ? (i + 1) + " · 空槽" : (i + 1) + " · " + PartName(part) + "\n" + (form != null ? form.Name : "基础形态") + "\n" + (form != null ? form.Description : PartCodexCatalog.UseHint(part));
                 CarrySlots[i].interactable = true;
-                CarrySlots[i].image.color = part == PartType.None ? SlotEmptyColor : SlotFilledColor;
+                CarrySlots[i].GetComponent<CarrySlotVisual>().Bind(part == PartType.None ? null : _spriteCatalog.CurrentPart(part, form != null ? form.Id : null), part != PartType.None, Contains(carry.KeyParts, part));
             }
 
             foreach (CarryAvailableItem item in _availableItems)

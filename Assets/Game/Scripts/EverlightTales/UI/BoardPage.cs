@@ -49,6 +49,7 @@ namespace Everlight.Tales.UI
         private TextMeshProUGUI m_FormPickerTitle;
         private GameObject m_FormChoiceItemTemplate;
         private UIFormBase m_Form;
+        private UIFormalSpriteCatalog _spriteCatalog;
         private readonly ListRowCollection m_FormRows = new ListRowCollection();
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
@@ -56,9 +57,10 @@ namespace Everlight.Tales.UI
             Button tap, TextMeshProUGUI resultText, TextMeshProUGUI eventTitle = null,
             TextMeshProUGUI hudScore = null, TextMeshProUGUI hudRound = null, TextMeshProUGUI hudEnergy = null,
             TextMeshProUGUI leftPortrait = null, TextMeshProUGUI rightPortrait = null,
-            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null, GameObject formChoiceItemTemplate = null)
+            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null, GameObject formChoiceItemTemplate = null, UIFormalSpriteCatalog spriteCatalog = null)
         {
             Game = game;
+            _spriteCatalog = spriteCatalog;
             m_RotateLeft = rotateLeft;
             m_RotateRight = rotateRight;
             m_ArmButton = armButton;
@@ -82,7 +84,8 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            BoardView = gameObject.AddComponent<HexBoardView>();
+            BoardView = GetComponent<HexBoardView>() ?? gameObject.AddComponent<HexBoardView>();
+            BoardView.Configure(spriteCatalog, WorldSession.Current?.CurrentEvent?.Config.Id);
             Hud = gameObject.AddComponent<BoardHUD>();
             Hud.Build();
 
@@ -108,9 +111,9 @@ namespace Everlight.Tales.UI
             BoardView.CellClicked = OnCellClicked;
 
             // 现场立绘占位（盘面两侧，登场短暂出现；正式人物立绘待美术替换）。
-            if (m_LeftPortrait != null) m_LeftPortrait.text = "左立绘";
+            if (m_LeftPortrait != null) m_LeftPortrait.text = string.Empty;
             else Debug.LogError("BoardPage 缺少左侧立绘静态节点。", this);
-            if (m_RightPortrait != null) m_RightPortrait.text = "右立绘";
+            if (m_RightPortrait != null) m_RightPortrait.text = string.Empty;
             else Debug.LogError("BoardPage 缺少右侧立绘静态节点。", this);
         }
 
@@ -166,7 +169,7 @@ namespace Everlight.Tales.UI
                         sb.Append('；');
                     }
 
-                    sb.Append(goal.IsComplete ? "✓" : "□").Append(goal.Id);
+                    sb.Append(goal.IsComplete ? "已完成 " : "未完成 ").Append(goal.Id);
                 }
             }
 
@@ -231,7 +234,7 @@ namespace Everlight.Tales.UI
             }
             else
             {
-                GlobalUI.ShowToast("无法搬动：" + result);
+                GlobalUI.ShowToast("无法搬动：" + result, ToastKind.Warning);
             }
 
             UpdateArmHint();
@@ -347,7 +350,7 @@ namespace Everlight.Tales.UI
             m_FormPickerTitle.text = "形态切换 · " + hostName;
 
             // 基础形态 + 已解锁形态（D7：只列已解锁）。
-            AddPickerButton(IsCurrentForm(host, null) ? "基础形态（当前）" : "基础形态", () => ApplyTempForm(host, null));
+            AddPickerButton(IsCurrentForm(host, null) ? "基础形态（当前）" : "基础形态", () => ApplyTempForm(host, null), _spriteCatalog?.Part(host));
 
             var world = WorldSession.Current != null ? WorldSession.Current.World : null;
             int y = 90;
@@ -361,7 +364,7 @@ namespace Everlight.Tales.UI
                 }
 
                 string label = form.Name + (IsCurrentForm(host, form.Id) ? "（当前）" : "");
-                AddPickerButton(label, () => ApplyTempForm(host, form.Id));
+                AddPickerButton(label, () => ApplyTempForm(host, form.Id), _spriteCatalog?.Object(form.Id, true));
                 y -= 68;
             }
 
@@ -411,11 +414,11 @@ namespace Everlight.Tales.UI
             }
         }
 
-        private void AddPickerButton(string label, System.Action onClick)
+        private void AddPickerButton(string label, System.Action onClick, Sprite icon = null)
         {
             if (m_Form == null || m_FormChoiceItemTemplate == null) { Debug.LogError("BoardPage 缺少形态选项 UIItem 预制体。", this); return; }
             ListRowItemObject item = m_FormRows.Spawn(m_Form, m_FormChoiceItemTemplate, m_FormPickerContent);
-            item.Bind(new ListRowData(label) { OnClick = () => onClick() });
+            item.Bind(new ListRowData(label) { Icon = icon, OnClick = () => onClick() });
         }
 
         private TextMeshProUGUI CreatePortrait(Vector2 position, string label)

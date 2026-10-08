@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -15,6 +15,8 @@ namespace Everlight.Tales.UI
         [SerializeField] private Button m_StaticFinishButton;
         [SerializeField] private UIFormBase m_Form;
         [SerializeField] private TMP_Text _progress;
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
+        [SerializeField] private Image _sceneObject;
         private readonly List<InvestigationHotspotItemObject> _items = new List<InvestigationHotspotItemObject>();
         private Action _onComplete;
         private bool _finished;
@@ -46,12 +48,14 @@ namespace Everlight.Tales.UI
             return null; // GF 异步加载，不能同步返回尚未创建的组件。
         }
 
-        public void Play(string sceneName, IReadOnlyList<Hotspot> hotspots, Action onComplete, bool autoFinish = true)
+        public void Play(string sceneName, IReadOnlyList<Hotspot> hotspots, Action onComplete, bool autoFinish = true, string caseId = null)
         {
             Stop();
             BindStaticLayout();
             _playing = true; _finished = false; _autoFinish = autoFinish; _onComplete = onComplete;
             m_SceneLabel.text = sceneName ?? "现场调查";
+            _sceneObject.sprite = caseId == "L-01" || caseId == "L01" ? _spriteCatalog.Get("红舞鞋") : null;
+            _sceneObject.gameObject.SetActive(_sceneObject.sprite != null);
             if (hotspots != null)
                 foreach (Hotspot hotspot in hotspots) if (hotspot != null) AddHotspot(hotspot);
             m_StaticFinishButton.onClick.RemoveAllListeners();
@@ -63,6 +67,7 @@ namespace Everlight.Tales.UI
         {
             Stop(); BindStaticLayout();
             m_SceneLabel.text = "现场调查";
+            _sceneObject.gameObject.SetActive(false);
             _progress.text = "没有待调查的现场";
             m_StaticFinishButton.interactable = false;
             UIButtonStateUtility.SetSelected(m_StaticFinishButton, false);

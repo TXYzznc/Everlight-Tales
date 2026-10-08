@@ -81,7 +81,7 @@ namespace Everlight.Tales.UI
             var parts = new System.Collections.Generic.List<string>();
             foreach (SpecialGoalState goal in round.Goals)
             {
-                string mark = goal.IsComplete ? "✓" : "□";
+                string mark = goal.IsComplete ? "已完成 " : "未完成 ";
                 parts.Add(mark + " " + goal.Id + " " + goal.Current + "/" + goal.Required);
             }
 

@@ -21,6 +21,7 @@ namespace Everlight.Tales.UI
         private const float RowHeight = 64f;
 
         private int m_SubTab;
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
         [SerializeField] private TextMeshProUGUI m_BalanceLabel;
         [SerializeField] private RectTransform m_ListRoot;
         [SerializeField] private RectTransform m_ActionableContent;
@@ -215,7 +216,7 @@ namespace Everlight.Tales.UI
             foreach (SupplyInstance supply in session.Supply)
             {
                 EventEntry entry = EventEntry.FromSupply(supply, "本城");
-                if (EventPageLayout.GroupOf(entry, session.Time.Period) == EventGroup.Actionable)
+                if (EventPageLayout.GroupOf(entry, session.Time.Period) == EventGroup.Actionable || entry.InProgress)
                 {
                     count++;
                 }
@@ -353,15 +354,20 @@ namespace Everlight.Tales.UI
                 }
             }
 
+            if (session.CurrentEvent != null && (m_EventFilter == EventKind.None || m_EventFilter == EventKind.Repair))
+            {
+                var config = session.CurrentEvent.Config;
+                entries.Add(new EventEntry { Id = config.Id, Name = config.Name, Kind = EventKind.Repair, Type = "维修", InProgress = true, TimeCost = config.TimeCost, PlaceName = "当前现场" });
+            }
             entries.Sort(EventPageLayout.Compare);
 
             float y = 0f;
             m_CurrentContent = m_ActionableContent;
             foreach (EventEntry entry in entries)
             {
-                if (EventPageLayout.GroupOf(entry, session.Time.Period) == EventGroup.Actionable)
+                if (EventPageLayout.GroupOf(entry, session.Time.Period) == EventGroup.Actionable || entry.InProgress)
                 {
-                    y = AddCard(y, "◆ " + entry.Name + "（" + entry.TimeCost + " 格）", BuildEventDetail(entry), new Color(0.92f, 0.92f, 0.92f, 1f), false);
+                    y = AddCard(y, "◆ " + entry.Name + "（" + entry.TimeCost + " 格）", BuildEventDetail(entry), Color.white, false, icon: _spriteCatalog.Event(entry.Kind), status: entry.InProgress ? "进行中" : "可处理", statusKey: entry.InProgress ? "ICO-022" : "ICO-021");
                 }
             }
 
@@ -373,7 +379,7 @@ namespace Everlight.Tales.UI
                 if (g == EventGroup.NotOpenYet || g == EventGroup.Missed)
                 {
                     string tag = g == EventGroup.NotOpenYet ? "未到开放" : "已错过";
-                    y = AddCard(y, "◇ " + entry.Name + "（" + tag + "）", BuildEventDetail(entry), new Color(0.62f, 0.64f, 0.68f, 1f), false);
+                    y = AddCard(y, "◇ " + entry.Name + "（" + tag + "）", BuildEventDetail(entry), Color.white, false, icon: _spriteCatalog.Event(entry.Kind), status: tag, statusKey: g == EventGroup.NotOpenYet ? "ICO-023" : "ICO-024");
                 }
             }
 
@@ -396,13 +402,13 @@ namespace Everlight.Tales.UI
                 switch (group)
                 {
                     case TaskGroup.InProgress:
-                        SpawnJournalRow(0f, "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）", detail, Color.white, detailClick, "跟踪", false, () => TrackTask(task));
+                        SpawnJournalRow(0f, "● " + task.Config.Name + "（" + task.CurrentStep + "/" + task.TotalSteps + "）", detail, Color.white, detailClick, "跟踪", false, () => TrackTask(task), _spriteCatalog.Get("ICO-002"), "进行中", "ICO-022");
                         break;
                     case TaskGroup.Claimable:
-                        SpawnJournalRow(0f, "● " + task.Config.Name + "（奖励 " + task.Config.RewardFee + " 费）", detail, Color.white, detailClick, "领取", false, () => ClaimTask(task));
+                        SpawnJournalRow(0f, "● " + task.Config.Name + "（奖励 " + task.Config.RewardFee + " 费）", detail, Color.white, detailClick, "领取", false, () => ClaimTask(task), _spriteCatalog.Get("ICO-002"), "可领奖", "ICO-025");
                         break;
                     default:
-                        AddCard(0f, "○ " + task.Config.Name, detail, new Color(0.62f, 0.64f, 0.68f, 1f), false);
+                        AddCard(0f, "○ " + task.Config.Name, detail, Color.white, false, icon: _spriteCatalog.Get("ICO-002"), status: "已完成", statusKey: "ICO-026");
                         break;
                 }
             }
@@ -433,7 +439,7 @@ namespace Everlight.Tales.UI
             {
                 bool completed = c.Kind == CaseStateKind.Resolved || c.Kind == CaseStateKind.Revisited;
                 m_CurrentContent = _sectionContents[completed ? 1 : 0];
-                AddCard(0f, "· " + c.Config.Name + "（" + CaseKindText(c.Kind) + "）", BuildCaseDetail(c), Color.white, false);
+                AddCard(0f, "· " + c.Config.Name + "（" + CaseKindText(c.Kind) + "）", BuildCaseDetail(c), Color.white, false, icon: _spriteCatalog.Get("ICO-045"), status: CaseKindText(c.Kind), statusKey: UIResourceStatus.CaseKey(c.Kind));
             }
         }
 
@@ -579,13 +585,13 @@ namespace Everlight.Tales.UI
             if (m_ListRoot != null) LayoutRebuilder.ForceRebuildLayoutImmediate(m_ListRoot);
         }
 
-        private float AddCard(float y, string label, string detail, Color color, bool showDetail, int fontSize = 26)
+        private float AddCard(float y, string label, string detail, Color color, bool showDetail, int fontSize = 26, Sprite icon = null, string status = null, string statusKey = null)
         {
             string captured = detail;
-            return SpawnJournalRow(y, label, detail, color, () => GlobalUI.ShowDialog("详情", captured), null, showDetail, null) - 6f;
+            return SpawnJournalRow(y, label, detail, color, () => GlobalUI.ShowDialog("详情", captured), null, showDetail, null, icon, status, statusKey) - 6f;
         }
 
-        private float SpawnJournalRow(float y, string label, string detail, Color color, UnityEngine.Events.UnityAction onClick, string actionLabel, bool showDetail, UnityEngine.Events.UnityAction actionOnClick)
+        private float SpawnJournalRow(float y, string label, string detail, Color color, UnityEngine.Events.UnityAction onClick, string actionLabel, bool showDetail, UnityEngine.Events.UnityAction actionOnClick, Sprite icon = null, string status = null, string statusKey = null)
         {
             if (_form == null || _itemTemplate == null) { Debug.LogError("JournalPanel 缺少通用列表行预制体。", this); return y - RowHeight; }
             ListRowItemObject item = _rows.Spawn(_form, _itemTemplate, m_CurrentContent != null ? m_CurrentContent : m_ListRoot);
@@ -594,6 +600,7 @@ namespace Everlight.Tales.UI
             item.Bind(new ListRowData(label)
             {
                 Detail = showDetail ? detail : null,
+                Icon = icon, StatusText = status, StatusIcon = _spriteCatalog.Get(statusKey), StatusColor = UIResourceStatus.ColorFor(statusKey),
                 TextColor = color,
                 OnClick = onClick,
                 ActionText = actionLabel,

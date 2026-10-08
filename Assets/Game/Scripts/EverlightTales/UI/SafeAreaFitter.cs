@@ -20,6 +20,19 @@ namespace Everlight.Tales.UI
 
         private Rect m_LastSafeArea = default;
         private Vector2 m_LastScreenSize = default;
+#if UNITY_EDITOR
+        public static Rect? ValidationSafeArea { get; set; }
+#endif
+        private static Rect CurrentSafeArea
+        {
+            get
+            {
+#if UNITY_EDITOR
+                if (ValidationSafeArea.HasValue) return ValidationSafeArea.Value;
+#endif
+                return Screen.safeArea;
+            }
+        }
 
         private RectTransform Target
         {
@@ -36,7 +49,7 @@ namespace Everlight.Tales.UI
             // 屏幕尺寸或安全区变化（旋转、分屏、切换模拟机型）时重新应用。
             if (Screen.width != (int)m_LastScreenSize.x
                 || Screen.height != (int)m_LastScreenSize.y
-                || Screen.safeArea != m_LastSafeArea)
+                || CurrentSafeArea != m_LastSafeArea)
             {
                 Apply();
             }
@@ -47,7 +60,7 @@ namespace Everlight.Tales.UI
         /// </summary>
         public void Apply()
         {
-            Rect safe = Screen.safeArea;
+            Rect safe = CurrentSafeArea;
             m_LastSafeArea = safe;
             m_LastScreenSize = new Vector2(Screen.width, Screen.height);
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityGameFramework.Runtime;
@@ -11,8 +11,9 @@ namespace Everlight.Tales.UI
         public readonly IReadOnlyList<InvestigationView.Hotspot> Hotspots;
         public readonly Action OnComplete;
         public readonly bool AutoFinish;
-        public InvestigationPageData(string sceneName, IReadOnlyList<InvestigationView.Hotspot> hotspots, Action onComplete, bool autoFinish = true)
-        { SceneName = sceneName; Hotspots = hotspots; OnComplete = onComplete; AutoFinish = autoFinish; }
+        public readonly string CaseId;
+        public InvestigationPageData(string sceneName, IReadOnlyList<InvestigationView.Hotspot> hotspots, Action onComplete, bool autoFinish = true, string caseId = null)
+        { SceneName = sceneName; Hotspots = hotspots; OnComplete = onComplete; AutoFinish = autoFinish; CaseId = caseId; }
     }
 
     public sealed class InvestigationPageForm : UIFormBase, IProjectUIForm
@@ -30,7 +31,7 @@ namespace Everlight.Tales.UI
             base.OnOpen(userData);
             m_InvestigationView.BindStaticLayout();
             if (Params.TryGet<VarObject>(DataKey, out VarObject value) && value.Value is InvestigationPageData data)
-                m_InvestigationView.Play(data.SceneName, data.Hotspots, data.OnComplete, data.AutoFinish);
+                m_InvestigationView.Play(data.SceneName, data.Hotspots, data.OnComplete, data.AutoFinish, data.CaseId);
             else m_InvestigationView.ShowEmpty();
         }
         protected override void OnClose(bool isShutdown, object userData)

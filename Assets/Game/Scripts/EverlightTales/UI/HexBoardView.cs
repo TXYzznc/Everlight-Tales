@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Everlight.Tales.Board;
 using UnityEngine;
 using UnityEngine.UI;
@@ -93,6 +93,10 @@ namespace Everlight.Tales.UI
             return (Vector2)(m_BoardRoot.localRotation * new Vector3(boardLocal.x, boardLocal.y, 0f));
         }
 
+        private UIFormalSpriteCatalog _spriteCatalog;
+        private string _eventId;
+        public void Configure(UIFormalSpriteCatalog catalog, string eventId = null) { _spriteCatalog = catalog; _eventId = eventId; }
+
         public void Refresh(BoardState board)
         {
             if (board == null)
@@ -114,6 +118,20 @@ namespace Everlight.Tales.UI
                     1.2f,
                     null);
                 _cells.Add(tile);
+
+                // 异常仅铺在真实可玩格内，六边形模板裁切在实体下方。
+                foreach (AnomalyRegion region in board.AnomalyRegions)
+                {
+                    if (!region.TryEnter(cell) || _spriteCatalog == null) continue;
+                    Sprite sprite = _spriteCatalog.Get("anomaly:" + region.Type);
+                    if (sprite == null) continue;
+                    var maskRoot = new GameObject("AnomalyMask", typeof(RectTransform), typeof(HexagonGraphic), typeof(Mask));
+                    maskRoot.transform.SetParent(tile.transform, false);
+                    maskRoot.GetComponent<RectTransform>().sizeDelta = new Vector2(m_CellSize * 2, m_CellSize * 2);
+                    var maskShape = maskRoot.GetComponent<HexagonGraphic>(); maskShape.Circumradius = m_CellSize; maskShape.raycastTarget = false;
+                    maskRoot.GetComponent<Mask>().showMaskGraphic = false;
+                    BoardSpriteResolver.AddArt(maskRoot.transform, sprite, m_CellSize * 2);
+                }
 
                 Button button = tile.AddComponent<Button>();
                 button.targetGraphic = tile.GetComponent<HexagonGraphic>();
@@ -146,6 +164,9 @@ namespace Everlight.Tales.UI
                     0f,
                     null);
                 _entityTiles.Add(entity.Id, tile);
+                BoardSpriteResolver.AddArt(tile.transform, BoardSpriteResolver.Resolve(_spriteCatalog, entity, _eventId),
+                    2f * m_CellSize * m_EntityScale,
+                    entity.ObstacleType == Everlight.Tales.Data.ObstacleType.TurningRail || entity.ObstacleType == Everlight.Tales.Data.ObstacleType.OneWayShutter ? -60f * (int)entity.PassDirection : 0f);
 
                 Button button = tile.AddComponent<Button>();
                 button.targetGraphic = tile.GetComponent<HexagonGraphic>();

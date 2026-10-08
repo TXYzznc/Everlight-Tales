@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Everlight.Tales.Data;
 using UnityEngine;
@@ -19,6 +19,7 @@ namespace Everlight.Tales.UI
 
         [SerializeField] private TextMeshProUGUI m_ActionLabel;
 
+        [SerializeField] private FormalPortrait _portrait;
         private OpeningSequence m_Sequence;
 
         private Action m_OnComplete;
@@ -35,6 +36,8 @@ namespace Everlight.Tales.UI
 
         public void Play(IReadOnlyList<PrologueStepConfig> steps, Action onComplete)
         {
+            m_Finished = false;
+            if (m_ActionLabel != null) m_ActionLabel.text = "跳过";
             m_OnComplete = onComplete;
             m_Sequence = new OpeningSequence(steps);
             BuildUI();
@@ -64,6 +67,7 @@ namespace Everlight.Tales.UI
             }
 
             PrologueStepConfig current = m_Sequence == null ? null : m_Sequence.Current;
+            if (_portrait != null) _portrait.Show(current != null ? current.Speaker : null);
             if (m_Subtitle != null)
             {
                 m_Subtitle.text = current == null

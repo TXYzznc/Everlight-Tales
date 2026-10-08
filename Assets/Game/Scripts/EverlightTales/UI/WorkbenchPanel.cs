@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Everlight.Tales.Data;
@@ -322,7 +322,7 @@ namespace Everlight.Tales.UI
                 PartCodexConfig codex = PartCodexCatalog.Get(host);
                 string label = codex != null ? codex.Name : host.ToString();
                 WorkbenchItemObject item = _form.SpawnChildItem<WorkbenchItemObject>(_hostItemTemplate, m_HostRow);
-                item.Bind(label, host == m_SelectedHost ? "当前宿主" : "选择宿主", "", Icon("ICO-060零件"), Background(host == m_SelectedHost ? "SHR-046-selected" : "SHR-046-normal"), host == m_SelectedHost ? UIFactory.ButtonGreen : Color.white, true);
+                item.Bind(label, host == m_SelectedHost ? "当前宿主" : "选择宿主", "", _spriteCatalog.Part(host), Background(host == m_SelectedHost ? "SHR-046-selected" : "SHR-046-normal"), host == m_SelectedHost ? UIFactory.ButtonGreen : Color.white, true);
                 PartType captured = host;
                 Button b = item.gameObject.GetComponent<Button>();
                 if (b != null) b.onClick.AddListener(() => SelectHost(captured));
@@ -350,7 +350,7 @@ namespace Everlight.Tales.UI
                     : card.State == FormCardState.Current ? UIFactory.ButtonGreen : Color.white;
                 string captured = card.Id;
                 item.Bind(new ListRowData(CardLabel(card)) { Detail = card.IsBase ? "基础形态" : card.Description,
-                    RightText = ActionLabel(card), Icon = Icon("ICO-061形态"), TextColor = color, Selected = selected,
+                    RightText = ActionLabel(card), Icon = card.IsBase ? _spriteCatalog.Part(m_SelectedHost) : _spriteCatalog.Object(card.Id, true, card.State != FormCardState.Unknown), TextColor = color, Selected = selected,
                     Interactable = card.State != FormCardState.Unknown, OnClick = () => SelectForm(captured) });
             }
 
@@ -383,7 +383,7 @@ namespace Everlight.Tales.UI
                 PartType host = hosts[i];
                 PartCodexConfig codex = PartCodexCatalog.Get(host);
                 string label = codex != null ? codex.Name : host.ToString();
-                item.Bind(label, host == m_SelectedHost ? "当前宿主" : "选择宿主", "", Icon("ICO-060零件"), Background(host == m_SelectedHost ? "SHR-046-selected" : "SHR-046-normal"), host == m_SelectedHost ? UIFactory.ButtonGreen : Color.white, true);
+                item.Bind(label, host == m_SelectedHost ? "当前宿主" : "选择宿主", "", _spriteCatalog.Part(host), Background(host == m_SelectedHost ? "SHR-046-selected" : "SHR-046-normal"), host == m_SelectedHost ? UIFactory.ButtonGreen : Color.white, true);
             }
         }
 
@@ -429,7 +429,7 @@ namespace Everlight.Tales.UI
 
                 foreach (MaterialHolding h in card.Materials)
                 {
-                    sb.AppendLine("材料：" + h.MaterialName + " " + h.Held + "/" + h.Required + (h.Enough ? " ✓" : " ✗"));
+                    sb.AppendLine("材料：" + h.MaterialName + " " + h.Held + "/" + h.Required + (h.Enough ? " 充足" : " 不足"));
                 }
             }
 
@@ -515,7 +515,7 @@ namespace Everlight.Tales.UI
                 }
                 else if (result.Insufficient)
                 {
-                    GlobalUI.ShowToast("维修费或材料不足");
+                    GlobalUI.ShowToast("维修费或材料不足", ToastKind.Warning);
                 }
             }
 
@@ -606,7 +606,7 @@ namespace Everlight.Tales.UI
                 Debug.Log($"[WorkbenchPanel][Materials] spawned key={stack.Key}, contentChildren={_materialsContent.childCount}", this);
                 string key = stack.Key;
                 item.Bind(new ListRowData(name) { Detail = source, RightText = "× " + stack.Count,
-                    Icon = Icon(MaterialIconKey(stack.MaterialId)), Selected = key == _selectedMaterialKey,
+                    Icon = _spriteCatalog.Material(stack.MaterialId, MaterialSourceName(stack.SourceCase)), Selected = key == _selectedMaterialKey,
                     OnClick = () => SelectMaterial(key) });
                 Button button = item.View.Button;
                 if (button == null) continue;
@@ -644,7 +644,7 @@ namespace Everlight.Tales.UI
             _materialTitle.text = stack == null ? "材料详情" : (cfg != null ? cfg.Name : stack.MaterialId) + "  × " + stack.Count;
             if (_materialIcon != null)
             {
-                _materialIcon.sprite = stack != null ? Icon(MaterialIconKey(stack.MaterialId)) : null;
+                _materialIcon.sprite = stack != null ? _spriteCatalog.Material(stack.MaterialId, MaterialSourceName(stack.SourceCase)) : null;
                 _materialIcon.enabled = _materialIcon.sprite != null;
             }
             if (stack == null)
@@ -701,7 +701,7 @@ namespace Everlight.Tales.UI
                 string dir = e.Direction == LedgerDirection.Income ? "+" : "-";
                 Color color = e.Direction == LedgerDirection.Income ? new Color(0.5f, 0.9f, 0.55f, 1f) : new Color(0.95f, 0.6f, 0.5f, 1f);
                 ListRowItemObject item = _ledgerRows.Spawn(_form, _rowItemTemplate, m_LedgerRoot);
-                item.Bind(new ListRowData(dir + e.Amount + " 费") { Detail = ChannelText(e.Channel), RightText = e.Reason, TextColor = color, Interactable = false });
+                item.Bind(new ListRowData(dir + e.Amount + " 费") { Detail = ChannelText(e.Channel), RightText = e.Reason, Icon = Icon("ICO-051"), TextColor = color, Interactable = false });
                 y -= 52f;
             }
         }

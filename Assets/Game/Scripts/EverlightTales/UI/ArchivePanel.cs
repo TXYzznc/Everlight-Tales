@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
 using TMPro;
@@ -140,7 +140,7 @@ namespace Everlight.Tales.UI
             {
                 ListRowItemObject view = _ownedRows.Spawn(_form, _rowItemTemplate, _ownedRoot);
                 PartCodexConfig config = PartCodexCatalog.Get(part);
-                BindDetails(view, config != null ? config.Name : part.ToString(), "永久零件", "已拥有", Icon("ICO-060零件"), Color.white);
+                BindDetails(view, config != null ? config.Name : part.ToString(), "永久零件", "已拥有", _spriteCatalog.Part(part), Color.white);
             }
         }
 
@@ -150,6 +150,23 @@ namespace Everlight.Tales.UI
             SetEmpty(_materialRoot, null);
             foreach (MaterialConfig material in MaterialCatalog.All())
             {
+                if (material.IsTypedByCase)
+                {
+                    bool any = false;
+                    foreach (MaterialStack stack in world.Materials.Stacks)
+                    {
+                        if (stack.MaterialId != material.Id || stack.Count <= 0) continue;
+                        any = true;
+                        CaseState source = WorldSession.Current.GetCase(stack.SourceCase);
+                        string sourceName = source != null ? source.Config.Name : stack.SourceCase;
+                        ListRowItemObject typed = _materialRows.Spawn(_form, _rowItemTemplate, _materialRoot);
+                        BindDetails(typed, material.Name, string.IsNullOrEmpty(sourceName) ? "来源未记录" : sourceName,
+                            "×" + stack.Count, _spriteCatalog.Material(material.Id, sourceName), Color.white);
+                    }
+                    if (!any) BindDetails(_materialRows.Spawn(_form, _rowItemTemplate, _materialRoot), material.Name,
+                        "暂无来源库存", "×0", _spriteCatalog.Material(material.Id), Color.gray);
+                    continue;
+                }
                 int count = TotalMaterial(world.Materials, material);
                 Color color = count > 0 ? Color.white : new Color(0.5f, 0.5f, 0.52f, 1f);
                 ListRowItemObject view = _materialRows.Spawn(_form, _rowItemTemplate, _materialRoot);

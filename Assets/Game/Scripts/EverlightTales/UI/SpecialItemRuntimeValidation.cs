@@ -13,7 +13,7 @@ using UnityEngine.UI;
 
 namespace Everlight.Tales.UI
 {
-    /// <summary>真实 UIForm 的点击、拖放、对象池复用验证；不截图，不写正式档。</summary>
+    /// <summary>真实 UIForm 的点击、拖放、对象池复用验证；保存视觉证据，不写正式档。</summary>
     public sealed class SpecialItemRuntimeValidation : MonoBehaviour
     {
         public static void Run()
@@ -34,6 +34,7 @@ namespace Everlight.Tales.UI
                 int id = GF.UI.OpenUIForm(UIViews.PreparationPage);
                 yield return new WaitForSecondsRealtime(1f);
                 var opened = GF.UI.GetUIForm(id);
+                if (pass == 0) { UIValidationHarness.CaptureCurrentScreenshot("Preparation_Populated"); yield return new WaitForSecondsRealtime(.15f); }
                 if (opened == null || !ValidateCarry(opened.gameObject, pass)) { Destroy(gameObject); yield break; }
                 GF.UI.CloseUIForm(id);
                 yield return new WaitForSecondsRealtime(0.25f);
@@ -41,16 +42,22 @@ namespace Everlight.Tales.UI
             int emptyCarryId = GF.UI.OpenUIForm(UIViews.PreparationPage);
             yield return new WaitForSecondsRealtime(0.7f);
             PreparationPageForm emptyCarry = GF.UI.GetUIForm(emptyCarryId).gameObject.GetComponent<PreparationPageForm>();
-            Require(emptyCarry.GetComponentsInChildren<CarryAvailableItem>().Length == 0 && emptyCarry.CarrySlots.All(s => !s.interactable && s.image.color.r < 0.2f) && !emptyCarry.ConfirmButton.interactable, "准备空态回收条目与重置槽位颜色");
+            Require(emptyCarry.GetComponentsInChildren<CarryAvailableItem>().Length == 0 && emptyCarry.CarrySlots.All(s => !s.interactable && s.image.sprite != null && s.image.sprite.name.StartsWith("SHR-004-empty")) && !emptyCarry.ConfirmButton.interactable, "准备空态回收条目与重置槽位颜色");
             GF.UI.CloseUIForm(emptyCarryId);
             Debug.Log("[SpecialItems][EmptyCarry] PASS empty rows/slots/colors/confirm.");
+            // 前面的边界交互会产生短提示；等真实队列自然消退，避免污染调查截图。
+            float feedbackDeadline = Time.unscaledTime + 30;
+            var feedback = FindObjectOfType<GlobalUIRoot>();
+            while (feedback != null && (feedback.VisibleCount > 0 || feedback.QueuedCount > 0) && Time.unscaledTime < feedbackDeadline)
+                yield return new WaitForSecondsRealtime(.25f);
             for (int pass = 0; pass < 2; pass++)
             {
                 int tapped = 0, completed = 0;
                 var hotspots = new[] { new InvestigationView.Hotspot { Name = "A", Position = new Vector2(0.2f, 0.3f), OnTap = () => tapped++ }, new InvestigationView.Hotspot { Name = "B", Position = new Vector2(0.8f, 0.7f), OnTap = () => tapped++ } };
-                int id = InvestigationPageForm.Open(new InvestigationPageData("验收现场", hotspots, () => completed++, false));
+                int id = InvestigationPageForm.Open(new InvestigationPageData("验收现场", hotspots, () => completed++, false, "L-01"));
                 yield return new WaitForSecondsRealtime(1f);
                 var opened = GF.UI.GetUIForm(id);
+                if (pass == 0) { UIValidationHarness.CaptureCurrentScreenshot("Investigation_Populated"); yield return new WaitForSecondsRealtime(.15f); }
                 if (opened == null || !ValidateInvestigation(opened.gameObject, hotspots, () => tapped, () => completed, pass)) { Destroy(gameObject); yield break; }
                 yield return new WaitForSecondsRealtime(0.4f);
                 Require(!GF.UI.HasUIForm(id), "调查完成经 GF 关闭");
@@ -69,7 +76,7 @@ namespace Everlight.Tales.UI
             var empty = GF.UI.GetUIForm(emptyId);
             Require(empty != null && empty.gameObject.GetComponentsInChildren<InvestigationHotspotItem>().Length == 0, "调查空态不残留热点");
             GF.UI.CloseUIForm(emptyId);
-            Debug.Log("[SpecialItems][Final] PASS two real reopen cycles; carry click/drop/form/pool; normalized hotspots/repeat-click/rebuild/completion/empty; no screenshots; no formal save writes.");
+            Debug.Log("[SpecialItems][Final] PASS two real reopen cycles; carry click/drop/form/pool; normalized hotspots/repeat-click/rebuild/completion/empty; captured populated states; no formal save writes.");
             Destroy(gameObject);
         }
 
@@ -91,6 +98,8 @@ namespace Everlight.Tales.UI
                 CarryAvailableItem[] rows = root.GetComponentsInChildren<CarryAvailableItem>();
                 Require(rows.Length == carry.Available.Count && rows.All(r => r.GetComponent<Button>().transition == Selectable.Transition.SpriteSwap), "候选数量与 SpriteSwap");
                 Canvas.ForceUpdateCanvases();
+                var viewport = form.AvailableContent.GetComponentInParent<ScrollRect>().viewport;
+                Require(viewport.rect.height >= 144,"候选列表视口至少显示一行，不能被错误锚点反向裁切");
                 foreach (CarryAvailableItem row in rows)
                     Require(((RectTransform)row.transform).rect.width <= form.AvailableContent.rect.width + 1, "候选行不超过容器");
                 var selected = rows.First(r => carry.Contains(r.Part));
@@ -100,7 +109,7 @@ namespace Everlight.Tales.UI
                 var candidate = rows.First(r => !carry.Contains(r.Part));
                 candidate.GetComponent<Button>().onClick.Invoke();
                 Require(carry.SelectedCount == count + 1, "点击补位");
-                Require(candidate.GetComponentsInChildren<TMP_Text>().Any(t => t.name == "Txt_Selected" && t.text.StartsWith("✓")), "已选序号刷新");
+                Require(candidate.GetComponentsInChildren<TMP_Text>().Any(t => t.name == "Txt_Selected" && t.text.StartsWith("槽")), "已选序号刷新");
                 int slot = Enumerable.Range(0, 6).First(i => carry.SlotAt(i) == candidate.Part);
                 form.CarrySlots[slot].onClick.Invoke(); Require(!carry.Contains(candidate.Part), "槽位移除");
                 var drag = new PointerEventData(EventSystem.current) { pointerDrag = candidate.gameObject, pressPosition = Vector2.zero, position = new Vector2(160, 0) };

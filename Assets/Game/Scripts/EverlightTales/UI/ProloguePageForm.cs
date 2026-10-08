@@ -13,7 +13,12 @@ namespace Everlight.Tales.UI
         {
             base.OnOpen(userData);
             if (m_OpeningOverlay == null) m_OpeningOverlay = GetComponentInChildren<OpeningOverlay>(true);
-            if (m_OpeningOverlay != null) m_OpeningOverlay.BindStaticLayout();
+            if (m_OpeningOverlay != null)
+            {
+                m_OpeningOverlay.gameObject.SetActive(true);
+                m_OpeningOverlay.BindStaticLayout();
+                m_OpeningOverlay.Play(WorldSession.OpeningSteps, OnClickClose);
+            }
         }
     }
 }

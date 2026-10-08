@@ -15,6 +15,7 @@ namespace Everlight.Tales.UI
         [SerializeField] public TextMeshProUGUI DayPeriodLabel;
         [SerializeField] public TextMeshProUGUI RemainingLabel;
         [SerializeField] public Image[] PeriodCells;
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
 
         public static Color DayActive = new Color(1f, 0.88f, 0.4f);
         public static Color DayIdle = new Color(0.72f, 0.70f, 0.58f);
@@ -66,7 +67,8 @@ namespace Everlight.Tales.UI
 
                 bool active = i == (int)time.Period;
                 bool day = TimePeriod.IsDaylight((TimeOfDay)i);
-                PeriodCells[i].color = active ? (day ? DayActive : NightActive) : (day ? DayIdle : NightIdle);
+                PeriodCells[i].sprite = _spriteCatalog != null ? _spriteCatalog.Get("SHR-036-" + (day ? "day-" : "night-") + (active ? "active" : "idle")) : null;
+                PeriodCells[i].color = Color.white;
             }
         }
 

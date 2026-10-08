@@ -36,6 +36,7 @@ namespace Everlight.Tales.UI
         private readonly List<MapNodeItem> _staticItems = new List<MapNodeItem>();
         private readonly Dictionary<MapNodeItem, Vector2> _basePositions = new Dictionary<MapNodeItem, Vector2>();
         [SerializeField] private RectTransform _nodeRoot;
+        private Vector2 _viewportSize;
 
         public IReadOnlyList<CityMapNodeView> Nodes => _nodes;
         public event Action<string> NodeClicked;
@@ -90,6 +91,7 @@ namespace Everlight.Tales.UI
 
                 item.gameObject.SetActive(true);
                 string id = item.PlaceId;
+                item.SetPlaceState(place.Status == PlaceNodeStatus.KnownLocked, place.EventCount, place.HasActionable);
                 item.Bind(place.Config.Name,
                     place.Status == PlaceNodeStatus.KnownLocked ? new Color(0.6f, 0.6f, 0.6f, 0.5f) : Color.white,
                     () => Select(id));
@@ -137,7 +139,23 @@ namespace Everlight.Tales.UI
 
         private void Reposition(CityMapNodeView node)
         {
-            node.Rect.anchoredPosition = node.BasePosition + ViewportOffset;
+            RectTransform viewport = _nodeRoot != null ? _nodeRoot.parent as RectTransform : null;
+            Vector2 origin = node.BasePosition;
+            if (viewport != null && viewport.rect.height > 248 && viewport.rect.width > 248)
+            {
+                Rect bounds = viewport.rect;
+                origin.x = Mathf.Clamp(origin.x, bounds.xMin + 124, bounds.xMax - 124);
+                origin.y = Mathf.Clamp(origin.y, bounds.yMin + 224, bounds.yMax - 24);
+            }
+            node.Rect.anchoredPosition = origin + ViewportOffset;
+        }
+
+        private void LateUpdate()
+        {
+            var viewport = _nodeRoot != null ? _nodeRoot.parent as RectTransform : null;
+            if (viewport == null || viewport.rect.size == _viewportSize) return;
+            _viewportSize = viewport.rect.size;
+            for (int i = 0; i < _nodes.Count; i++) Reposition(_nodes[i]);
         }
 
         private void SetAllInactive()

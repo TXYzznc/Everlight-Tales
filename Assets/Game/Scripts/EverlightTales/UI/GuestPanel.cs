@@ -1,4 +1,4 @@
-using Everlight.Tales.Data;
+﻿using Everlight.Tales.Data;
 using Everlight.Tales.Events;
 using Everlight.Tales.Meta;
 using UnityEngine;
@@ -13,6 +13,7 @@ namespace Everlight.Tales.UI
     /// </summary>
     public sealed class GuestPanel : MonoBehaviour
     {
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
         [SerializeField] private RectTransform m_Root;
         [SerializeField] private RectTransform m_ThanksContent;
         [SerializeField] private RectTransform m_DelegationContent;
@@ -186,7 +187,7 @@ namespace Everlight.Tales.UI
             if (_form == null || _delegationItemTemplate == null || parent == null) return null;
             ListRowCollection rows = parent == m_ThanksContent ? _thanksRows : parent == m_DelegationContent ? _delegationRows : _modRows;
             ListRowItemObject item = rows.Spawn(_form, _delegationItemTemplate, parent);
-            item.Bind(new ListRowData(title) { ActionText = buttonLabel, ActionInteractable = interactable, OnAction = action, OnClick = onClick });
+            item.Bind(new ListRowData(title) { Icon = _spriteCatalog.Get(parent == m_ModContent ? "ICO-004" : parent == m_ThanksContent ? "ICO-045" : "ICO-005"), ActionText = buttonLabel, ActionInteractable = interactable, OnAction = action, OnClick = onClick });
             return item;
         }
 

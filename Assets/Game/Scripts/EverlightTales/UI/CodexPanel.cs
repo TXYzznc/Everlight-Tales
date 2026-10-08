@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Everlight.Tales.Data;
 using Everlight.Tales.Meta;
 using TMPro;
@@ -111,11 +111,11 @@ namespace Everlight.Tales.UI
                 ListRowItemObject view = rows.Spawn(_form, _rowItemTemplate, root);
                 Color color = entry.State == CodexState.Owned ? new Color(0.92f, 0.92f, 0.92f, 1f)
                     : entry.State == CodexState.Known ? new Color(0.55f, 0.62f, 0.70f, 1f)
-                    : new Color(0.38f, 0.38f, 0.40f, 1f);
+                    : new Color32(110,118,132,255);
                 string state = entry.State == CodexState.Owned ? (form ? "已解锁" : "已拥有") : entry.State == CodexState.Known ? "已知未拥有" : "？？？";
                 string source = entry.State == CodexState.Unknown ? "" : entry.SourceHint;
                 view.Bind(new ListRowData(CodexLayout.DisplayName(entry)) { Id = entry.Id, Detail = source, RightText = state,
-                    Icon = Icon(form ? "ICO-061形态" : "ICO-060零件"), StateFrame = Frame(entry.State), TextColor = color,
+                    Icon = _spriteCatalog.Object(entry.Id, form, entry.State != CodexState.Unknown), StateFrame = Frame(entry.State), TextColor = color,
                     Interactable = entry.State != CodexState.Unknown,
                     OnClick = () => GlobalUI.ShowDialog(CodexLayout.DisplayName(entry), "编号：" + entry.Id + "\n状态：" + state + "\n来源：" + source) });
             }
@@ -131,7 +131,7 @@ namespace Everlight.Tales.UI
                 shown++;
                 ListRowItemObject view = _caseRows.Spawn(_form, _rowItemTemplate, _caseRoot);
                 view.Bind(new ListRowData(c.Config.Name) { Id = c.Config.Batch, RightText = CaseKindText(c.Kind),
-                    Detail = c.Config.Source + (string.IsNullOrEmpty(c.Config.FirstPlace) ? "" : " · " + c.Config.FirstPlace), Icon = Icon("ICO-008保管"),
+                    Detail = c.Config.Source + (string.IsNullOrEmpty(c.Config.FirstPlace) ? "" : " · " + c.Config.FirstPlace), Icon = Icon("ICO-045"),
                     OnClick = () => GlobalUI.ShowDialog(c.Config.Name, "状态：" + CaseKindText(c.Kind) + "\n来源：" + c.Config.Source + "\n地点：" + c.Config.FirstPlace) });
             }
             if (shown == 0) SetEmpty(_caseRoot, "尚无已触发的怪谈档案");

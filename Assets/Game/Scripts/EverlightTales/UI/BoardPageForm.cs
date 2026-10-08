@@ -1,4 +1,4 @@
-using Everlight.Tales.Board;
+﻿using Everlight.Tales.Board;
 using Everlight.Tales.Data;
 using Everlight.Tales.Events;
 using UnityEngine;
@@ -41,6 +41,7 @@ namespace Everlight.Tales.UI
         [SerializeField] private Button _pauseRules;
         [SerializeField] private Button _pauseRetreat;
 
+        [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
         private BoardPage m_Page;
 
         private PauseMenuView m_PauseMenu;
@@ -70,7 +71,7 @@ namespace Everlight.Tales.UI
             var game = new BoardGame(evt.Board, settle, evt.Level.Session, evt.Level);
 
             m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate);
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate, _spriteCatalog);
 
             BindSettleButton();
             BindPauseButton();
@@ -83,7 +84,7 @@ namespace Everlight.Tales.UI
             var game = new BoardGame(stage.Board, stage.Settle, stage.Session, stage.Level);
 
             m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate);
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate, _spriteCatalog);
         }
 
         private void BindSettleButton()

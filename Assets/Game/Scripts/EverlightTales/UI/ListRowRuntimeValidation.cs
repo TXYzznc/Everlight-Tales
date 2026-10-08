@@ -281,7 +281,7 @@ namespace Everlight.Tales.UI
                 ListRowItemObject rich = rowsA.Spawn(form, template, a.transform);
                 Sprite icon = template.GetComponent<UnityEngine.UI.Image>().sprite;
                 rich.Bind(new ListRowData("rich") { Detail = "secondary", Id = "ID", Icon = icon, StateFrame = icon,
-                    RightText = "value", ActionText = "action", Selected = true, OnClick = () => details++, OnAction = () => actions++ });
+                    StatusText = "进行中", StatusIcon = icon, StatusColor = Color.cyan, RightText = "value", ActionText = "action", Selected = true, OnClick = () => details++, OnAction = () => actions++ });
                 Require(((RectTransform)rich.gameObject.transform).rect.height == 96f, "rich height");
                 rich.gameObject.SetActive(false); rich.gameObject.SetActive(true);
                 Require(((UnityEngine.UI.Image)rich.View.Button.targetGraphic).overrideSprite == rich.View.Button.spriteState.selectedSprite, "selected sprite survives hide/show");
@@ -297,6 +297,8 @@ namespace Everlight.Tales.UI
                 Require(((RectTransform)simpleA.gameObject.transform).rect.height == 64f, "simple height");
                 Require(!simpleA.gameObject.transform.Find("IconRoot").gameObject.activeSelf, "old icon/frame hidden");
                 Require(!simpleA.gameObject.transform.Find("Action").gameObject.activeSelf, "old Action hidden");
+                Require(!simpleA.gameObject.transform.Find("StatusGroup").gameObject.activeSelf, "old status hidden");
+                Require(simpleA.gameObject.transform.Find("StatusGroup/Img_Status").GetComponent<UnityEngine.UI.Image>().sprite == null, "old status sprite cleared");
                 Require(((UnityEngine.UI.Image)simpleA.View.Button.targetGraphic).overrideSprite != simpleA.View.Button.spriteState.selectedSprite, "old selected sprite cleared");
                 Require(!simpleA.gameObject.transform.Find("Txt_Id").gameObject.activeSelf, "old ID hidden");
                 Require(!simpleA.gameObject.transform.Find("Txt_Right").gameObject.activeSelf, "old value hidden");
