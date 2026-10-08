@@ -444,7 +444,6 @@ GameObject:
   - component: {fileID: 7199783850501579414}
   - component: {fileID: 328173700598125802}
   - component: {fileID: 4986592353203735665}
-  - component: {fileID: 1834954172292052214}
   m_Layer: 5
   m_Name: Txt_HudArm
   m_TagString: Untagged
@@ -570,20 +569,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &1834954172292052214
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 460150379240336325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd3e461dede035c4ba04e3b98ba256f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _label: {fileID: 4986592353203735665}
-  _icon: {fileID: 4758450911867248686}
 --- !u!1 &695479132186249755
 GameObject:
   m_ObjectHideFlags: 0

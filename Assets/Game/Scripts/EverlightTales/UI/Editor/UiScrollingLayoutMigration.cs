@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -95,7 +95,7 @@ namespace Everlight.Tales.UI.Editor
             scroll.content = content;
             scroll.horizontal = false;
             scroll.vertical = true;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.movementType = ScrollRect.MovementType.Elastic; scroll.scrollSensitivity = 10f;
             return true;
         }
 

@@ -1088,7 +1088,8 @@
                 "type": "ScrollRect",
                 "horizontal": false,
                 "vertical": true,
-                "movementType": 2
+                "movementType": 1,
+                "scrollSensitivity": 10
               }
             ],
             "anchorMin": [

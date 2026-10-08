@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -397,9 +397,12 @@ namespace Everlight.Tales.UI.EditorTools
                     break;
 
                 case ScrollRect scroll:
+                    scroll.movementType = ScrollRect.MovementType.Elastic;
+                    scroll.scrollSensitivity = 10f;
                     if (Val(spec, "horizontal") != null) scroll.horizontal = spec["horizontal"].Value<bool>();
                     if (Val(spec, "vertical") != null) scroll.vertical = spec["vertical"].Value<bool>();
                     if (Val(spec, "movementType") != null) scroll.movementType = (ScrollRect.MovementType)spec["movementType"].Value<int>();
+                    if (Val(spec, "scrollSensitivity") != null) scroll.scrollSensitivity = spec["scrollSensitivity"].Value<float>();
                     break;
 
                 case CanvasGroup group:

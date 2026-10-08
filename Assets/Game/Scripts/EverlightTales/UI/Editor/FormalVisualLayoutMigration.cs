@@ -58,8 +58,6 @@ namespace Everlight.Tales.UI.Editor
                 Image icon = label.transform.Find("Img_Counter")?.GetComponent<Image>();
                 if (icon == null) continue;
                 icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = label.rectTransform.pivot;
-                var counter = label.GetComponent<FormalCounterIcon>() ?? label.gameObject.AddComponent<FormalCounterIcon>();
-                Bind(counter, "_label", label, "_icon", icon);
             }
             foreach (Button button in root.GetComponentsInChildren<Button>(true))
             {

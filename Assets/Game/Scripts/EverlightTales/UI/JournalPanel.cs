@@ -18,7 +18,6 @@ namespace Everlight.Tales.UI
     public sealed class JournalPanel : MonoBehaviour
     {
         private const float TopBarHeight = 96f;
-        private const float RowHeight = 64f;
 
         private int m_SubTab;
         [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
@@ -575,7 +574,12 @@ namespace Everlight.Tales.UI
         {
             for (int i = 0; i < _sections.Length; i++)
             {
-                if (_sectionEmptyStates[i] != null) _sectionEmptyStates[i].SetActive(_sectionCounts[i] == 0);
+                bool showEmpty = _sections[i] != null && _sections[i].activeSelf && _sectionCounts[i] == 0;
+                if (_sectionEmptyStates[i] != null) _sectionEmptyStates[i].SetActive(showEmpty);
+                // 插画在预制体中位于 ScrollRect/Mask，不一定是 EmptyState 文字的子节点。
+                Transform emptyArt = _sections[i] != null
+                    ? FindDescendant(_sections[i].transform, "Img_Empty") : null;
+                if (emptyArt != null) emptyArt.gameObject.SetActive(showEmpty);
                 if (_sectionScrolls[i] != null)
                 {
                     _sectionScrolls[i].StopMovement();
@@ -588,12 +592,12 @@ namespace Everlight.Tales.UI
         private float AddCard(float y, string label, string detail, Color color, bool showDetail, int fontSize = 26, Sprite icon = null, string status = null, string statusKey = null)
         {
             string captured = detail;
-            return SpawnJournalRow(y, label, detail, color, () => GlobalUI.ShowDialog("详情", captured), null, showDetail, null, icon, status, statusKey) - 6f;
+            return SpawnJournalRow(y, label, detail, color, () => GlobalUI.ShowDialog("详情", captured), null, showDetail, null, icon, status, statusKey);
         }
 
         private float SpawnJournalRow(float y, string label, string detail, Color color, UnityEngine.Events.UnityAction onClick, string actionLabel, bool showDetail, UnityEngine.Events.UnityAction actionOnClick, Sprite icon = null, string status = null, string statusKey = null)
         {
-            if (_form == null || _itemTemplate == null) { Debug.LogError("JournalPanel 缺少通用列表行预制体。", this); return y - RowHeight; }
+            if (_form == null || _itemTemplate == null) { Debug.LogError("JournalPanel 缺少通用列表行预制体。", this); return y; }
             ListRowItemObject item = _rows.Spawn(_form, _itemTemplate, m_CurrentContent != null ? m_CurrentContent : m_ListRoot);
             for (int i = 0; i < _sectionContents.Length; i++)
                 if (_sectionContents[i] == m_CurrentContent) _sectionCounts[i]++;
@@ -606,7 +610,8 @@ namespace Everlight.Tales.UI
                 ActionText = actionLabel,
                 OnAction = actionOnClick
             });
-            return y - (showDetail && !string.IsNullOrEmpty(detail) ? 96f : RowHeight);
+            item.View.SetRewardAction(m_SubTab == 1 && status == "可领奖" && actionOnClick != null);
+            return y; // 容器的 LayoutGroup 负责行高、间距和排列。
         }
 
         private static string CaseKindText(CaseStateKind kind)

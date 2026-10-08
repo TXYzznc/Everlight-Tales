@@ -92,7 +92,7 @@ namespace Everlight.Tales.UI.Editor
                 ScrollRect scroll = scrollObject.GetComponent<ScrollRect>();
                 scroll.horizontal = false;
                 scroll.vertical = true;
-                scroll.movementType = ScrollRect.MovementType.Clamped;
+                scroll.movementType = ScrollRect.MovementType.Elastic; scroll.scrollSensitivity = 10f;
                 Image hitArea = Get<Image>(scrollObject);
                 hitArea.color = new Color(1f, 1f, 1f, 0.01f);
                 hitArea.raycastTarget = true;

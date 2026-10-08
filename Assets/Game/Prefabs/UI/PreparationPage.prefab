@@ -1163,11 +1163,11 @@ MonoBehaviour:
   m_Content: {fileID: 1212054586866948527}
   m_Horizontal: 0
   m_Vertical: 1
-  m_MovementType: 2
+  m_MovementType: 1
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 939901168803021635}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 6657206689040865501}
@@ -2769,7 +2769,6 @@ GameObject:
   - component: {fileID: 962418616285772217}
   - component: {fileID: 751232854264469900}
   - component: {fileID: 3067992404220507212}
-  - component: {fileID: 6159863666768374879}
   m_Layer: 5
   m_Name: Txt_InfoDuration
   m_TagString: Untagged
@@ -2895,20 +2894,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &6159863666768374879
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3565710480297706302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bd3e461dede035c4ba04e3b98ba256f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _label: {fileID: 3067992404220507212}
-  _icon: {fileID: 7763755432540057822}
 --- !u!1 &3621452078497798411
 GameObject:
   m_ObjectHideFlags: 0

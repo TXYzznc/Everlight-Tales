@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,7 +26,7 @@ namespace Everlight.Tales.UI.Editor
                 scroll.anchorMin = new Vector2(0, 1); scroll.anchorMax = Vector2.one; scroll.pivot = new Vector2(.5f, 1);
                 scroll.offsetMin = new Vector2(12, 410); scroll.offsetMax = new Vector2(-12, -18);
                 Ensure<Image>(scroll.gameObject).color = new Color(0, 0, 0, 0);
-                ScrollRect sr = Ensure<ScrollRect>(scroll.gameObject); sr.horizontal = false; sr.vertical = true; sr.movementType = ScrollRect.MovementType.Clamped;
+                ScrollRect sr = Ensure<ScrollRect>(scroll.gameObject); sr.horizontal = false; sr.vertical = true; sr.movementType = ScrollRect.MovementType.Elastic; sr.scrollSensitivity = 10f;
                 RectTransform viewport = Rect(scroll, "Viewport"); Stretch(viewport); Ensure<Image>(viewport.gameObject).color = new Color(0, 0, 0, 0); Ensure<RectMask2D>(viewport.gameObject);
                 RectTransform content = Rect(viewport, "MaterialsContent"); content.anchorMin = new Vector2(0, 1); content.anchorMax = new Vector2(1, 1); content.pivot = new Vector2(.5f, 1); content.anchoredPosition = Vector2.zero; content.sizeDelta = Vector2.zero;
                 VerticalLayoutGroup layout = Ensure<VerticalLayoutGroup>(content.gameObject); layout.padding = new RectOffset(0, 12, 0, 12); layout.spacing = 8; layout.childControlWidth = true; layout.childControlHeight = false; layout.childForceExpandWidth = true; layout.childForceExpandHeight = false;
