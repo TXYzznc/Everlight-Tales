@@ -65,6 +65,8 @@ namespace Everlight.Tales.UI
                     entityRadius,
                     EntityVisuals.GetPartColor(key.PartType), _spriteCatalog != null ? _spriteCatalog.Part(key.PartType) : null);
             }
+            if (_eventId == Everlight.Tales.Data.FirstCaseContent.EventId)
+                FirstCaseBoardArt.Render(m_Root, cellSize, _spriteCatalog, RedShoeLevelBuilder.Build(RedShoeLevelConfig.Tutorial()));
         }
 
         private void EnsureRoot()

@@ -152,6 +152,7 @@ namespace Everlight.Tales.UI.Editor
                 scroll.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
             }
             FormalVisualLayoutMigration.Apply(root, Catalog);
+            FirstCaseArtMigration.Upgrade(root);
         }
         private static void UpgradePageVisuals(GameObject root, string path)
         {

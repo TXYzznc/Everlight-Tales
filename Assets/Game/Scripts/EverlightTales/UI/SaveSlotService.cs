@@ -37,6 +37,7 @@ namespace Everlight.Tales.UI
             "et.world.tutorial", "et.world.owned", "et.world.known", "et.world.materials",
             "et.world.blueprints", "et.world.forms", "et.world.currentForms", "et.world.tasks",
             "et.world.display", "et.world.jobs", "et.world.tutorialStage",
+            "et.world.firstCase", "et.world.places",
         };
 
         public static string SlotKey(string key, int slot)

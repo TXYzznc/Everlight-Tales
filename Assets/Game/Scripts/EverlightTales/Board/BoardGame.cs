@@ -1,3 +1,5 @@
+using Everlight.Tales.Data;
+
 namespace Everlight.Tales.Board
 {
     /// <summary>
@@ -14,30 +16,35 @@ namespace Everlight.Tales.Board
         public SessionState Session { get; }
 
         public LevelState Level { get; }
+        public RedShoeLevel RedShoeLevel { get; }
+        public BuffBonuses Bonuses { get; set; }
 
         public TapSettlement TapTransaction { get; } = new TapSettlement();
 
         /// <summary>最近一次拍击的结算结果（供表现层读取事件日志驱动特效）。</summary>
         public SettlementResult LastSettlement { get; private set; }
 
-        public BoardGame(BoardState board, SettleState settle, SessionState session, LevelState level)
+        public BoardGame(BoardState board, SettleState settle, SessionState session, LevelState level, RedShoeLevel redShoeLevel = null)
         {
             Board = board;
             Settle = settle;
             Session = session;
             Level = level;
+            RedShoeLevel = redShoeLevel;
         }
 
         /// <summary>左旋一个相位。</summary>
         public void RotateLeft()
         {
             Settle.RotateLeft();
+            if (RedShoeLevel != null) RedShoeLevel.RedShoe.Direction = HexDirections.Rotate(RedShoeLevel.RedShoe.Direction, -1);
         }
 
         /// <summary>右旋一个相位。</summary>
         public void RotateRight()
         {
             Settle.RotateRight();
+            if (RedShoeLevel != null) RedShoeLevel.RedShoe.Direction = HexDirections.Rotate(RedShoeLevel.RedShoe.Direction, 1);
         }
 
         /// <summary>按当前势位预演每枚会动棋子的第一步终点（P1-013）。</summary>
@@ -49,6 +56,7 @@ namespace Everlight.Tales.Board
         /// <summary>机械臂搬动一枚棋子（P1-010），返回搬动结果。</summary>
         public ArmMoveResult ArmMove(BoardEntity entity, HexCoord target)
         {
+            if (RedShoeLevel != null && !RedShoeLevel.RedShoe.IsRemoved && target == RedShoeLevel.RedShoe.Coord) return ArmMoveResult.Occupied;
             return ArmService.Move(Board, Session, entity, target);
         }
 
@@ -61,10 +69,29 @@ namespace Everlight.Tales.Board
                 Board,
                 Settle,
                 new TapContext(Level.Round.TapQuotaRemaining, dueEffects),
-                Session);
+                Session, Bonuses);
+            if (Bonuses != null) Session.PublicRepairEnergy += Bonuses.TapEndEnergy;
             Session.TapSerial++;
             LastSettlement = result;
-            return Level.ResolveAfterTap(result.TapQuotaAfter);
+            if (RedShoeLevel != null)
+            {
+                RedShoeService.StepAfterTap(Board, RedShoeLevel.Config.RedShoe, RedShoeLevel.RedShoe);
+                foreach (SpecialGoalState goal in Level.Round.Goals)
+                {
+                    int current = goal.Id == "导流" ? RedShoeLevel.RedShoe.DiversionProgress
+                        : goal.Id == "封存匣维修" ? Board.EntityAt(RedShoeLevel.Config.RedShoe.BoxCoord)?.RepairProgress ?? 0
+                        : RedShoeLevel.RedShoe.IsSealed ? 1 : 0;
+                    goal.Progress(current - goal.Current);
+                }
+            }
+            RoundPassResult pass = Level.ResolveAfterTap(result.TapQuotaAfter);
+            if (RedShoeLevel != null)
+            {
+                if (RedShoeLevel.RedShoe.HasFailed) return RoundPassResult.Failed;
+                if (pass == RoundPassResult.Passed && !RedShoeRoundEvaluator.IsRoundComplete(
+                    RedShoeLevel.Config.Rounds[Level.RoundIndex], RedShoeLevel)) return RoundPassResult.Failed;
+            }
+            return pass;
         }
     }
 }

@@ -109,8 +109,8 @@ namespace Everlight.Tales.UI
             _finished = true;
             Action callback = _onComplete; _onComplete = null;
             // 通过 GF 关闭，不销毁可复用页面的子节点。
-            m_Form.OnClickClose();
             callback?.Invoke();
+            m_Form.OnClickClose();
         }
 
         private int _generation;

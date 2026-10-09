@@ -26,6 +26,7 @@ namespace Everlight.Tales.UI
 
         /// <summary>最近一次拍击后的过轮判定（供页面层展示结算结果）。</summary>
         public RoundPassResult LastRoundResult { get; private set; } = RoundPassResult.Continue;
+        public System.Action<RoundPassResult> RoundFinished;
 
         private Button m_RotateLeft;
         private Button m_RotateRight;
@@ -50,6 +51,7 @@ namespace Everlight.Tales.UI
         private GameObject m_FormChoiceItemTemplate;
         private UIFormBase m_Form;
         private UIFormalSpriteCatalog _spriteCatalog;
+        private Image _sceneBackground;
         private readonly ListRowCollection m_FormRows = new ListRowCollection();
 
         /// <summary>以给定盘面与关卡装配页面（供运行时构建与验收注入）。</summary>
@@ -57,9 +59,11 @@ namespace Everlight.Tales.UI
             Button tap, TextMeshProUGUI resultText, TextMeshProUGUI eventTitle = null,
             TextMeshProUGUI hudScore = null, TextMeshProUGUI hudRound = null, TextMeshProUGUI hudEnergy = null,
             TextMeshProUGUI leftPortrait = null, TextMeshProUGUI rightPortrait = null,
-            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null, GameObject formChoiceItemTemplate = null, UIFormalSpriteCatalog spriteCatalog = null)
+            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null, GameObject formChoiceItemTemplate = null, UIFormalSpriteCatalog spriteCatalog = null, Image sceneBackground = null)
         {
             Game = game;
+            LastRoundResult = RoundPassResult.Continue; m_ArmMode = false; m_SelectedArmEntity = null;
+            _sceneBackground = sceneBackground;
             _spriteCatalog = spriteCatalog;
             ApplySceneBackground();
             m_RotateLeft = rotateLeft;
@@ -67,6 +71,7 @@ namespace Everlight.Tales.UI
             m_ArmButton = armButton;
             m_Tap = tap;
             m_ResultText = resultText;
+            if (m_ResultText != null) m_ResultText.text = string.Empty;
             m_EventTitle = eventTitle;
             m_HudScore = hudScore;
             m_HudRound = hudRound;
@@ -87,14 +92,14 @@ namespace Everlight.Tales.UI
 
             BoardView = GetComponent<HexBoardView>() ?? gameObject.AddComponent<HexBoardView>();
             BoardView.Configure(spriteCatalog, WorldSession.Current?.CurrentEvent?.Config.Id);
-            Hud = gameObject.AddComponent<BoardHUD>();
+            Hud = GetComponent<BoardHUD>() ?? gameObject.AddComponent<BoardHUD>();
             Hud.Build();
 
             // 先 Refresh 创建 board_root / board_tiles 并算出 OutlineRadius，
             // 再装配特效（ScreenShake 需 board_root、ComboPulse 需 OutlineRadius、Preview 需 board_root）。
             Refresh();
 
-            ImpactFx = gameObject.AddComponent<BoardImpactFX>();
+            ImpactFx = GetComponent<BoardImpactFX>() ?? gameObject.AddComponent<BoardImpactFX>();
             ImpactFx.Setup(BoardView, game.Board.BoardRadius);
             ImpactFx.SetGame(game);
 
@@ -122,6 +127,7 @@ namespace Everlight.Tales.UI
         public void RotateLeft()
         {
             Game.RotateLeft();
+            FirstCaseBoardArt.Render(BoardView.BoardRoot, BoardView.CellSize, _spriteCatalog, Game.RedShoeLevel);
             BoardView.SetGravity(Game.Settle.GravityDirection);
             ImpactFx.RefreshPreview();
         }
@@ -130,6 +136,7 @@ namespace Everlight.Tales.UI
         public void RotateRight()
         {
             Game.RotateRight();
+            FirstCaseBoardArt.Render(BoardView.BoardRoot, BoardView.CellSize, _spriteCatalog, Game.RedShoeLevel);
             BoardView.SetGravity(Game.Settle.GravityDirection);
             ImpactFx.RefreshPreview();
         }
@@ -137,6 +144,7 @@ namespace Everlight.Tales.UI
         /// <summary>执行一次拍击并刷新，返回过轮判定。</summary>
         public RoundPassResult Tap()
         {
+            if (Game.Level.Round.TapQuotaRemaining <= 0 || WorldSession.Current?.PendingFirstCaseRewards != null) return LastRoundResult;
             RoundPassResult pass = Game.Tap();
             LastRoundResult = pass;
             ImpactFx.PlayTapImpact(Game.LastSettlement, Game.Board, (RectTransform)m_Tap.transform);
@@ -147,7 +155,8 @@ namespace Everlight.Tales.UI
             // 本轮小结：过轮时弹本轮得分/资源/特殊目标。
             if (pass != RoundPassResult.Continue)
             {
-                GlobalUI.ShowDialog(pass == RoundPassResult.Passed ? "本轮通过" : "本轮失败", BuildRoundSummary());
+                if (RoundFinished != null) RoundFinished(pass);
+                else GlobalUI.ShowDialog(pass == RoundPassResult.Passed ? "本轮通过" : "本轮失败", BuildRoundSummary());
             }
 
             return pass;
@@ -186,6 +195,7 @@ namespace Everlight.Tales.UI
             }
 
             BoardView.Refresh(Game.Board);
+            FirstCaseBoardArt.Render(BoardView.BoardRoot, BoardView.CellSize, _spriteCatalog, Game.RedShoeLevel);
             BoardView.ShowArmTargets(Game.Board, m_SelectedArmEntity, m_ArmMode && Game.Session.ArmMoves > 0);
             Hud.Refresh(Game.Session, Game.Level);
             UpdateContractHud();
@@ -193,12 +203,13 @@ namespace Everlight.Tales.UI
 
         private void ApplySceneBackground()
         {
-            Image background = transform.Find("Panel_Background")?.GetComponent<Image>();
+            Image background = _sceneBackground;
             if (background == null || _spriteCatalog == null) return;
             WorldSession session = WorldSession.Current;
             string eventId = session?.CurrentEvent?.Config?.Id;
             string place = null;
-            if (session != null && !string.IsNullOrEmpty(eventId))
+            if (session?.IsFirstCaseEvent == true) place = FirstCaseContent.SceneId;
+            if (session != null && !string.IsNullOrEmpty(eventId) && place == null)
             {
                 foreach (var supply in session.Supply)
                     if (supply != null && supply.Template != null && supply.Template.TemplateId == eventId)
@@ -226,7 +237,16 @@ namespace Everlight.Tales.UI
         private void UpdateContractHud()
         {
             if (Game == null) return;
-            if (m_EventTitle != null) m_EventTitle.text = "维修事件";
+            if (m_EventTitle != null) m_EventTitle.text = WorldSession.Current?.CurrentEvent?.Config.Name ?? "维修事件";
+            if (Game.RedShoeLevel != null)
+            {
+                var shoe = Game.RedShoeLevel.RedShoe;
+                var box = Game.Board.EntityAt(Game.RedShoeLevel.Config.RedShoe.BoxCoord);
+                Transform label = transform.Find("Txt_HudGoals");
+                var goals = label != null ? label.GetComponent<TextMeshProUGUI>() : null;
+                if (goals != null) goals.text = "导流 " + shoe.DiversionProgress + "/6 · " + (shoe.IsBound ? "尚未分离" : "已分离")
+                    + " · 修匣 " + (box?.RepairProgress ?? 0) + "/2 · " + (shoe.IsSealed ? "已封存" : "待封存");
+            }
         }
 
         private void OnEntityClicked(BoardEntity entity)

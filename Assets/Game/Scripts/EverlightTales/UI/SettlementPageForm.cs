@@ -6,6 +6,7 @@ using Everlight.Tales.Events;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityGameFramework.Runtime;
 
 namespace Everlight.Tales.UI
 {
@@ -22,12 +23,16 @@ namespace Everlight.Tales.UI
         [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
 
         private bool m_Finished;
+        private WorldSession _owner;
+        private bool _roundReward;
         private readonly ListRowCollection m_RewardRows = new ListRowCollection();
 
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
             m_Finished = false;
+            _owner = WorldSession.Current;
+            _roundReward = Params.TryGet<VarObject>("FirstCase.Round", out VarObject value) && value.Value is bool flag && flag;
             BuildContent();
         }
 
@@ -36,6 +41,13 @@ namespace Everlight.Tales.UI
             WireButtons();
 
             WorldSession session = WorldSession.Current;
+            if (_roundReward && session?.PendingFirstCaseRewards != null)
+            {
+                Title.text = "本轮通过 · 选择本关奖励";
+                RewardText.gameObject.SetActive(true); RewardText.text = "状态与累计分保留，选取后进入下一轮。";
+                ReasonText.gameObject.SetActive(false); RewardChoices.gameObject.SetActive(true);
+                BackToMap.gameObject.SetActive(false); BuildChoices(session); return;
+            }
             if (session == null || session.LastSettlement == null)
             {
                 Title.text = "维修结算";
@@ -57,9 +69,10 @@ namespace Everlight.Tales.UI
                     RewardText.gameObject.SetActive(true);
                     RewardText.text = BuildRewardText(reward);
                     ReasonText.gameObject.SetActive(false);
-                    RewardChoices.gameObject.SetActive(true);
-                    BuildChoices(session);
-                    BackToMap.gameObject.SetActive(false);
+                    RewardChoices.gameObject.SetActive(!session.IsFirstCaseEvent);
+                    if (!session.IsFirstCaseEvent) BuildChoices(session);
+                    else RewardText.text = "红舞鞋已封存，铆合钳已解锁。回店后，清晨可向沈遥领取回访报酬。";
+                    BackToMap.gameObject.SetActive(session.IsFirstCaseEvent);
                     break;
 
                 case SettlementOutcomeKind.Failure:
@@ -118,7 +131,7 @@ namespace Everlight.Tales.UI
 
         private void BuildChoices(WorldSession session)
         {
-            IReadOnlyList<RewardOption> options = session.DrawRewardChoice();
+            IReadOnlyList<RewardOption> options = _roundReward ? session.PendingFirstCaseRewards : session.DrawRewardChoice();
             if (RewardChoiceItemTemplate == null)
             {
                 Debug.LogError("[SettlementPageForm] 通用列表行模板未绑定。", this);
@@ -139,7 +152,7 @@ namespace Everlight.Tales.UI
                     rect.anchoredPosition = new Vector2(0f, -i * 72f);
                     rect.sizeDelta = new Vector2(-32f, rect.sizeDelta.y);
                 }
-                item.Bind(new ListRowData(option.Label) { Icon = _spriteCatalog.Get(option.Kind == RewardKind.Buff ? "ICO-063" : option.Kind == RewardKind.ArmMove ? "ICO-064" : "ICO-060"), OnClick = () => OnChoose(option) });
+                item.Bind(new ListRowData(option.Label) { Detail = option.BuffConfig?.Description, Icon = _spriteCatalog.Get(option.Kind == RewardKind.Buff ? "ICO-063" : option.Kind == RewardKind.ArmMove ? "ICO-064" : "ICO-060"), OnClick = () => OnChoose(option) });
             }
         }
 
@@ -153,9 +166,10 @@ namespace Everlight.Tales.UI
             m_Finished = true;
 
             WorldSession session = WorldSession.Current;
-            if (session != null)
+            if (session != null && session == _owner)
             {
-                session.ApplyReward(option);
+                if (_roundReward) session.ChooseFirstCaseRoundReward(option);
+                else session.ApplyReward(option);
             }
 
             OnClickClose();

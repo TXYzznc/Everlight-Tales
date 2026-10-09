@@ -5,7 +5,7 @@ using TMPro;
 namespace Everlight.Tales.UI
 {
     /// <summary>独立对话流程页：由本页管理内容与立绘；内嵌面板不作为独立 UIForm 初始化。</summary>
-    public sealed class DialoguePageForm : UIFormBase, IProjectUIForm
+    public sealed partial class DialoguePageForm : UIFormBase, IProjectUIForm
     {
         public string FormKey => "DialoguePage";
 
@@ -47,6 +47,7 @@ namespace Everlight.Tales.UI
             {
                 m_DialogView.BindStaticLayout(m_TitleText, m_ContentText, m_Buttons, m_ButtonLabels);
             }
+            OpenDialogueData();
         }
     }
 }

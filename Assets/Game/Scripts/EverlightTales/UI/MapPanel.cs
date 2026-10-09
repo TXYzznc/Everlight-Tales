@@ -287,6 +287,26 @@ namespace Everlight.Tales.UI
                 {
                     description = place.Config.Description;
                     emptySpriteKey = null;
+                    if (m_SelectedPlaceId == "home" && !session.World.TutorialComplete)
+                        AddEventEntry("工作台教学 · 第" + (session.World.TutorialStage + 1) + "段", "教学", "0格",
+                            "完成旋转与碰撞、能量与维修、爆破与拆障三段练习后，接下沈遥的委托。", FirstCaseFlow.Tutorial);
+                    if (m_SelectedPlaceId == "home" && session.CanStartFirstCase)
+                        AddEventEntry("沈遥的红舞鞋线索", "对话", "0格", "听沈遥说明排练中的异常，前往舞蹈教室。",
+                            FirstCaseFlow.Request, kind: EventKind.Investigate);
+                    if (m_SelectedPlaceId == "home" && session.GetCase(FirstCaseContent.CaseId)?.Kind == CaseStateKind.AwaitingRevisit)
+                        AddEventEntry("沈遥的回访", "回访", "0格", "红鞋已封存。清晨向沈遥领取回访报酬。", FirstCaseFlow.Revisit,
+                            group: session.Time.Period == TimeOfDay.Morning ? EventGroup.Actionable : EventGroup.NotOpenYet);
+                    if (m_SelectedPlaceId == FirstCaseContent.SceneId)
+                    {
+                        CaseState firstCase = session.GetCase(FirstCaseContent.CaseId);
+                        EventGroup group = TimePeriod.IsNight(session.Time.Period) ? EventGroup.Actionable : EventGroup.NotOpenYet;
+                        if (firstCase?.Kind == CaseStateKind.Investigating)
+                            AddEventEntry("没有结束的排练", "调查", "1格", "确认音乐停止、鞋印增加和反复出现的四拍步法。开放：夜晚、深夜。",
+                                FirstCaseFlow.Investigate, kind: EventKind.Investigate, group: group);
+                        else if (firstCase?.Kind == CaseStateKind.AwaitingRepair)
+                            AddEventEntry("停不下来的排练", "怪谈", "4格", "导流、分离、维修封存匣，再把红鞋封存。开放：夜晚、深夜。",
+                                FirstCaseFlow.Prepare, kind: EventKind.Anomaly, group: group);
+                    }
                     if (m_SelectedPlaceId == "home")
                     {
                         AddEventEntry("卡住的卷帘门", "维修", "1 格",

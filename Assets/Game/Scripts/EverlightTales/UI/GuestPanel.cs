@@ -134,6 +134,7 @@ namespace Everlight.Tales.UI
                 ListRowItemObject item = SpawnGuestItem(m_ThanksContent, "· " + state.Config.Name, label, canClaim, () =>
                 {
                     Debug.Log($"[GuestPanel][ThanksClick] case={caseId}, beforeKind={state.Kind}, period={session.Time.Period}", this);
+                    if (caseId == FirstCaseContent.CaseId) { FirstCaseFlow.Revisit(); return; }
                     RevisitResult result = session.RevisitCase(caseId);
                     Debug.Log($"[GuestPanel][ThanksClick] case={caseId}, success={result.Success}, already={result.AlreadyDone}, notReady={result.NotReady}, afterKind={state.Kind}", this);
                     if (result.AlreadyDone) GlobalUI.ShowToast("感谢已领取");

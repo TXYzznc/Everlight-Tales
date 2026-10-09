@@ -64,6 +64,7 @@ namespace Everlight.Tales.Meta
             }
 
             world.TutorialStage = stageIndex + 1;
+            world.TutorialComplete = IsComplete(world);
             return true;
         }
 

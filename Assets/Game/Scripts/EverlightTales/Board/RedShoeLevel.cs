@@ -70,11 +70,11 @@ namespace Everlight.Tales.Board
                 new[]
                 {
                     new HexCoord(0, -1),
-                    new HexCoord(-1, 1),
-                    new HexCoord(-2, 2),
-                    new HexCoord(-1, 2),
-                    new HexCoord(0, 2),
-                    new HexCoord(2, 1),
+                    new HexCoord(1, -2),
+                    new HexCoord(1, -3),
+                    new HexCoord(2, -4),
+                    new HexCoord(2, -3),
+                    new HexCoord(3, -3),
                 },
                 new[] { new RedShoeTurnCell(new HexCoord(0, 0), HexDirection.D4) },
                 new HexCoord(2, 0),
@@ -142,16 +142,24 @@ namespace Everlight.Tales.Board
 
             var redShoe = new RedShoeState(config.RedShoe.StartCoord, config.RedShoe.StartDirection, config.RedShoe.RestraintLimit);
 
-            var roundConfigs = new List<RoundConfig>();
-            foreach (RedShoeRoundConfig round in config.Rounds)
-            {
-                roundConfigs.Add(new RoundConfig(round.TapCount, round.TargetScore));
-            }
-
-            var level = new LevelState(new LevelConfig(roundConfigs));
+            var level = new LevelState(CreateLevelConfig(config));
             level.BeginLevel();
 
             return new RedShoeLevel(board, redShoe, level, config);
+        }
+
+        public static LevelConfig CreateLevelConfig(RedShoeLevelConfig config)
+        {
+            var rounds = new List<RoundConfig>();
+            foreach (RedShoeRoundConfig round in config.Rounds)
+            {
+                var goals = new List<SpecialGoalConfig>();
+                if (round.MinDiversion > 0) goals.Add(new SpecialGoalConfig("导流", round.MinDiversion));
+                if (round.RequireBoxRepaired) goals.Add(new SpecialGoalConfig("封存匣维修", config.RedShoe.BoxRequired));
+                if (round.RequireSealed) goals.Add(new SpecialGoalConfig("红鞋封存", 1));
+                rounds.Add(new RoundConfig(round.TapCount, round.TargetScore, goals));
+            }
+            return new LevelConfig(rounds);
         }
     }
 

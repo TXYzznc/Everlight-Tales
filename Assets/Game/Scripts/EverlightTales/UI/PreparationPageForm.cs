@@ -329,13 +329,13 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            RepairEventInstance evt = session.ConfirmRollerDoor();
+            RepairEventInstance evt = session.ConfirmPreparedEvent();
             if (evt == null)
             {
                 return;
             }
 
-            GF.UI.OpenUIForm(UIViews.BoardPage);
+            GF.UI.OpenUIForm(UIViews.BoardPage, UIParams.Create(session.IsFirstCaseEvent ? false : (bool?)null));
             OnClickClose();
         }
 

@@ -149,6 +149,10 @@ namespace Everlight.Tales.UI
             if (staticOverlay == null) { Debug.LogError("MainPageShell 缺少 Panel_OpeningOverlay 静态布局。", this); return; }
             GameObject go = staticOverlay.gameObject;
             go.SetActive(true);
+            Canvas openingCanvas = go.GetComponent<Canvas>();
+            if (openingCanvas == null) openingCanvas = go.AddComponent<Canvas>();
+            openingCanvas.overrideSorting = true; openingCanvas.sortingOrder = SortOrder + 20;
+            if (go.GetComponent<UnityEngine.UI.GraphicRaycaster>() == null) go.AddComponent<UnityEngine.UI.GraphicRaycaster>();
             var overlay = go.GetComponent<OpeningOverlay>() ?? go.AddComponent<OpeningOverlay>();
             if (staticOverlay != null) overlay.BindStaticLayout();
             overlay.Play(WorldSession.OpeningSteps, () =>

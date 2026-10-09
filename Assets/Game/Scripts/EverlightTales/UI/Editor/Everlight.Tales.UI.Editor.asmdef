@@ -5,6 +5,8 @@
         "Everlight.Tales.UI",
         "Everlight.Tales.Meta",
         "Everlight.Tales.Data",
+        "Everlight.Tales.Board",
+        "Everlight.Tales.Events",
         "Unity.TextMeshPro",
         "Hotfix",
         "Builtin.Runtime",

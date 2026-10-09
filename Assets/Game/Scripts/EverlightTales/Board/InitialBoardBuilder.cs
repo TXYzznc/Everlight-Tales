@@ -16,6 +16,7 @@ namespace Everlight.Tales.Board
 
         /// <summary>端点标签（校正格等，地形层不占实体容量）。</summary>
         EndpointLabel = 4,
+        RepairTarget = 5,
     }
 
     /// <summary>固定元素配置（P2-009）：每种元素由关卡设计单独指定固定或随机（D-080）。</summary>
@@ -30,20 +31,24 @@ namespace Everlight.Tales.Board
         public HexCoord Position { get; }
 
         public GoalConfig Goal { get; }
+        public RepairTargetConfig RepairTarget { get; }
 
-        public FixedElementConfig(FixedElementKind kind, HexCoord position, ObstacleType obstacleType = ObstacleType.None, int label = 0, GoalConfig goal = null)
+        public FixedElementConfig(FixedElementKind kind, HexCoord position, ObstacleType obstacleType = ObstacleType.None, int label = 0, GoalConfig goal = null, RepairTargetConfig repairTarget = null)
         {
             Kind = kind;
             Position = position;
             ObstacleType = obstacleType;
             Label = label;
             Goal = goal;
+            RepairTarget = repairTarget;
         }
 
         public BoardEntity CreateEntity(int id)
         {
             switch (Kind)
             {
+                case FixedElementKind.RepairTarget:
+                    return BoardEntity.RepairTarget(id, RepairTarget);
                 case FixedElementKind.Obstacle:
                     return BoardEntity.Obstacle(id, ObstacleCatalog.Get(ObstacleType));
 

@@ -13,17 +13,12 @@ namespace Everlight.Tales.UI
     /// 当前盘面事件，提供新档／继续／开始事件／结算事件与 PlayerPrefs 最简持久化。
     /// 落在 UI 层（需同时触达 Board／Events／Meta／Data）；纯 C# 静态单例，非 MonoBehaviour。
     /// </summary>
-    public sealed class WorldSession
+    public sealed partial class WorldSession
     {
         public const int DemoSeed = 20260922;
 
         /// <summary>序章字幕步骤（P3-005）：新档首进播放，可跳过。</summary>
-        public static IReadOnlyList<PrologueStepConfig> OpeningSteps { get; } = new[]
-        {
-            new PrologueStepConfig("旁白", "夜雨落在旧城区的铁皮屋顶上。", 2.5f),
-            new PrologueStepConfig("旁白", "你推开「永昼修理铺」的门，灯亮了起来。", 3f),
-            new PrologueStepConfig("红舞鞋", "……那台节拍器，又开始响了。", 2.5f),
-        };
+        public static IReadOnlyList<PrologueStepConfig> OpeningSteps => FirstCaseContent.OpeningSteps;
 
         private const string KeyDay = "et.world.day";
         private const string KeyPeriod = "et.world.period";
@@ -276,6 +271,7 @@ namespace Everlight.Tales.UI
             PlayerPrefs.SetInt(SlotKey(KeyJobs, slot), World.SuccessfulJobs);
             PlayerPrefs.SetInt(SlotKey(KeyTutorialStage, slot), World.TutorialStage);
             PlayerPrefs.SetString(SlotMetaKey(slot), DateTime.UtcNow.ToString("O"));
+            SaveFirstCaseProgress();
             PlayerPrefs.Save();
         }
 
@@ -363,7 +359,7 @@ namespace Everlight.Tales.UI
         /// </summary>
         public EventReward SettleEvent(SettlementOutcomeKind outcome)
         {
-            if (CurrentEvent == null)
+            if (CurrentEvent == null || CurrentEvent.IsSettled)
             {
                 return null;
             }
@@ -383,7 +379,8 @@ namespace Everlight.Tales.UI
                 failure = FailureReason.Compute(
                     CurrentEvent.Level.Session.Score,
                     CurrentEvent.Level.Round.TargetScore,
-                    CurrentEvent.Level.Round.Goals);
+                    CurrentEvent.Level.Round.Goals,
+                    IsFirstCaseEvent && CurrentRedShoeLevel?.RedShoe.HasFailed == true ? "分离前束缚达到上限" : null);
             }
 
             var transaction = new SettlementTransaction();
@@ -403,7 +400,7 @@ namespace Everlight.Tales.UI
 
             // 成功普通维修/临时处置实例累计（P4-013 门槛来源；档案重放/试机不计入）。
             // 计数后刷新改装支线播种：满足 L-01 已完成 + 计数门槛的支线才出现。
-            if (outcome == SettlementOutcomeKind.Success)
+            if (outcome == SettlementOutcomeKind.Success && !IsFirstCaseEvent)
             {
                 World.SuccessfulJobs++;
                 RefreshModTasks(World);
@@ -413,6 +410,7 @@ namespace Everlight.Tales.UI
             }
 
             LastReward = reward;
+            SettleFirstCase(outcome);
             Save();
             RefreshSupply();
             return reward;
@@ -491,6 +489,7 @@ namespace Everlight.Tales.UI
         /// <summary>回访交付（P4-011）：已解决→待回访→已回访，一次性发图样/材料/维修费。</summary>
         public RevisitResult RevisitCase(string caseId)
         {
+            if (caseId == FirstCaseContent.CaseId && Time.Period != TimeOfDay.Morning) return RevisitResult.NotAvailable;
             CaseState state = FindCase(caseId);
             if (state == null)
             {
@@ -750,8 +749,11 @@ namespace Everlight.Tales.UI
             }
 
             RestoreTasks(s.World);
+            s.RestoreFirstCaseProgress();
             s.World.SuccessfulJobs = PlayerPrefs.GetInt(SlotKey(KeyJobs, slot), 0);
             s.World.TutorialStage = PlayerPrefs.GetInt(SlotKey(KeyTutorialStage, slot), 0);
+            // 旧版本只写入三段进度而未同步完成标记；已通过教学的旧档仍可进入首案。
+            s.World.TutorialComplete |= TutorialService.IsComplete(s.World);
 
             foreach (string item in PlayerPrefs.GetString(SlotKey(KeyDisplay, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
