@@ -1,4 +1,4 @@
-﻿---
+---
 name: unity-scene
 description: Manage Unity scenes
 ---
@@ -145,8 +145,8 @@ Search GameObjects by name pattern, tag, or component type. For advanced search 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `namePattern` | string | No | - | Name substring to match (case-insensitive) |
-| `tag` | string | No | - | Filter by tag |
-| `componentType` | string | No | - | Filter by component type name |
+| `tag` | string | No | - | Filter by tag; a tag not defined in Tags & Layers is rejected |
+| `componentType` | string | No | - | Filter by component type name; an unknown type is rejected |
 | `limit` | int | No | 50 | Max results to return |
 
 **Returns**: `{success, count, objects: [{name, path, instanceId, active, tag}]}`
@@ -162,7 +162,7 @@ import unity_skills
 unity_skills.call_skill("scene_create", scenePath="Assets/Scenes/Level1.unity")
 
 # Load an existing scene
-unity_skills.call_skill("scene_load", scenePath="Assets/Scenes/MainUi.unity")
+unity_skills.call_skill("scene_load", scenePath="Assets/Scenes/MainMenu.unity")
 
 # Load scene additively (multi-scene)
 unity_skills.call_skill("scene_load", scenePath="Assets/Scenes/UI.unity", additive=True)

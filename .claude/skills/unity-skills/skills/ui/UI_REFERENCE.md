@@ -1,4 +1,4 @@
-﻿---
+---
 name: unity-ui-reference
 description: "Extended UGUI reference — fuller UGUI examples, element/property details, and a longer menu-building workflow beyond the ui SKILL.md. UGUI 扩展参考(更完整的 UGUI 示例、元素/属性细节、超出 ui SKILL.md 的菜单搭建流程)。"
 type: reference
@@ -14,8 +14,8 @@ Load this file when you need fuller UGUI examples, extended element/property det
 import unity_skills
 import json
 
-unity_skills.call_skill("ui_create_canvas", name="MainUi")
-unity_skills.call_skill("ui_create_panel", name="MenuPanel", parent="MainUi", a=0.65)
+unity_skills.call_skill("ui_create_canvas", name="MainMenu")
+unity_skills.call_skill("ui_create_panel", name="MenuPanel", parent="MainMenu", a=0.65)
 unity_skills.call_skill("ui_set_rect", name="MenuPanel", width=300, height=200)
 unity_skills.call_skill("ui_create_batch", items=json.dumps([
     {"type": "Button", "name": "StartBtn", "parent": "MenuPanel", "text": "Start", "width": 220, "height": 44},
@@ -111,7 +111,7 @@ Useful fields:
 ### `ui_add_outline`
 
 Useful fields:
-- `effectType`: `Shadow` or `Outline`
+- `effectType`: `Shadow` or `Outline` (case-insensitive); any other value is rejected
 - `r/g/b/a`
 - `distanceX`, `distanceY`
 - `useGraphicAlpha`
