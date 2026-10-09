@@ -87,6 +87,35 @@
         ]
       },
       {
+        "name": "board_root",
+        "components": [],
+        "anchorMin": [
+          0,
+          0
+        ],
+        "anchorMax": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "sizeDelta": [
+          0,
+          0
+        ],
+        "anchoredPosition": [
+          0,
+          0
+        ],
+        "localScale": [
+          1,
+          1,
+          1
+        ]
+      },
+      {
         "name": "Txt_EventTitle",
         "components": [
           {
@@ -1594,6 +1623,11 @@
       "node": "BoardPageForm/Panel_FormPicker/List_FormOptions",
       "kind": "RectTransform",
       "path": "_formPickerList"
+    },
+    {
+      "path": "_boardRoot",
+      "node": "BoardPageForm/board_root",
+      "kind": "RectTransform"
     }
   ],
   "scalars": [],

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Everlight.Tales.Board;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Everlight.Tales.UI
@@ -41,6 +42,8 @@ namespace Everlight.Tales.UI
         private CanvasGroup m_EdgeGlowGroup;
 
         private readonly List<GameObject> _cells = new List<GameObject>();
+
+        private readonly Dictionary<HexCoord, Button> _cellButtons = new Dictionary<HexCoord, Button>();
 
         private readonly Dictionary<int, GameObject> _entityTiles = new Dictionary<int, GameObject>();
 
@@ -95,8 +98,14 @@ namespace Everlight.Tales.UI
 
         private UIFormalSpriteCatalog _spriteCatalog;
         private string _eventId;
+        private RectTransform _configuredBoardRoot;
         public Sprite GetStructureSprite(string key) => _spriteCatalog?.Get(key);
-        public void Configure(UIFormalSpriteCatalog catalog, string eventId = null) { _spriteCatalog = catalog; _eventId = eventId; }
+        public void Configure(UIFormalSpriteCatalog catalog, string eventId = null, RectTransform boardRoot = null)
+        {
+            _spriteCatalog = catalog;
+            _eventId = eventId;
+            _configuredBoardRoot = boardRoot;
+        }
 
         public void Refresh(BoardState board)
         {
@@ -149,6 +158,7 @@ namespace Everlight.Tales.UI
                     };
                 }
                 HexCoord captured = cell;
+                _cellButtons[captured] = button;
                 button.onClick.AddListener(() => CellClicked?.Invoke(captured));
             }
 
@@ -183,6 +193,10 @@ namespace Everlight.Tales.UI
 
                 Button button = tile.AddComponent<Button>();
                 button.targetGraphic = tile.GetComponent<HexagonGraphic>();
+                if (_cellButtons.TryGetValue(entity.Coord, out Button cellButton))
+                {
+                    tile.AddComponent<EntityHoverRelay>().Bind(cellButton);
+                }
                 BoardEntity captured = entity;
                 button.onClick.AddListener(() => EntityClicked?.Invoke(captured));
             }
@@ -200,7 +214,8 @@ namespace Everlight.Tales.UI
         public void SetGravity(HexDirection gravity)
         {
             float newTarget = HexLayout.RotationAngleForGravity(gravity);
-            UpdateGravityArt(gravity);
+            // GravitySeat/DirectionArrow 仅保留代码供后续设计复用，当前盘面不生成这组视觉节点。
+            // UpdateGravityArt(gravity);
             if (!_rotationInitialized)
             {
                 _visualAngle = newTarget;
@@ -348,18 +363,19 @@ namespace Everlight.Tales.UI
             m_EdgeGlow.StrokeColor = m_EdgeGlowColor;
             Image glow = SetStructureArt(m_EdgeGlow.transform, "GlowArt", "SCR-07-05", outlineRadius * 2f * 1456f / 1360f);
             if (glow != null) { glow.color = m_EdgeGlowColor; m_EdgeGlow.StrokeWidth = 0f; }
-            for (int i = 0; i < 6; i++)
-            {
-                Vector2 direction = HexLayout.AxialToPixel(HexDirections.Offset((HexDirection)i), 1f).normalized;
-                Image seat = SetStructureArt(m_BoardRoot, "GravitySeat_" + i, "SCR-07-07-normal", m_CellSize * 2f);
-                if (seat == null) continue;
-                seat.rectTransform.anchoredPosition = direction * (outlineRadius + m_CellSize * 0.5f);
-                seat.rectTransform.localEulerAngles = new Vector3(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
-                SetStructureArt(seat.transform, "DirectionArrow", "SCR-07-09", m_CellSize);
-            }
-            for (int i = 0; i < 6; i++)
-                if (Mathf.Abs(Mathf.DeltaAngle(_targetAngle, HexLayout.RotationAngleForGravity((HexDirection)i))) < 0.1f)
-                { UpdateGravityArt((HexDirection)i); break; }
+            // GravitySeat 与 DirectionArrow 暂不生成。重力方向仍由 SettleState 保存，盘面旋转逻辑保持不变。
+            // for (int i = 0; i < 6; i++)
+            // {
+            //     Vector2 direction = HexLayout.AxialToPixel(HexDirections.Offset((HexDirection)i), 1f).normalized;
+            //     Image seat = SetStructureArt(m_BoardRoot, "GravitySeat_" + i, "SCR-07-07-normal", m_CellSize * 2f);
+            //     if (seat == null) continue;
+            //     seat.rectTransform.anchoredPosition = direction * (outlineRadius + m_CellSize * 0.5f);
+            //     seat.rectTransform.localEulerAngles = new Vector3(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+            //     SetStructureArt(seat.transform, "DirectionArrow", "SCR-07-09", m_CellSize);
+            // }
+            // for (int i = 0; i < 6; i++)
+            //     if (Mathf.Abs(Mathf.DeltaAngle(_targetAngle, HexLayout.RotationAngleForGravity((HexDirection)i))) < 0.1f)
+            //     { UpdateGravityArt((HexDirection)i); break; }
         }
 
         private Image SetStructureArt(Transform parent, string name, string key, float size)
@@ -421,30 +437,39 @@ namespace Everlight.Tales.UI
         {
             if (m_BoardRoot == null)
             {
-                var root = new GameObject("board_root", typeof(RectTransform));
-                root.transform.SetParent(transform, false);
-                m_BoardRoot = (RectTransform)root.transform;
-                m_BoardRoot.anchorMin = Vector2.zero;
-                m_BoardRoot.anchorMax = Vector2.one;
-                m_BoardRoot.anchoredPosition = Vector2.zero;
-                m_BoardRoot.sizeDelta = Vector2.zero;
+                m_BoardRoot = _configuredBoardRoot;
+                if (m_BoardRoot == null)
+                {
+                    var root = new GameObject("board_root", typeof(RectTransform));
+                    root.transform.SetParent(transform, false);
+                    m_BoardRoot = (RectTransform)root.transform;
+                    m_BoardRoot.anchorMin = Vector2.zero;
+                    m_BoardRoot.anchorMax = Vector2.one;
+                    m_BoardRoot.anchoredPosition = Vector2.zero;
+                    m_BoardRoot.sizeDelta = Vector2.zero;
+                }
             }
 
             if (m_TileRoot == null)
             {
-                var tiles = new GameObject("board_tiles", typeof(RectTransform));
-                tiles.transform.SetParent(m_BoardRoot, false);
-                m_TileRoot = (RectTransform)tiles.transform;
-                m_TileRoot.anchorMin = Vector2.zero;
-                m_TileRoot.anchorMax = Vector2.one;
-                m_TileRoot.anchoredPosition = Vector2.zero;
-                m_TileRoot.sizeDelta = Vector2.zero;
+                m_TileRoot = m_BoardRoot.Find("board_tiles") as RectTransform;
+                if (m_TileRoot == null)
+                {
+                    var tiles = new GameObject("board_tiles", typeof(RectTransform));
+                    tiles.transform.SetParent(m_BoardRoot, false);
+                    m_TileRoot = (RectTransform)tiles.transform;
+                    m_TileRoot.anchorMin = Vector2.zero;
+                    m_TileRoot.anchorMax = Vector2.one;
+                    m_TileRoot.anchoredPosition = Vector2.zero;
+                    m_TileRoot.sizeDelta = Vector2.zero;
+                }
             }
         }
 
         private void ClearTiles()
         {
             _cells.Clear();
+            _cellButtons.Clear();
             _entityTiles.Clear();
             if (m_TileRoot == null)
             {
@@ -454,6 +479,31 @@ namespace Everlight.Tales.UI
             for (int i = m_TileRoot.childCount - 1; i >= 0; i--)
             {
                 Destroy(m_TileRoot.GetChild(i).gameObject);
+            }
+        }
+
+        /// <summary>
+        /// 实体按钮保留自身点击命中，同时把悬浮状态转发给实体所在的底层格子，
+        /// 避免实体的 Graphic 射线遮住格子按钮的 SpriteSwap 状态。
+        /// </summary>
+        private sealed class EntityHoverRelay : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+        {
+            private Button _cellButton;
+
+            public EntityHoverRelay Bind(Button cellButton)
+            {
+                _cellButton = cellButton;
+                return this;
+            }
+
+            public void OnPointerEnter(PointerEventData eventData)
+            {
+                if (_cellButton != null) _cellButton.OnPointerEnter(eventData);
+            }
+
+            public void OnPointerExit(PointerEventData eventData)
+            {
+                if (_cellButton != null) _cellButton.OnPointerExit(eventData);
             }
         }
     }

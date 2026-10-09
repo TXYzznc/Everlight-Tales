@@ -59,7 +59,7 @@ namespace Everlight.Tales.UI
             Button tap, TextMeshProUGUI resultText, TextMeshProUGUI eventTitle = null,
             TextMeshProUGUI hudScore = null, TextMeshProUGUI hudRound = null, TextMeshProUGUI hudEnergy = null,
             TextMeshProUGUI leftPortrait = null, TextMeshProUGUI rightPortrait = null,
-            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null, GameObject formChoiceItemTemplate = null, UIFormalSpriteCatalog spriteCatalog = null, Image sceneBackground = null)
+            GameObject formPickerPanel = null, TextMeshProUGUI formPickerTitle = null, RectTransform formPickerList = null, GameObject formChoiceItemTemplate = null, UIFormalSpriteCatalog spriteCatalog = null, Image sceneBackground = null, RectTransform boardRoot = null)
         {
             Game = game;
             LastRoundResult = RoundPassResult.Continue; m_ArmMode = false; m_SelectedArmEntity = null;
@@ -91,11 +91,11 @@ namespace Everlight.Tales.UI
             }
 
             BoardView = GetComponent<HexBoardView>() ?? gameObject.AddComponent<HexBoardView>();
-            BoardView.Configure(spriteCatalog, WorldSession.Current?.CurrentEvent?.Config.Id);
+            BoardView.Configure(spriteCatalog, WorldSession.Current?.CurrentEvent?.Config.Id, boardRoot);
             Hud = GetComponent<BoardHUD>() ?? gameObject.AddComponent<BoardHUD>();
             Hud.Build();
 
-            // 先 Refresh 创建 board_root / board_tiles 并算出 OutlineRadius，
+            // 先 Refresh 确保 board_root / board_tiles 并算出 OutlineRadius，
             // 再装配特效（ScreenShake 需 board_root、ComboPulse 需 OutlineRadius、Preview 需 board_root）。
             Refresh();
 
@@ -392,6 +392,8 @@ namespace Everlight.Tales.UI
 
             if (m_FormPickerRoot != null)
             {
+                // 盘面根节点可能包含动态盘面节点；打开时把弹层提升到最上层，避免被盘面遮住。
+                m_FormPickerRoot.transform.SetAsLastSibling();
                 m_FormPickerRoot.SetActive(true);
                 if (m_FormPickerContent != null)
                 {

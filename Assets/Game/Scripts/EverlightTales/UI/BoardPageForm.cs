@@ -34,6 +34,7 @@ namespace Everlight.Tales.UI
         [SerializeField] private FormalPortrait _playerPortrait;
         [SerializeField] private FormalPortrait _guestPortrait;
         [SerializeField] private Image _sceneBackground;
+        [SerializeField] private RectTransform _boardRoot;
         private WorldSession _owner;
         private RoundPassResult _firstCaseResult;
         private bool _tutorial;
@@ -89,7 +90,7 @@ namespace Everlight.Tales.UI
             game.Bonuses = BuffEffectService.Resolve(session.HeldBuffs);
 
             m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate, _spriteCatalog, _sceneBackground);
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate, _spriteCatalog, _sceneBackground, _boardRoot);
 
             m_Page.RoundFinished = session.IsFirstCaseEvent ? OnFirstCaseRound : null;
             _playerPortrait.Show(FirstCaseContent.Player);
@@ -154,7 +155,7 @@ namespace Everlight.Tales.UI
             var game = new BoardGame(stage.Board, stage.Settle, stage.Session, stage.Level);
 
             m_Page = GetComponent<BoardPage>() ?? gameObject.AddComponent<BoardPage>();
-            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate, _spriteCatalog, _sceneBackground);
+            m_Page.Bind(game, _rotateLeft, _rotateRight, _armButton, _tapButton, _resultText, _eventTitle, _hudScore, _hudRound, _hudEnergy, _leftPortrait, _rightPortrait, _formPickerPanel, _formPickerTitle, _formPickerList, _formChoiceItemTemplate, _spriteCatalog, _sceneBackground, _boardRoot);
             _playerPortrait.Show(FirstCaseContent.Player); _guestPortrait.Show(null);
             _eventTitle.text = "工作台教学 · " + stage.Title;
             m_Page.RoundFinished = pass =>
