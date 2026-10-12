@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Collections.Generic;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -20,10 +20,12 @@ namespace Everlight.Tales.UI
         public string FormKey => "PreparationPage";
         [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
         private readonly List<CarryAvailableItem> _availableItems = new List<CarryAvailableItem>();
+        private PartDetailTooltip _partDetailTooltip;
 
         protected override void OnClose(bool isShutdown, object userData)
         {
             _availableItems.Clear();
+            _partDetailTooltip?.Hide();
             foreach (Button slot in CarrySlots) slot.GetComponent<CarrySlotDropTarget>()?.ResetForPool();
             base.OnClose(isShutdown, userData);
         }
@@ -54,6 +56,7 @@ namespace Everlight.Tales.UI
                 Rounds.text = "轮次：—";
                 PreviewSummary.text = "无待准备的事件";
                 CarryStatus.text = "没有待准备的携带选择";
+                _partDetailTooltip?.Hide();
                 for (int i = 0; i < CarrySlots.Length; i++) { CarrySlotLabels[i].text = "—"; CarrySlots[i].interactable = false; CarrySlots[i].GetComponent<CarrySlotVisual>().Bind(null, false, false); }
                 AutoFillKeys.interactable = false;
                 ConfirmButton.interactable = false;
@@ -68,12 +71,9 @@ namespace Everlight.Tales.UI
             Duration.text = "预计耗时：" + evt.TimeCost + " 格" + BuildBorrowedText(cfg);
             Rounds.text = "轮次：" + BuildRoundsText(evt.Level);
 
-            PreviewModel preview = new PreviewModel(cfg, evt.Level);
-            PreviewSummary.text = string.Format(
-                "半径 {0} · 固定元素 {1} · 关键件 {2}",
-                preview.BoardRadius, preview.FixedElements.Count, preview.KeyPieces.Count);
-
-            RenderPreview(preview);
+            PreviewSummary.text = BuildTaskOverview(evt, cfg);
+            RenderPreview(new PreviewModel(cfg, evt.Level));
+            _partDetailTooltip?.Hide();
 
             BuildAvailableList(session.PendingCarry);
             RefreshCarry();
@@ -228,7 +228,8 @@ namespace Everlight.Tales.UI
             else if (Contains(carry.KeyParts, part)) hint = JoinHint(hint, "本关关键件");
             item.Bind(part, PartName(part), form != null ? form.Description : PartCodexCatalog.UseHint(part),
                 _spriteCatalog.CurrentPart(part, form != null ? form.Id : null), form != null ? form.Name : "基础形态", hint,
-                Contains(config.PossibleAnomalyParts, part), unlocked > 1, OnAvailableClicked, OnFormClicked);
+                Contains(config.PossibleAnomalyParts, part), unlocked > 1, OnAvailableClicked, OnFormClicked,
+                OnAvailableLongPress, HideCarryDetail, id);
             item.SetKey(Contains(carry.KeyParts, part));
             for (int i = 0; i < CarrySelection.MaxSlots; i++) if (carry.SlotAt(i) == part) { item.SetSelectedSlot(i); break; }
         }
@@ -300,7 +301,9 @@ namespace Everlight.Tales.UI
             {
                 PartType part = carry.SlotAt(i);
                 FormConfig form = part != PartType.None ? FormCatalog.Get(carry.FormAt(part)) : null;
-                CarrySlotLabels[i].text = part == PartType.None ? (i + 1) + " · 空槽" : (i + 1) + " · " + PartName(part) + "\n" + (form != null ? form.Name : "基础形态") + "\n" + (form != null ? form.Description : PartCodexCatalog.UseHint(part));
+                CarrySlotLabels[i].text = part == PartType.None
+                    ? (i + 1) + " · 空槽"
+                    : PartName(part) + "·" + (form != null ? form.Name : "基础形态");
                 CarrySlots[i].interactable = true;
                 CarrySlots[i].GetComponent<CarrySlotVisual>().Bind(part == PartType.None ? null : _spriteCatalog.CurrentPart(part, form != null ? form.Id : null), part != PartType.None, Contains(carry.KeyParts, part));
             }
@@ -337,6 +340,115 @@ namespace Everlight.Tales.UI
 
             GF.UI.OpenUIForm(UIViews.BoardPage, UIParams.Create(session.IsFirstCaseEvent ? false : (bool?)null));
             OnClickClose();
+        }
+
+
+        private static string BuildTaskOverview(RepairEventConfig evt, LevelBoardConfig cfg)
+        {
+            var sb = new StringBuilder();
+            sb.Append("<color=#E0A858>维修目标</color>\n");
+            sb.Append(string.IsNullOrEmpty(cfg.Objective) ? evt.Name : cfg.Objective);
+            sb.Append("\n\n<color=#E0A858>特殊任务</color>\n");
+
+            bool hasGoal = false;
+            if (evt.Level != null && evt.Level.Rounds != null)
+            {
+                for (int i = 0; i < evt.Level.Rounds.Count; i++)
+                {
+                    RoundConfig round = evt.Level.Rounds[i];
+                    if (round.Goals == null) continue;
+                    foreach (SpecialGoalConfig goal in round.Goals)
+                    {
+                        hasGoal = true;
+                        sb.Append("第 ").Append(i + 1).Append(" 轮：").Append(goal.Id).Append(" ×").Append(goal.Required).Append('\n');
+                    }
+                }
+            }
+            if (cfg.FixedElements != null)
+            {
+                foreach (FixedElementConfig element in cfg.FixedElements)
+                {
+                    if (element.Goal == null) continue;
+                    hasGoal = true;
+                    sb.Append("盘面目标：").Append(FormatGoal(element.Goal)).Append('\n');
+                }
+            }
+            if (!hasGoal)
+            {
+                sb.Append("无额外特殊任务\n");
+            }
+
+            sb.Append("\n<color=#E0A858>完成条件</color>\n");
+            if (evt.Level == null || evt.Level.Rounds == null || evt.Level.Rounds.Count == 0)
+            {
+                sb.Append("无轮次配置");
+            }
+            else
+            {
+                for (int i = 0; i < evt.Level.Rounds.Count; i++)
+                {
+                    RoundConfig round = evt.Level.Rounds[i];
+                    if (i > 0) sb.Append('\n');
+                    sb.Append("第 ").Append(i + 1).Append(" 轮：").Append(round.TapCount).Append(" 拍内达到 ").Append(round.TargetScore).Append(" 分");
+                }
+            }
+
+            if (cfg.Duration > 0) sb.Append("\n预计耗时：").Append(cfg.Duration).Append(" 格");
+            if (cfg.KeyPieces != null && cfg.KeyPieces.Count > 0)
+            {
+                sb.Append("\n关键件：");
+                for (int i = 0; i < cfg.KeyPieces.Count; i++)
+                {
+                    if (i > 0) sb.Append('、');
+                    sb.Append(PartName(cfg.KeyPieces[i].PartType));
+                }
+            }
+            return sb.ToString();
+        }
+
+        private static string FormatGoal(GoalConfig goal)
+        {
+            switch (goal.Kind)
+            {
+                case GoalKind.Arrive: return goal.Id + "：到达目标格";
+                case GoalKind.Hold: return goal.Id + "：在目标格保持 " + goal.Required + " 拍";
+                case GoalKind.Order: return goal.Id + "：按顺序完成 " + goal.OrderLabels.Count + " 个目标格";
+                case GoalKind.PushedInto: return goal.Id + "：由普通推移送入目标格并锁定";
+                default: return goal.Id;
+            }
+        }
+
+        private void OnAvailableLongPress(PartType part, string formId, Vector2 screenPosition)
+        {
+            EnsurePartDetailTooltip();
+            _partDetailTooltip?.Show(part, formId, screenPosition);
+        }
+
+        private void HideCarryDetail()
+        {
+            _partDetailTooltip?.Hide();
+        }
+
+        private void EnsurePartDetailTooltip()
+        {
+            if (_partDetailTooltip != null || PartDetailTooltipPrefab == null)
+            {
+                return;
+            }
+
+            GameObject instance = Instantiate(PartDetailTooltipPrefab, transform, false);
+            instance.name = "PartDetailTooltip";
+            _partDetailTooltip = instance.GetComponent<PartDetailTooltip>();
+            if (_partDetailTooltip == null)
+            {
+                Debug.LogError("[PreparationPage] PartDetailTooltip 预制体缺少 PartDetailTooltip 组件。", this);
+                Destroy(instance);
+            }
+        }
+
+        private void HidePartDetail()
+        {
+            _partDetailTooltip?.Hide();
         }
 
         private static string PartName(PartType part)

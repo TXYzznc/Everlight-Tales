@@ -27,6 +27,8 @@ namespace Everlight.Tales.UI
         public RectTransform PreviewContent => _previewContent;
         [SerializeField] private RectTransform _availableContent;
         public RectTransform AvailableContent => _availableContent;
+        [SerializeField] private GameObject _partDetailTooltipPrefab;
+        public GameObject PartDetailTooltipPrefab => _partDetailTooltipPrefab;
         [SerializeField] private GameObject _availableItemTemplate;
         public GameObject AvailableItemTemplate => _availableItemTemplate;
         [SerializeField] private Button _confirmButton;

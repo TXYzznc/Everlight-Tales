@@ -114,11 +114,27 @@ namespace Everlight.Tales.UI
                 form.CarrySlots[slot].onClick.Invoke(); Require(!carry.Contains(candidate.Part), "槽位移除");
                 var drag = new PointerEventData(EventSystem.current) { pointerDrag = candidate.gameObject, pressPosition = Vector2.zero, position = new Vector2(160, 0) };
                 candidate.OnBeginDrag(drag);
+                FieldInfo ghostField = typeof(CarryAvailableItem).GetField("_ghost", BindingFlags.Instance | BindingFlags.NonPublic);
+                RectTransform ghost = (RectTransform)ghostField.GetValue(candidate);
+                CanvasGroup ghostGroup = ghost != null ? ghost.GetComponent<CanvasGroup>() : null;
+                Image ghostImage = ghost != null ? ghost.GetComponent<Image>() : null;
+                Require(candidate.IsDragging && ghost != null && ghostGroup != null && Mathf.Approximately(ghostGroup.alpha, 0.8f) &&
+                    !ghostGroup.blocksRaycasts && ghostImage != null && ghostImage.sprite != null && !ghostImage.raycastTarget,
+                    "横向拖拽创建 80% 半透明零件预览");
+                Vector3 ghostStart = ghost.position;
+                drag.position = new Vector2(220, 20);
+                candidate.OnDrag(drag);
+                Require((ghost.position - ghostStart).sqrMagnitude > 0.01f, "零件预览跟随鼠标位置");
+                drag.position = new Vector2(160, 0);
                 form.CarrySlots[5].GetComponent<CarrySlotDropTarget>().OnDrop(drag);
                 candidate.OnEndDrag(drag);
                 Require(carry.SlotAt(5) == candidate.Part, "真实投放处理器放入第六槽");
                 // 纵向拖动继续滚动，不能改变携带。
                 drag.position = new Vector2(0, 160); candidate.OnBeginDrag(drag); Require(!candidate.IsDragging, "纵向拖动归 ScrollRect"); candidate.OnEndDrag(drag);
+                // 纵向起步但离开列表视口时升级为跨区拖拽，预览不能丢失。
+                drag.position = new Vector2(0, 160); candidate.OnBeginDrag(drag); candidate.OnDrag(drag);
+                Require(candidate.IsDragging && ghostField.GetValue(candidate) != null, "离开列表视口后恢复零件预览");
+                candidate.OnEndDrag(drag);
                 foreach (CarryAvailableItem row in rows) if (!carry.Contains(row.Part) && !carry.IsFull) row.GetComponent<Button>().onClick.Invoke();
                 var overflow = rows.First(r => !carry.Contains(r.Part)); overflow.GetComponent<Button>().onClick.Invoke(); Require(carry.SelectedCount == 6 && !carry.Contains(overflow.Part), "满槽点击不改变携带");
                 var switchRow = rows.First(r => carry.KeyParts.Contains(r.Part) && FormCatalog.OfHost(r.Part).Any(f => FormService.IsUnlocked(WorldSession.Current.World, f.Id)));
@@ -139,7 +155,7 @@ namespace Everlight.Tales.UI
                 Require(evt != null && evt.Board.Entities.Any(e => e.PartType == switchedPart) && evt.Board.Entities.Where(e => e.PartType == switchedPart).All(e => e.FormId == localForm), "正式确认入场使用本关形态");
                 Require(evt.Board.Entities.Where(e => e.Kind == EntityKind.Part && string.IsNullOrEmpty(carry.FormAt(e.PartType))).All(e => e.FormId == null), "基础形态保持盘面 null 契约");
                 Require(FormService.GetCurrent(WorldSession.Current.World, switchedPart) == globalForm, "入场后当前使用不变");
-                Debug.Log("[SpecialItems][Carry] PASS pass=" + (pass + 1) + " rows=" + rows.Length + "; boundedWidth; persistentSelection; click/remove/drop/full/scroll; localForms; hiddenReset; rebuild; confirmedBoardForm; baseFormNullContract.");
+                Debug.Log("[SpecialItems][Carry] PASS pass=" + (pass + 1) + " rows=" + rows.Length + "; boundedWidth; persistentSelection; click/remove/drop/full/dragPreview/scroll; localForms; hiddenReset; rebuild; confirmedBoardForm; baseFormNullContract.");
                 return true;
             }
             catch (Exception ex) { Debug.LogError("[SpecialItems][Carry] FAIL " + ex); return false; }
