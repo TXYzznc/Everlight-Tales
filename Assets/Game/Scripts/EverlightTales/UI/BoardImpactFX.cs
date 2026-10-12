@@ -33,20 +33,22 @@ namespace Everlight.Tales.UI
         public void Setup(HexBoardView boardView, int boardRadius)
         {
             m_BoardView = boardView;
+            Transform fxRoot = boardView.FxRoot != null ? boardView.FxRoot : boardView.BoardRoot;
+            Transform overlayRoot = boardView.OverlayRoot != null ? boardView.OverlayRoot : boardView.BoardRoot;
 
             m_Shake = gameObject.AddComponent<ScreenShakeEffect>();
             m_Shake.SetTarget(boardView.BoardRoot);
 
             m_ComboPulse = gameObject.AddComponent<BoardHexPulseEffect>();
-            m_ComboPulse.Setup(boardView.OutlineRadius);
+            m_ComboPulse.Setup(boardView.OutlineRadius, fxRoot);
 
             m_Preview = gameObject.AddComponent<RotationPreviewRenderer>();
-            m_Preview.Setup(boardView.BoardRoot, boardView.CellSize, boardView.EntityScale);
+            m_Preview.Setup(overlayRoot, boardView.CellSize, boardView.EntityScale);
 
             m_ScorePopup = gameObject.AddComponent<ScorePopup>();
 
             m_Shockwave = gameObject.AddComponent<ShockwaveRingEffect>();
-            m_Shockwave.Setup(boardView.BoardRoot, boardView.OutlineRadius);
+            m_Shockwave.Setup(boardView.FxRoot, boardView.OutlineRadius);
 
             m_ButtonParticles = gameObject.AddComponent<ButtonParticlesEffect>();
         }

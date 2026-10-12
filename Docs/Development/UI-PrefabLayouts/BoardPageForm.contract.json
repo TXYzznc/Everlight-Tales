@@ -88,7 +88,11 @@
       },
       {
         "name": "board_root",
-        "components": [],
+        "components": [
+          {
+            "type": "BoardVisualRoot"
+          }
+        ],
         "anchorMin": [
           0,
           0
@@ -113,6 +117,99 @@
           1,
           1,
           1
+        ],
+        "children": [
+          {
+            "name": "BoardFoundation",
+            "components": [
+              {
+                "type": "Image",
+                "raycastTarget": false
+              }
+            ]
+          },
+          {
+            "name": "board_tiles",
+            "components": []
+          },
+          {
+            "name": "board_overlays",
+            "components": []
+          },
+          {
+            "name": "board_entities",
+            "components": [],
+            "children": [
+              {
+                "name": "EntityTemplate",
+                "components": [
+                  {
+                    "type": "HexagonGraphic"
+                  },
+                  {
+                    "type": "Button"
+                  }
+                ],
+                "active": false,
+                "children": [
+                  {
+                    "name": "EntityArt",
+                    "components": [
+                      {
+                        "type": "Image",
+                        "raycastTarget": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "board_outline",
+            "components": [
+              {
+                "type": "HexagonGraphic"
+              }
+            ],
+            "children": [
+              {
+                "name": "FrameArt",
+                "components": [
+                  {
+                    "type": "Image",
+                    "raycastTarget": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "board_edge_glow",
+            "components": [
+              {
+                "type": "HexagonGraphic"
+              },
+              {
+                "type": "CanvasGroup"
+              }
+            ],
+            "children": [
+              {
+                "name": "GlowArt",
+                "components": [
+                  {
+                    "type": "Image",
+                    "raycastTarget": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "board_fx",
+            "components": []
+          }
         ]
       },
       {
@@ -1219,185 +1316,6 @@
         ]
       },
       {
-        "name": "Txt_LeftPortrait",
-        "components": [
-          {
-            "type": "TextMeshProUGUI",
-            "text": "Txt_LeftPortrait",
-            "fontSize": 22,
-            "color": [
-              0.55,
-              0.58,
-              0.64,
-              1
-            ],
-            "raycastTarget": false,
-            "wordWrap": true
-          }
-        ],
-        "anchorMin": [
-          0.5,
-          0.5
-        ],
-        "anchorMax": [
-          0.5,
-          0.5
-        ],
-        "pivot": [
-          0.5,
-          0.5
-        ],
-        "sizeDelta": [
-          200,
-          360
-        ],
-        "anchoredPosition": [
-          -430,
-          240
-        ]
-      },
-      {
-        "name": "Txt_RightPortrait",
-        "components": [
-          {
-            "type": "TextMeshProUGUI",
-            "text": "Txt_RightPortrait",
-            "fontSize": 22,
-            "color": [
-              0.55,
-              0.58,
-              0.64,
-              1
-            ],
-            "raycastTarget": false,
-            "wordWrap": true
-          }
-        ],
-        "anchorMin": [
-          0.5,
-          0.5
-        ],
-        "anchorMax": [
-          0.5,
-          0.5
-        ],
-        "pivot": [
-          0.5,
-          0.5
-        ],
-        "sizeDelta": [
-          200,
-          360
-        ],
-        "anchoredPosition": [
-          430,
-          240
-        ]
-      },
-      {
-        "name": "Panel_FormPicker",
-        "active": false,
-        "components": [
-          {
-            "type": "Image",
-            "spritePath": "Assets/Game/Sprites/UI/九宫格/SHR-002对话框.png",
-            "color": [
-              0.09,
-              0.1,
-              0.125,
-              0.98
-            ],
-            "imageType": 1,
-            "raycastTarget": true,
-            "preserveAspect": false
-          }
-        ],
-        "anchorMin": [
-          0.5,
-          0.5
-        ],
-        "anchorMax": [
-          0.5,
-          0.5
-        ],
-        "pivot": [
-          0.5,
-          0.5
-        ],
-        "sizeDelta": [
-          560,
-          560
-        ],
-        "anchoredPosition": [
-          0,
-          60
-        ],
-        "children": [
-          {
-            "name": "Txt_FormPickerTitle",
-            "components": [
-              {
-                "type": "TextMeshProUGUI",
-                "text": "形态切换",
-                "fontSize": 30,
-                "color": [
-                  1,
-                  0.85,
-                  0.35,
-                  1
-                ],
-                "raycastTarget": false,
-                "wordWrap": false
-              }
-            ],
-            "anchorMin": [
-              0.5,
-              1
-            ],
-            "anchorMax": [
-              0.5,
-              1
-            ],
-            "pivot": [
-              0.5,
-              1
-            ],
-            "sizeDelta": [
-              480,
-              44
-            ],
-            "anchoredPosition": [
-              0,
-              -36
-            ]
-          },
-          {
-            "name": "List_FormOptions",
-            "components": [],
-            "anchorMin": [
-              0.5,
-              0.5
-            ],
-            "anchorMax": [
-              0.5,
-              0.5
-            ],
-            "pivot": [
-              0.5,
-              0.5
-            ],
-            "sizeDelta": [
-              480,
-              430
-            ],
-            "anchoredPosition": [
-              0,
-              -40
-            ]
-          }
-        ]
-      },
-      {
         "name": "Txt_HudRoundTap",
         "components": [
           {
@@ -1600,29 +1518,10 @@
       "path": "_hudEnergy"
     },
     {
-      "path": "_leftPortrait",
-      "node": "BoardPageForm/Txt_LeftPortrait",
-      "kind": "TextMeshProUGUI"
-    },
-    {
-      "path": "_rightPortrait",
-      "node": "BoardPageForm/Txt_RightPortrait",
-      "kind": "TextMeshProUGUI"
-    },
-    {
-      "node": "BoardPageForm/Panel_FormPicker",
+      "path": "_partDetailTooltipPrefab",
+      "node": "BoardPageForm",
       "kind": "GameObject",
-      "path": "_formPickerPanel"
-    },
-    {
-      "node": "BoardPageForm/Panel_FormPicker/Txt_FormPickerTitle",
-      "kind": "TextMeshProUGUI",
-      "path": "_formPickerTitle"
-    },
-    {
-      "node": "BoardPageForm/Panel_FormPicker/List_FormOptions",
-      "kind": "RectTransform",
-      "path": "_formPickerList"
+      "assetPath": "Assets/Game/Prefabs/UI/Item/PartDetailTooltip.prefab"
     },
     {
       "path": "_boardRoot",

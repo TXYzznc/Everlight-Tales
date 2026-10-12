@@ -7,8 +7,8 @@ using UnityEngine.UI;
 namespace Everlight.Tales.UI
 {
     /// <summary>
-    /// 盘面渲染视图（P1-014／P1-015）。程序化摆放蜂窝格（紧密连接的点顶小六边形）与在盘实体，
-    /// 外圈描出大六边形轮廓；并驱动「六相定势」旋转的弹簧动画——旋转只改重力方向，视觉上整盘随重力归位。
+    /// 盘面渲染视图（P1-014／P1-015）。复用预制体提供的静态盘面层和动态内容容器，
+    /// 摆放蜂窝格（紧密连接的点顶小六边形）与盘内实体，并驱动「六相定势」旋转的弹簧动画。
     /// 视图只读模型：外部调 <see cref="Refresh"/> 同步；本类不做结算。
     /// </summary>
     public sealed class HexBoardView : MonoBehaviour
@@ -34,6 +34,16 @@ namespace Everlight.Tales.UI
         private RectTransform m_BoardRoot;
 
         private RectTransform m_TileRoot;
+
+        private RectTransform m_EntityRoot;
+
+        private RectTransform m_OverlayRoot;
+
+        private RectTransform m_FxRoot;
+
+        private BoardVisualRoot m_VisualRoot;
+
+        private GameObject m_EntityTemplate;
 
         private HexagonGraphic m_Outline;
 
@@ -70,6 +80,12 @@ namespace Everlight.Tales.UI
         /// <summary>盘面根节点（含格／实体／轮廓／边缘流光），供特效层挂接与震动。</summary>
         public RectTransform BoardRoot => m_BoardRoot;
 
+        /// <summary>盘面动态叠加层容器，供首案标记与机械臂目标使用。</summary>
+        public RectTransform OverlayRoot => m_OverlayRoot != null ? m_OverlayRoot : m_BoardRoot;
+
+        /// <summary>盘面短时特效容器，随盘面一起旋转。</summary>
+        public RectTransform FxRoot => m_FxRoot != null ? m_FxRoot : m_BoardRoot;
+
         /// <summary>格子像素尺寸（外接圆半径）。</summary>
         public float CellSize => m_CellSize;
 
@@ -102,6 +118,20 @@ namespace Everlight.Tales.UI
         public Sprite GetStructureSprite(string key) => _spriteCatalog?.Get(key);
         public void Configure(UIFormalSpriteCatalog catalog, string eventId = null, RectTransform boardRoot = null)
         {
+            if (boardRoot != null && _configuredBoardRoot != boardRoot)
+            {
+                m_BoardRoot = null;
+                m_TileRoot = null;
+                m_EntityRoot = null;
+                m_OverlayRoot = null;
+                m_FxRoot = null;
+                m_VisualRoot = null;
+                m_EntityTemplate = null;
+                m_Outline = null;
+                m_EdgeGlow = null;
+                m_EdgeGlowGroup = null;
+            }
+
             _spriteCatalog = catalog;
             _eventId = eventId;
             _configuredBoardRoot = boardRoot;
@@ -116,6 +146,9 @@ namespace Everlight.Tales.UI
 
             EnsureRoots();
             ClearTiles();
+            ClearEntities();
+            ClearOverlays();
+            ResolveCellSize(board.BoardRadius);
 
             foreach (HexCoord cell in board.EnumerateNormal())
             {
@@ -135,9 +168,11 @@ namespace Everlight.Tales.UI
                     if (!region.TryEnter(cell) || _spriteCatalog == null) continue;
                     Sprite sprite = _spriteCatalog.Get("anomaly:" + region.Type);
                     if (sprite == null) continue;
-                    var maskRoot = new GameObject("AnomalyMask", typeof(RectTransform), typeof(HexagonGraphic), typeof(Mask));
-                    maskRoot.transform.SetParent(tile.transform, false);
-                    maskRoot.GetComponent<RectTransform>().sizeDelta = new Vector2(m_CellSize * 2, m_CellSize * 2);
+                    var maskRoot = new GameObject("AnomalyMask_" + cell.Q + "_" + cell.R, typeof(RectTransform), typeof(HexagonGraphic), typeof(Mask));
+                    maskRoot.transform.SetParent(m_OverlayRoot, false);
+                    RectTransform maskRect = maskRoot.GetComponent<RectTransform>();
+                    maskRect.anchoredPosition = HexLayout.AxialToPixel(cell, m_CellSize);
+                    maskRect.sizeDelta = new Vector2(m_CellSize * 2, m_CellSize * 2);
                     var maskShape = maskRoot.GetComponent<HexagonGraphic>(); maskShape.Circumradius = m_CellSize; maskShape.raycastTarget = false;
                     maskRoot.GetComponent<Mask>().showMaskGraphic = false;
                     BoardSpriteResolver.AddArt(maskRoot.transform, sprite, m_CellSize * 2);
@@ -178,26 +213,18 @@ namespace Everlight.Tales.UI
 
             foreach (BoardEntity entity in board.Entities)
             {
-                GameObject tile = CreateTile(
-                    "entity_" + entity.Id,
-                    HexLayout.AxialToPixel(entity.Coord, m_CellSize),
-                    m_CellSize * m_EntityScale,
-                    EntityVisuals.GetColor(entity),
-                    new Color(0f, 0f, 0f, 0.45f),
-                    0f,
-                    null);
+                GameObject tile = CreateEntityTile(entity);
                 _entityTiles.Add(entity.Id, tile);
-                BoardSpriteResolver.AddArt(tile.transform, BoardSpriteResolver.Resolve(_spriteCatalog, entity, _eventId),
-                    2f * m_CellSize * m_EntityScale,
-                    entity.ObstacleType == Everlight.Tales.Data.ObstacleType.TurningRail || entity.ObstacleType == Everlight.Tales.Data.ObstacleType.OneWayShutter ? -60f * (int)entity.PassDirection : 0f);
 
-                Button button = tile.AddComponent<Button>();
-                button.targetGraphic = tile.GetComponent<HexagonGraphic>();
+                Button button = tile.GetComponent<Button>();
                 if (_cellButtons.TryGetValue(entity.Coord, out Button cellButton))
                 {
-                    tile.AddComponent<EntityHoverRelay>().Bind(cellButton);
+                    EntityHoverRelay relay = tile.GetComponent<EntityHoverRelay>() ?? tile.AddComponent<EntityHoverRelay>();
+                    relay.Bind(cellButton);
                 }
+
                 BoardEntity captured = entity;
+                button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => EntityClicked?.Invoke(captured));
             }
 
@@ -205,9 +232,86 @@ namespace Everlight.Tales.UI
             ApplyRotation();
         }
 
+        private GameObject CreateEntityTile(BoardEntity entity)
+        {
+            GameObject tile;
+            if (m_EntityTemplate != null)
+            {
+                tile = Instantiate(m_EntityTemplate, m_EntityRoot, false);
+                tile.name = "entity_" + entity.Id;
+                tile.SetActive(true);
+            }
+            else
+            {
+                tile = CreateTile(
+                    "entity_" + entity.Id,
+                    HexLayout.AxialToPixel(entity.Coord, m_CellSize),
+                    m_CellSize * m_EntityScale,
+                    Color.clear,
+                    new Color(0f, 0f, 0f, 0.45f),
+                    0f,
+                    null,
+                    m_EntityRoot);
+                tile.AddComponent<Button>();
+            }
+
+            RectTransform rect = (RectTransform)tile.transform;
+            rect.anchoredPosition = HexLayout.AxialToPixel(entity.Coord, m_CellSize);
+            float radius = m_CellSize * m_EntityScale;
+            rect.sizeDelta = new Vector2(Mathf.Sqrt(3f) * radius, 2f * radius);
+
+            HexagonGraphic graphic = tile.GetComponent<HexagonGraphic>() ?? tile.AddComponent<HexagonGraphic>();
+            graphic.Circumradius = radius;
+            // 实体底层只负责点击命中，实际视觉由 EntityArt 图片提供。
+            graphic.color = Color.clear;
+            graphic.StrokeWidth = m_EntityTemplate != null ? graphic.StrokeWidth : 0f;
+            graphic.StrokeColor = new Color(0f, 0f, 0f, 0.45f);
+            graphic.raycastTarget = true;
+
+            Button button = tile.GetComponent<Button>() ?? tile.AddComponent<Button>();
+            button.targetGraphic = graphic;
+
+            Sprite sprite = BoardSpriteResolver.Resolve(_spriteCatalog, entity, _eventId);
+            Image art = tile.transform.Find("EntityArt")?.GetComponent<Image>();
+            if (art == null && sprite != null)
+            {
+                art = BoardSpriteResolver.AddArt(tile.transform, sprite, radius * 2f);
+            }
+
+            if (art != null)
+            {
+                art.sprite = sprite;
+                art.gameObject.SetActive(sprite != null);
+                art.raycastTarget = false;
+                art.preserveAspect = true;
+                art.rectTransform.sizeDelta = new Vector2(radius * 2f, radius * 2f);
+                art.rectTransform.localEulerAngles = entity.ObstacleType == Everlight.Tales.Data.ObstacleType.TurningRail
+                    || entity.ObstacleType == Everlight.Tales.Data.ObstacleType.OneWayShutter
+                    ? new Vector3(0f, 0f, -60f * (int)entity.PassDirection)
+                    : Vector3.zero;
+            }
+
+            return tile;
+        }
+
         public bool TryGetEntityTile(int id, out GameObject tile)
         {
             return _entityTiles.TryGetValue(id, out tile);
+        }
+
+        /// <summary>获取实体按钮在当前 Canvas 中的屏幕坐标，供页面级浮窗定位。</summary>
+        public bool TryGetEntityScreenPosition(int id, out Vector2 screenPosition)
+        {
+            screenPosition = default;
+            if (!_entityTiles.TryGetValue(id, out GameObject tile) || tile == null)
+            {
+                return false;
+            }
+
+            Canvas canvas = GetComponentInParent<Canvas>();
+            Camera camera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+            screenPosition = RectTransformUtility.WorldToScreenPoint(camera, tile.transform.position);
+            return true;
         }
 
         /// <summary>按当前重力方向更新视觉旋转目标（供旋转按钮／装配后调用）。</summary>
@@ -271,12 +375,42 @@ namespace Everlight.Tales.UI
             {
                 m_BoardRoot.localRotation = Quaternion.Euler(0f, 0f, _visualAngle);
             }
+
+            ApplyEntityCounterRotation();
         }
 
-        private GameObject CreateTile(string name, Vector2 position, float radius, Color color, Color stroke, float strokeWidth, HexBoardShape clipShape)
+        /// <summary>
+        /// 盘面位置随 <c>board_root</c> 旋转，但实体图片保持页面／世界空间的正向。
+        /// 只抵消实体自身的角度，不改变实体随盘面旋转后的坐标位置。
+        /// </summary>
+        private void ApplyEntityCounterRotation()
+        {
+            if (m_BoardRoot == null || m_EntityRoot == null || _entityTiles.Count == 0)
+            {
+                return;
+            }
+
+            Quaternion counterRotation = Quaternion.Inverse(m_EntityRoot.localRotation)
+                * Quaternion.Inverse(m_BoardRoot.localRotation);
+            foreach (GameObject tile in _entityTiles.Values)
+            {
+                if (tile == null)
+                {
+                    continue;
+                }
+
+                RectTransform rect = tile.transform as RectTransform;
+                if (rect != null)
+                {
+                    rect.localRotation = counterRotation;
+                }
+            }
+        }
+
+        private GameObject CreateTile(string name, Vector2 position, float radius, Color color, Color stroke, float strokeWidth, HexBoardShape clipShape, Transform parent = null)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer));
-            go.transform.SetParent(m_TileRoot, false);
+            go.transform.SetParent(parent != null ? parent : m_TileRoot, false);
             RectTransform rt = (RectTransform)go.transform;
             rt.anchoredPosition = position;
             float w = Mathf.Sqrt(3f) * radius;
@@ -316,8 +450,10 @@ namespace Everlight.Tales.UI
 
         private void RebuildOutline(int boardRadius)
         {
-            // 点顶大六边形轮廓：顶点到中心 = 2 · OuterRadius · CellSize（与参考项目 circumradius 一致）。
-            float outlineRadius = 2f * (boardRadius + 1) * m_CellSize;
+            // 预制体提供固定外框时，外框半径作为设计尺寸；旧预制体继续使用原来的计算方式。
+            float outlineRadius = m_Outline != null && m_VisualRoot != null && m_VisualRoot.IsConfigured
+                ? m_Outline.Circumradius
+                : 2f * (boardRadius + 1) * m_CellSize;
             OutlineRadius = outlineRadius;
 
             if (m_Outline == null)
@@ -337,7 +473,8 @@ namespace Everlight.Tales.UI
             m_Outline.StrokeWidth = 2.5f;
             m_Outline.color = Color.clear;
             m_Outline.StrokeColor = m_OutlineColor;
-            Image frame = SetStructureArt(m_Outline.transform, "FrameArt", "SCR-07-04", outlineRadius * 2f * 1456f / 1360f);
+            // FrameArt 是预制体静态视觉，保留其 RectTransform；运行时只更新 Sprite 和显示属性。
+            Image frame = SetStructureArt(m_Outline.transform, "FrameArt", "SCR-07-04", outlineRadius * 2f * 1456f / 1360f, true);
             if (frame != null) m_Outline.StrokeWidth = 0f;
             Image foundation = SetStructureArt(m_BoardRoot, "BoardFoundation", "SCR-07-06", outlineRadius * 2f * 1500f / 1360f);
             if (foundation != null) foundation.transform.SetAsFirstSibling();
@@ -378,7 +515,21 @@ namespace Everlight.Tales.UI
             //     { UpdateGravityArt((HexDirection)i); break; }
         }
 
-        private Image SetStructureArt(Transform parent, string name, string key, float size)
+        private void ResolveCellSize(int boardRadius)
+        {
+            if (m_Outline == null || m_VisualRoot == null || !m_VisualRoot.IsConfigured || boardRadius < 0)
+            {
+                return;
+            }
+
+            float divisor = 2f * (boardRadius + 1);
+            if (divisor > 0f && m_Outline.Circumradius > 0f)
+            {
+                m_CellSize = m_Outline.Circumradius / divisor;
+            }
+        }
+
+        private Image SetStructureArt(Transform parent, string name, string key, float size, bool preserveRectTransform = false)
         {
             Sprite sprite = _spriteCatalog?.Get(key);
             if (sprite == null) return null;
@@ -394,7 +545,10 @@ namespace Everlight.Tales.UI
             image.color = Color.white;
             image.raycastTarget = false;
             image.preserveAspect = true;
-            image.rectTransform.sizeDelta = new Vector2(size, size);
+            if (!preserveRectTransform)
+            {
+                image.rectTransform.sizeDelta = new Vector2(size, size);
+            }
             return image;
         }
 
@@ -414,7 +568,7 @@ namespace Everlight.Tales.UI
 
         public void ShowArmTargets(BoardState board, BoardEntity selected, bool enabled)
         {
-            if (m_TileRoot == null || board == null) return;
+            if (m_TileRoot == null || m_OverlayRoot == null || board == null) return;
             foreach (HexCoord cell in board.EnumerateNormal())
             {
                 Transform tile = m_TileRoot.Find("cell_" + cell.Q + "_" + cell.R);
@@ -423,9 +577,14 @@ namespace Everlight.Tales.UI
                 if (surface != null) surface.overrideSprite = enabled && selected != null && selected.Coord == cell
                     ? _spriteCatalog?.Get("SCR-07-01-selected") : null;
                 bool target = enabled && selected != null && selected.IsMovable && board.EntityAt(cell) == null;
-                Transform existing = tile.Find("ArmTargetArt");
-                Image art = target ? SetStructureArt(tile, "ArmTargetArt", "SCR-07-03", m_CellSize * 2f) : null;
-                if (art != null) art.transform.SetAsLastSibling();
+                string targetName = "ArmTargetArt_" + cell.Q + "_" + cell.R;
+                Transform existing = m_OverlayRoot.Find(targetName);
+                Image art = target ? SetStructureArt(m_OverlayRoot, targetName, "SCR-07-03", m_CellSize * 2f) : null;
+                if (art != null)
+                {
+                    art.rectTransform.anchoredPosition = HexLayout.AxialToPixel(cell, m_CellSize);
+                    art.transform.SetAsLastSibling();
+                }
                 if (existing != null) existing.gameObject.SetActive(target);
             }
         }
@@ -450,6 +609,24 @@ namespace Everlight.Tales.UI
                 }
             }
 
+            if (m_VisualRoot == null && m_BoardRoot != null)
+            {
+                m_VisualRoot = m_BoardRoot.GetComponent<BoardVisualRoot>();
+            }
+
+            if (m_VisualRoot != null && m_VisualRoot.IsConfigured)
+            {
+                m_TileRoot = m_VisualRoot.TileRoot;
+                m_EntityRoot = m_VisualRoot.EntityRoot;
+                m_OverlayRoot = m_VisualRoot.OverlayRoot;
+                m_FxRoot = m_VisualRoot.FxRoot;
+                m_Outline = m_VisualRoot.Outline;
+                m_EdgeGlow = m_VisualRoot.EdgeGlow;
+                m_EdgeGlowGroup = m_VisualRoot.EdgeGlowGroup;
+                m_EntityTemplate = m_VisualRoot.EntityTemplate;
+                return;
+            }
+
             if (m_TileRoot == null)
             {
                 m_TileRoot = m_BoardRoot.Find("board_tiles") as RectTransform;
@@ -464,6 +641,39 @@ namespace Everlight.Tales.UI
                     m_TileRoot.sizeDelta = Vector2.zero;
                 }
             }
+
+            if (m_EntityRoot == null)
+            {
+                m_EntityRoot = EnsureRuntimeRoot("board_entities");
+            }
+
+            if (m_OverlayRoot == null)
+            {
+                m_OverlayRoot = EnsureRuntimeRoot("board_overlays");
+            }
+
+            if (m_FxRoot == null)
+            {
+                m_FxRoot = EnsureRuntimeRoot("board_fx");
+            }
+        }
+
+        private RectTransform EnsureRuntimeRoot(string name)
+        {
+            RectTransform root = m_BoardRoot.Find(name) as RectTransform;
+            if (root != null)
+            {
+                return root;
+            }
+
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(m_BoardRoot, false);
+            root = (RectTransform)go.transform;
+            root.anchorMin = Vector2.zero;
+            root.anchorMax = Vector2.one;
+            root.anchoredPosition = Vector2.zero;
+            root.sizeDelta = Vector2.zero;
+            return root;
         }
 
         private void ClearTiles()
@@ -479,6 +689,38 @@ namespace Everlight.Tales.UI
             for (int i = m_TileRoot.childCount - 1; i >= 0; i--)
             {
                 Destroy(m_TileRoot.GetChild(i).gameObject);
+            }
+        }
+
+        private void ClearEntities()
+        {
+            if (m_EntityRoot == null)
+            {
+                return;
+            }
+
+            for (int i = m_EntityRoot.childCount - 1; i >= 0; i--)
+            {
+                Transform child = m_EntityRoot.GetChild(i);
+                if (child.gameObject == m_EntityTemplate)
+                {
+                    continue;
+                }
+
+                Destroy(child.gameObject);
+            }
+        }
+
+        private void ClearOverlays()
+        {
+            if (m_OverlayRoot == null)
+            {
+                return;
+            }
+
+            for (int i = m_OverlayRoot.childCount - 1; i >= 0; i--)
+            {
+                Destroy(m_OverlayRoot.GetChild(i).gameObject);
             }
         }
 

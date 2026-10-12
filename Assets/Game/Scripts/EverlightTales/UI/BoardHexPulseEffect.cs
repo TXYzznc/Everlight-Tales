@@ -44,10 +44,13 @@ namespace Everlight.Tales.UI
 
         private int _combo;
 
+        private Transform _root;
+
         /// <summary>注入轮廓半径（像素）；环以该半径为最大层基准。</summary>
-        public void Setup(float outerRadius)
+        public void Setup(float outerRadius, Transform root = null)
         {
             _outerRadius = outerRadius;
+            _root = root != null ? root : transform;
             EnsureRings();
             ApplyHidden();
         }
@@ -124,7 +127,7 @@ namespace Everlight.Tales.UI
                 }
 
                 var go = new GameObject("combo_pulse_" + i, typeof(RectTransform), typeof(CanvasRenderer));
-                go.transform.SetParent(transform, false);
+                go.transform.SetParent(_root != null ? _root : transform, false);
                 RectTransform rt = (RectTransform)go.transform;
                 rt.anchoredPosition = Vector2.zero;
                 float w = Mathf.Sqrt(3f) * _outerRadius;
