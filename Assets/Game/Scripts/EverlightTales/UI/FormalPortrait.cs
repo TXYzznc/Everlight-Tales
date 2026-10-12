@@ -12,7 +12,7 @@ namespace Everlight.Tales.UI
         {
             if (_identity == identity) return;
             _identity = identity;
-            _image.sprite = identity == "玩家" || identity == "沈遥" ? _spriteCatalog.Get(identity) : null;
+            _image.sprite = _spriteCatalog != null && !string.IsNullOrEmpty(identity) ? _spriteCatalog.Get(identity) : null;
             _image.enabled = _image.sprite != null;
         }
         private void OnDisable() { _identity = null; if (_image != null) _image.enabled = false; }

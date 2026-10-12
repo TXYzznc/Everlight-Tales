@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 namespace Everlight.Tales.UI
 {
@@ -9,8 +10,18 @@ namespace Everlight.Tales.UI
     {
         public string FormKey => "DialoguePage";
 
-        [SerializeField] private FormalPortrait _portrait;
-        public void SetSpeaker(string identity) => _portrait.Show(identity);
+        private const string PlayerIdentity = "玩家";
+
+        [SerializeField] private FormalPortrait _playerPortrait;
+        [SerializeField] private FormalPortrait _otherPortrait;
+
+        /// <summary>只显示当前说话人：玩家固定在左侧，其他身份固定在右侧。</summary>
+        public void SetSpeaker(string identity)
+        {
+            bool isPlayer = string.Equals(identity, PlayerIdentity, StringComparison.Ordinal);
+            if (_playerPortrait != null) _playerPortrait.Show(isPlayer ? identity : null);
+            if (_otherPortrait != null) _otherPortrait.Show(isPlayer ? null : identity);
+        }
         public void SetDialogue(string speaker, string content)
         {
             SetSpeaker(speaker);
@@ -47,6 +58,7 @@ namespace Everlight.Tales.UI
             {
                 m_DialogView.BindStaticLayout(m_TitleText, m_ContentText, m_Buttons, m_ButtonLabels);
             }
+            SetSpeaker(null);
             OpenDialogueData();
         }
     }
