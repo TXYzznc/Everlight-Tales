@@ -53,11 +53,21 @@ namespace Everlight.Tales.UI
     /// </summary>
     public static class CodexLayout
     {
-        /// <summary>图鉴总条数：20 通用零件 + 15 怪谈形态。</summary>
-        public const int TotalCount = 35;
+        /// <summary>图鉴总条数，随已安装的零件与形态配置计算。</summary>
+        public static int TotalCount => PartCount + FormCount;
 
-        public const int PartCount = 20;
-        public const int FormCount = 15;
+        public static int PartCount => PartCodexCatalog.All().Count;
+
+        public static int FormCount
+        {
+            get
+            {
+                int count = 0;
+                foreach (FormConfig form in FormCatalog.All())
+                    if (form.Kind == FormKind.M) count++;
+                return count;
+            }
+        }
 
         /// <summary>通用零件页：20 条，按 P-ID 升序。</summary>
         public static IReadOnlyList<CodexEntry> Parts(WorldState world)

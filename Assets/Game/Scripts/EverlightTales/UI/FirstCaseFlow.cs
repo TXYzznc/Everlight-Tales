@@ -26,11 +26,13 @@ namespace Everlight.Tales.UI
             WorldSession owner = WorldSession.Current;
             if (owner?.GetCase(FirstCaseContent.CaseId)?.Kind != CaseStateKind.Investigating
                 || !TimePeriod.IsNight(owner.Time.Period)) return;
-            InvestigationPageForm.Open(new InvestigationPageData("舞蹈教室 · 没有结束的排练", new[]
+            CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
+            if (caseEvent == null) return;
+            InvestigationPageForm.Open(new InvestigationPageData(caseEvent.InvestigationPageTitle, new[]
             {
-                new InvestigationView.Hotspot { Name = "音乐已经停止", Position = new Vector2(0.22f, 0.65f) },
-                new InvestigationView.Hotspot { Name = "鞋印仍在增加", Position = new Vector2(0.75f, 0.4f) },
-                new InvestigationView.Hotspot { Name = "反复重来的四拍步法", Position = new Vector2(0.25f, 0.2f) },
+                new InvestigationView.Hotspot { Name = caseEvent.Hotspot1Name, Position = new Vector2(caseEvent.Hotspot1X, caseEvent.Hotspot1Y) },
+                new InvestigationView.Hotspot { Name = caseEvent.Hotspot2Name, Position = new Vector2(caseEvent.Hotspot2X, caseEvent.Hotspot2Y) },
+                new InvestigationView.Hotspot { Name = caseEvent.Hotspot3Name, Position = new Vector2(caseEvent.Hotspot3X, caseEvent.Hotspot3Y) },
             }, () =>
             {
                 if (owner != WorldSession.Current || !owner.ConfirmFirstCaseInvestigation()) return;

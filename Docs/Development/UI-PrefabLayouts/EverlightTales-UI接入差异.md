@@ -31,8 +31,8 @@
 
 - `BoardPage` 的操作按钮、结算入口、暂停菜单和结果文本已迁移到 `BoardPageForm.contract.json`；盘面网格和实体视图仍由棋盘系统运行时生成。
 - `BoardPage` 的事件标题、得分、轮次和能量 HUD 文本已加入契约绑定并由 `BoardPage` 刷新，盘面网格/实体仍保持数据驱动的动态生成。
-- `BoardPage` 两侧立绘占位已加入契约（`Txt_LeftPortrait` / `Txt_RightPortrait`），运行时不再创建页面立绘占位节点；正式人物资源可直接替换对应节点。
-- `BoardPage` 形态选择器的面板、标题和选项列表根节点已加入契约（`Panel_FormPicker`），运行时仅生成可用形态选项按钮。
+- `BoardPage` 不再包含立绘或立绘占位节点；人物表现统一由带遮罩的 `DialoguePage` 承载。`DialoguePage` 固定左侧玩家与右侧其他对象两个画像槽位，每句只显示当前说话对象。
+- `BoardPage` 不再提供局内形态切换。零件普通点击运行时实例化通用 `PartDetailTooltip` 详情浮窗；机械臂模式优先走实体搬动逻辑。
 - `BoardHUD` 已绑定契约中的轮次、得分、目标、能量和机械臂文本节点，不再重复创建 HUD 文本对象。
 - 序章覆盖层已固定到 `MainPageShell` 的 `Panel_OpeningOverlay`，包含字幕和继续/跳过按钮；运行时仅驱动序章步骤和显隐。
 - MainPageShell 五个主导航页签已绑定正式图标：地图、任务、家园、工作台、设置；图标作为 `Img_Icon` 子节点写入 Prefab。
@@ -47,7 +47,7 @@
 - 新增独立 `ArchivePageForm` 契约与 `ArchivePage.prefab`，固定陈列/档案标题和列表根节点；陈列物与拥有物概览继续由 `ArchivePanel` 动态刷新。
 - 新增独立 `GuestPageForm` 契约与 `GuestPage.prefab`，固定来客内容根节点；感谢领取、当天委托和改装入口继续由 `GuestPanel` 动态生成。
 - 新增独立 `ServicePageForm` 契约与 `ServicePage.prefab`，固定服务内容根节点；配装、恢复面板和设置快捷入口继续由 `ServicePanel` 接线。
-- 新增独立 `DialoguePageForm` 契约与 `DialoguePage.prefab`，固定模态遮罩、标题、正文和三组选项按钮；`DialogView` 仅绑定这些静态节点并注入文案与回调。
+- 新增独立 `DialoguePageForm` 契约与 `DialoguePage.prefab`，固定模态遮罩、左右画像槽位、标题、正文和三组选项按钮；`DialoguePageForm` 按当前说话人互斥切换两侧画像，`DialogView` 继续负责文案与回调。
 - 新增独立 `ProloguePageForm` 契约与 `ProloguePage.prefab`，固定序章全屏背景、字幕和继续/跳过按钮；步骤推进与完成回调继续由 `OpeningOverlay` 驱动。
 - 新增独立 `InvestigationPageForm` 契约与 `InvestigationPage.prefab`，固定调查标题、场景区域和完成按钮；调查热点仍按调查配置动态生成并由 `InvestigationView` 计数确认。
 - 新增独立 `RecoveryPageForm` 契约与 `RecoveryPage.prefab`，固定恢复状态、继续维修和放弃撤退按钮；恢复判定仍由 `RecoveryService`/`WorldSession` 提供。

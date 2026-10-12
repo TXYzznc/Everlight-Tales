@@ -53,13 +53,7 @@ namespace Everlight.Tales.UI
         /// 投放门槛（D-061）：T-G01=L-01 已完成 + 0 次成功普通维修；T-G02/T-G03=L-01 已完成 + 1 次；
         /// T-G04=L-01 已完成 + 2 次。门槛满足才播种（RefreshModTasks），试机成功推进、领奖发图样。
         /// </summary>
-        public static IReadOnlyList<TaskConfig> ModTaskConfigs { get; } = new[]
-        {
-            new TaskConfig("TASK-MOD-001", "改装·贯通撞锤", 40, new[] { "T-G01" }, false, "周衡", "为惯性撞锤打造贯通形态：力从另一头出来。", 1, "L-01", 0, "home"),
-            new TaskConfig("TASK-MOD-002", "改装·横推撞锤", 40, new[] { "T-G02" }, false, "周衡", "为惯性撞锤打造横推形态：一边输入，两边接应。", 1, "L-01", 1, "home"),
-            new TaskConfig("TASK-MOD-003", "改装·轴向线圈", 40, new[] { "T-G03" }, false, "周衡", "为爆破线圈打造轴向形态：隔着空隙传过去。", 1, "L-01", 1, "home"),
-            new TaskConfig("TASK-MOD-004", "改装·定时线圈", 40, new[] { "T-G04" }, false, "周衡", "为爆破线圈打造定时形态：把这一拍留到下一拍。", 1, "L-01", 2, "home"),
-        };
+        public static IReadOnlyList<TaskConfig> ModTaskConfigs => TaskCatalog.All;
 
         public static WorldSession Current { get; private set; }
 
@@ -148,8 +142,10 @@ namespace Everlight.Tales.UI
             }
             redShoe.Kind = CaseStateKind.AwaitingRevisit;
             redShoe.CurrentStage = 3;
-            redShoe.Config.RevisitBlueprints = new[] { "L-01" };
-            redShoe.Config.RevisitFee = 120;
+            CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
+            if (caseEvent == null) throw new InvalidOperationException("首案事件配置尚未加载：" + FirstCaseContent.EventId);
+            redShoe.Config.RevisitBlueprints = new[] { caseEvent.RevisitBlueprintKey };
+            redShoe.Config.RevisitFee = caseEvent.RevisitFee;
             Debug.Log("[UIValidationHarness] HomePage 测试数据：homeSupply=" + _supply.Count + ", redShoe=" + redShoe.Kind + ", period=" + Time.Period);
         }
 
@@ -159,6 +155,7 @@ namespace Everlight.Tales.UI
         /// <summary>新档：建世界 + 开局地图 + 初始零件 + 刷新供给。</summary>
         public static WorldSession NewGame(int seed, int slot = 1)
         {
+            GameConfigRuntime.EnsureLoaded();
             var s = new WorldSession
             {
                 World = new WorldState(),
@@ -182,6 +179,7 @@ namespace Everlight.Tales.UI
         /// <summary>有存档则恢复，无存档则新档（slot 默认 1，兼容原单存档入口）。</summary>
         public static WorldSession LoadOrNew(int seed, int slot = 1)
         {
+            GameConfigRuntime.EnsureLoaded();
             return HasSave(slot) ? Restore(seed, slot) : NewGame(seed, slot);
         }
 
@@ -558,15 +556,11 @@ namespace Everlight.Tales.UI
                 return null;
             }
 
-            created.Config.RevisitBlueprints = new[] { "L-01" };
-            created.Config.RevisitMaterials = new FormMaterialCost[]
-            {
-                new FormMaterialCost("MT-002", 2),
-                new FormMaterialCost("MT-004", 2),
-                new FormMaterialCost("MT-005", 1),
-                new FormMaterialCost("MT-006", 1, "L-01"),
-            };
-            created.Config.RevisitFee = 120;
+            CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
+            if (caseEvent == null) throw new InvalidOperationException("首案事件配置尚未加载：" + FirstCaseContent.EventId);
+            created.Config.RevisitBlueprints = new[] { caseEvent.RevisitBlueprintKey };
+            created.Config.RevisitMaterials = RewardMaterialCatalog.ForOwner("L-01");
+            created.Config.RevisitFee = caseEvent.RevisitFee;
 
             WalkToResolved(created);
             World.Cases.Add(created);

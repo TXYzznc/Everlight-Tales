@@ -17,11 +17,33 @@ namespace Everlight.Tales.UI
             InitializeHostedPage();
         }
 
+        protected override void OnResume()
+        {
+            base.OnResume();
+            // UIForm 复用时，UIFormBase.OnClose 会回收工作台的动态 Item；
+            // 恢复时必须重新注册对象池并刷新当前子页签，避免只显示空的页签壳。
+            if (m_HostedPageInitialized && m_WorkbenchPanel != null)
+            {
+                Debug.Log($"[UI诊断][WorkbenchPage] OnResume 刷新工作台 id={Id}", this);
+                m_WorkbenchPanel.BindStaticLayout();
+                m_WorkbenchPanel.Build();
+                m_WorkbenchPanel.Refresh();
+            }
+        }
+
         public void InitializeHostedPage()
         {
             if (m_HostedPageInitialized)
             {
-                Debug.Log($"[UI诊断][WorkbenchPage] 跳过重复初始化 id={Id}", this);
+                // OpenCallback 在重新挂载时也会调用此契约；页面复用后需要重建
+                // 已被 UIFormBase.OnClose 回收的动态 Item。
+                if (m_WorkbenchPanel != null)
+                {
+                    m_WorkbenchPanel.BindStaticLayout();
+                    m_WorkbenchPanel.Build();
+                    m_WorkbenchPanel.Refresh();
+                }
+                Debug.Log($"[UI诊断][WorkbenchPage] 重复初始化转为刷新 id={Id}", this);
                 return;
             }
             WorldSession session = WorldSession.Current;

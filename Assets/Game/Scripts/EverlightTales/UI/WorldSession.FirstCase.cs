@@ -60,16 +60,19 @@ namespace Everlight.Tales.UI
 
         private static void ConfigureFirstCase(CaseState state)
         {
-            state.Config.TotalStages = 1;
-            state.Config.FirstPlace = FirstCaseContent.SceneId;
-            state.Config.RevisitFee = 120;
-            // 沿用当前运行链的回访图样与材料，不在美术接入批次改经济投放。
-            state.Config.RevisitBlueprints = new[] { FirstCaseContent.CaseId };
-            state.Config.RevisitMaterials = new[]
+            CaseConfig configuredCase = CaseCatalog.Get(FirstCaseContent.CaseId);
+            CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
+            if (configuredCase != null)
             {
-                new FormMaterialCost("MT-002", 2), new FormMaterialCost("MT-004", 2),
-                new FormMaterialCost("MT-005", 1), new FormMaterialCost("MT-006", 1, FirstCaseContent.CaseId),
-            };
+                state.Config.TotalStages = configuredCase.TotalStages;
+                state.Config.FirstPlace = configuredCase.FirstPlace;
+                state.Config.Source = configuredCase.Source;
+            }
+            if (caseEvent == null) throw new InvalidOperationException("首案事件配置尚未加载：" + FirstCaseContent.EventId);
+            state.Config.RevisitFee = caseEvent.RevisitFee;
+            // 回访图样与材料由 Meta/RewardMaterialTable 配置，账号状态只保存领取结果。
+            state.Config.RevisitBlueprints = new[] { caseEvent.RevisitBlueprintKey };
+            state.Config.RevisitMaterials = RewardMaterialCatalog.ForOwner(FirstCaseContent.CaseId);
         }
 
         public LevelBoardConfig PrepareFirstCase()
@@ -77,6 +80,8 @@ namespace Everlight.Tales.UI
             if (GetCase(FirstCaseContent.CaseId)?.Kind != CaseStateKind.AwaitingRepair
                 || !TimePeriod.IsNight(Time.Period)) return null;
             RedShoeLevelConfig config = RedShoeLevelConfig.Tutorial();
+            LevelPreset preset = LevelPresetCatalog.Get("REDSHOE");
+            if (preset == null) return null;
             var keys = new List<KeyPieceConfig>();
             var types = new List<PartType>();
             foreach (RedShoePartPlacement part in config.InitialParts)
@@ -84,15 +89,12 @@ namespace Everlight.Tales.UI
                 keys.Add(new KeyPieceConfig(part.PartType, part.Coord));
                 if (!types.Contains(part.PartType)) types.Add(part.PartType);
             }
-            PendingEventConfig = new RepairEventConfig(FirstCaseContent.EventId, "停不下来的排练", config.TimeCost,
+            CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
+            if (caseEvent == null) return null;
+            PendingEventConfig = new RepairEventConfig(FirstCaseContent.EventId, caseEvent.RepairTitle, caseEvent.RepairTimeCost,
                 RedShoeLevelBuilder.CreateLevelConfig(config), initialArmMoves: config.InitialArmMoves);
-            CurrentBoardConfig = new LevelBoardConfig("停不下来的排练", config.BoardRadius, keys, types,
-                config.InitialParts.Count, config.InitialArmMoves, borrowedParts: new[] { PartType.RivetPliers },
-                fixedElements: new[] { new FixedElementConfig(FixedElementKind.RepairTarget, config.RedShoe.BoxCoord,
-                    repairTarget: new RepairTargetConfig(new[] { PartType.RivetPliers }, config.RedShoe.BoxRequired, 2)) },
-                objective: "导流→与沈遥分离→维修封存匣→封存红鞋", duration: config.TimeCost);
-            PendingCarry = new CarrySelection(new[] { PartType.InertiaHammer, PartType.MeteringRatchet, PartType.BlastCoil },
-                new[] { PartType.RivetPliers }, types, World.CurrentForms);
+            CurrentBoardConfig = preset.Board;
+            PendingCarry = new CarrySelection(preset.Board.CarryPool, preset.Board.BorrowedParts, types, World.CurrentForms);
             return CurrentBoardConfig;
         }
 
@@ -114,9 +116,20 @@ namespace Everlight.Tales.UI
 
         public bool IsCurrentSpecialGoalMet()
         {
-            return IsFirstCaseEvent ? CurrentRedShoeLevel != null && RedShoeRoundEvaluator.IsRoundComplete(
-                CurrentRedShoeLevel.Config.Rounds[CurrentEvent.Level.RoundIndex], CurrentRedShoeLevel)
-                : CurrentEvent != null && RollerDoorEvent.IsGatePushedIn(CurrentEvent.Board);
+            if (CurrentEvent == null)
+            {
+                return true;
+            }
+
+            if (IsFirstCaseEvent)
+            {
+                return CurrentRedShoeLevel != null && RedShoeRoundEvaluator.IsRoundComplete(
+                    CurrentRedShoeLevel.Config.Rounds[CurrentEvent.Level.RoundIndex], CurrentRedShoeLevel);
+            }
+
+            // EV-N01 的特殊目标是盘面上的门轴联系标记；没有事件专属判定的普通维修事件不应被误判失败。
+            return CurrentEvent.Config == null || CurrentEvent.Config.Id != "EV-N01"
+                || RollerDoorEvent.IsGatePushedIn(CurrentEvent.Board);
         }
 
         private void SettleFirstCase(SettlementOutcomeKind outcome)
@@ -127,9 +140,14 @@ namespace Everlight.Tales.UI
             {
                 if (!CaseStateMachine.ResolveSuccess(state, true)) return;
                 RevisitService.OpenRevisit(state);
-                World.OwnedParts.Add(PartType.RivetPliers);
-                World.KnownParts.Remove(PartType.RivetPliers);
-                AddDisplayItem(FirstCaseContent.CaseId, "红舞鞋（已封存）", DisplayKind.RepairCompletion, FirstCaseContent.CaseId);
+                CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
+                PartType completionPart = caseEvent == null ? PartType.None : (PartType)caseEvent.CompletionPartKind;
+                if (completionPart != PartType.None)
+                {
+                    World.OwnedParts.Add(completionPart);
+                    World.KnownParts.Remove(completionPart);
+                }
+                AddDisplayItem(FirstCaseContent.CaseId, state.Config.Name + "（已封存）", DisplayKind.RepairCompletion, FirstCaseContent.CaseId);
                 RefreshModTasks(World);
             }
             else CaseStateMachine.FailRetreat(state);

@@ -26,6 +26,7 @@ namespace Everlight.Tales.UI
 
         private bool m_Finished;
         private bool m_StaticRoot;
+        private string m_LastSubtitle;
 
         public void BindStaticLayout()
         {
@@ -37,6 +38,7 @@ namespace Everlight.Tales.UI
         public void Play(IReadOnlyList<PrologueStepConfig> steps, Action onComplete)
         {
             m_Finished = false;
+            m_LastSubtitle = null;
             if (m_ActionLabel != null) m_ActionLabel.text = "跳过";
             m_OnComplete = onComplete;
             m_Sequence = new OpeningSequence(steps);
@@ -70,9 +72,14 @@ namespace Everlight.Tales.UI
             if (_portrait != null) _portrait.Show(current != null ? current.Speaker : null);
             if (m_Subtitle != null)
             {
-                m_Subtitle.text = current == null
+                string subtitle = current == null
                     ? string.Empty
                     : string.IsNullOrEmpty(current.Speaker) ? current.Text : current.Speaker + "：" + current.Text;
+                if (m_LastSubtitle != subtitle)
+                {
+                    m_LastSubtitle = subtitle;
+                    m_Subtitle.text = subtitle;
+                }
             }
 
             bool done = m_Sequence == null || m_Sequence.IsComplete;

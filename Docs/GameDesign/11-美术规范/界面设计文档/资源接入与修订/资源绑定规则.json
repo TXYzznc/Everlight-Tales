@@ -2960,27 +2960,6 @@
       "design_baseline_evidence": {
         "ui_prefab_references": [
           {
-            "prefab": "Assets/Game/Prefabs/UI/BoardPage.prefab",
-            "node": "BoardPage/Panel_FormPicker",
-            "line": 1248,
-            "component_id": 430458012183437678,
-            "sprite": "Assets/Game/Sprites/UI/九宫格/SHR-002对话框.png",
-            "guid": "39711a18501b7f7419f107d562be8671",
-            "type": 1,
-            "preserve_aspect": 0,
-            "color": {
-              "r": 0.09,
-              "g": 0.1,
-              "b": 0.125,
-              "a": 0.98
-            },
-            "size": {
-              "x": 560,
-              "y": 560
-            },
-            "active": 0
-          },
-          {
             "prefab": "Assets/Game/Prefabs/UI/DialoguePage.prefab",
             "node": "DialoguePage/Panel_Dialog",
             "line": 356,

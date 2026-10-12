@@ -168,8 +168,6 @@ namespace Everlight.Tales.UI.Editor
             }
             foreach (OpeningOverlay opening in root.GetComponentsInChildren<OpeningOverlay>(true))
                 Bind(opening, "_portrait", Portrait(opening.transform));
-            foreach (DialoguePageForm dialogue in root.GetComponentsInChildren<DialoguePageForm>(true))
-                Bind(dialogue, "_portrait", Portrait(dialogue.transform));
             foreach (InvestigationView investigation in root.GetComponentsInChildren<InvestigationView>(true))
             {
                 var so = new SerializedObject(investigation); Transform scene = so.FindProperty("m_StaticSceneRoot").objectReferenceValue as Transform;

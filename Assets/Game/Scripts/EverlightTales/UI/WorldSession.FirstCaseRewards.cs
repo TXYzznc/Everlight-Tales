@@ -13,14 +13,12 @@ namespace Everlight.Tales.UI
         {
             if (!IsFirstCaseEvent || CurrentEvent.IsSettled || PendingFirstCaseRewards != null) return;
             var pool = new List<RewardOption>();
-            foreach (string id in new[] { "BF-001", "BF-002", "BF-003", "BF-004", "BF-011", "BF-014", "BF-015", "BF-016", "BF-020" })
+            foreach (CaseRewardOptionConfig configured in CaseRewardOptionCatalog.ForOwner(FirstCaseContent.EventId))
             {
-                BuffConfig buff = BuffCatalog.Get(id);
-                pool.Add(new RewardOption(RewardKind.Buff, buff.Id, buff.Name, buff));
+                RewardKind kind = (RewardKind)configured.Kind;
+                BuffConfig buff = kind == RewardKind.Buff ? BuffCatalog.Get(configured.RewardId) : null;
+                pool.Add(new RewardOption(kind, configured.RewardId, configured.Label, buff));
             }
-            pool.Add(new RewardOption(RewardKind.ArmMove, "arm", "机械臂 +1"));
-            foreach (PartType type in new[] { PartType.InertiaHammer, PartType.MeteringRatchet, PartType.BlastCoil, PartType.RivetPliers })
-                pool.Add(new RewardOption(RewardKind.Part, type.ToString(), "本关补给 · " + PartCodexCatalog.Get(type).Name));
             PendingFirstCaseRewards = RewardChoiceService.Draw(Rng, pool, HeldBuffs, 4);
         }
 

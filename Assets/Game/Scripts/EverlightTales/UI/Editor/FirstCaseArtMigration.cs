@@ -9,10 +9,15 @@ namespace Everlight.Tales.UI.Editor
     public static class FirstCaseArtMigration
     {
         [MenuItem("Game Framework/EverlightTales/UI/首案接入/更新首案资源引用")]
-        public static void Apply()
+        public static void Apply() => ApplyPages(new[] { "BoardPage", "DialoguePage", "InvestigationPage", "MainPageShell" });
+
+        [MenuItem("Game Framework/EverlightTales/UI/对话立绘/迁移盘面与对话页")]
+        public static void ApplyDialoguePortraits() => ApplyPages(new[] { "BoardPage", "DialoguePage" });
+
+        private static void ApplyPages(string[] names)
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("请停止 Play Mode 后更新首案引用。");
-            foreach (string name in new[] { "BoardPage", "InvestigationPage", "MainPageShell" })
+            foreach (string name in names)
             {
                 string path = "Assets/Game/Prefabs/UI/" + name + ".prefab";
                 GameObject root = PrefabUtility.LoadPrefabContents(path);
@@ -36,15 +41,20 @@ namespace Everlight.Tales.UI.Editor
             var board = root.GetComponentInChildren<BoardPageForm>(true);
             if (board != null)
             {
-                // 原占位文本保留，新增图片引用保持旧契约兼容。
+                RemoveNodes(root, "Img_PlayerPortrait", "Img_GuestPortrait", "Txt_LeftPortrait", "Txt_RightPortrait");
                 Image background = root.GetComponentsInChildren<Image>(true).First(i => i.name == "Panel_Background");
                 // 旧迁移重复执行时会把不透明衬底移到背景之后，遮住已经绑定的场景图。
                 Transform backing = background.transform.parent.Find("OpaquePageBacking");
                 if (backing != null && backing.GetSiblingIndex() > background.transform.GetSiblingIndex())
                     backing.SetSiblingIndex(background.transform.GetSiblingIndex());
                 Bind(board, "_sceneBackground", background);
-                Bind(board, "_playerPortrait", Portrait(root.transform, background.transform.parent, "Img_PlayerPortrait", catalog, new Vector2(.05f, .58f), false));
-                Bind(board, "_guestPortrait", Portrait(root.transform, background.transform.parent, "Img_GuestPortrait", catalog, new Vector2(.95f, .58f), true));
+            }
+            var dialogue = root.GetComponentInChildren<DialoguePageForm>(true);
+            if (dialogue != null)
+            {
+                RemoveNodes(root, "Img_Portrait");
+                Bind(dialogue, "_playerPortrait", DialoguePortrait(root.transform, catalog, "Img_PlayerPortrait", false));
+                Bind(dialogue, "_otherPortrait", DialoguePortrait(root.transform, catalog, "Img_OtherPortrait", true));
             }
             var investigation = root.GetComponent<InvestigationPageForm>();
             if (investigation != null)
@@ -62,20 +72,31 @@ namespace Everlight.Tales.UI.Editor
             }
         }
 
-        private static FormalPortrait Portrait(Transform root, Transform parent, string name, UIFormalSpriteCatalog catalog, Vector2 anchor, bool right)
+        private static FormalPortrait DialoguePortrait(Transform root, UIFormalSpriteCatalog catalog, string name, bool right)
         {
             Transform node = root.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == name);
             RectTransform rect = node != null ? (RectTransform)node : (RectTransform)new GameObject(name, typeof(RectTransform)).transform;
-            rect.SetParent(parent, false);
-            rect.anchorMin = rect.anchorMax = anchor; rect.pivot = new Vector2(right ? 1f : 0f, .5f);
-            rect.anchoredPosition = Vector2.zero; rect.sizeDelta = new Vector2(220, 360);
-            // 位于背景之后、HUD和暂停层之前。
-            rect.SetAsLastSibling();
+            rect.SetParent(root, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(right ? 1f : 0f, .5f);
+            rect.pivot = new Vector2(right ? 1f : 0f, .5f);
+            rect.anchoredPosition = new Vector2(right ? -24f : 24f, 120f);
+            rect.sizeDelta = new Vector2(420, 640);
+            rect.gameObject.layer = root.gameObject.layer;
+            Transform dim = root.Find("Panel_Dim");
+            Transform panel = root.Find("Panel_Dialog");
+            rect.SetSiblingIndex(panel != null ? panel.GetSiblingIndex() : dim == null ? 0 : dim.GetSiblingIndex() + 1);
             var image = rect.GetComponent<Image>() ?? rect.gameObject.AddComponent<Image>();
             image.raycastTarget = false; image.preserveAspect = true; image.enabled = false;
             var portrait = rect.GetComponent<FormalPortrait>() ?? rect.gameObject.AddComponent<FormalPortrait>();
             Bind(portrait, "_image", image); Bind(portrait, "_spriteCatalog", catalog);
             return portrait;
+        }
+
+        private static void RemoveNodes(GameObject root, params string[] names)
+        {
+            foreach (Transform node in root.GetComponentsInChildren<Transform>(true)
+                .Where(t => names.Contains(t.name)).ToArray())
+                UnityEngine.Object.DestroyImmediate(node.gameObject);
         }
 
         private static void Bind(UnityEngine.Object target, string name, UnityEngine.Object value)

@@ -17,7 +17,7 @@
 | 需求 | 主要实现 | 验收覆盖 |
 | --- | --- | --- |
 | 正式首案入口 | `FirstCaseContent`、`FirstCaseFlow`、`MapPanel`、`DialoguePageForm.Flow`、`InvestigationPageForm` | 从正式存档按钮开始；三段真实教学拍击；取消/完成对话；三个调查热点及取消耗时 |
-| 精确身份图片 | `FormalPortrait`、`FirstCaseArtMigration`、`FirstCaseBoardArt`、`BoardPageForm` | 开场玩家、沈遥对话、调查图、两侧人物、红鞋预览及真实盘面截图 |
+| 精确身份图片 | `FormalPortrait`、`FirstCaseArtMigration`、`DialoguePageForm`、`BoardPageForm` | 开场玩家、沈遥对话、调查图、DialoguePage 左右画像切换、红鞋预览及无盘面常驻立绘截图 |
 | 首案进度保存 | `WorldSession.FirstCase`、`WorldSession.Restore`、`SaveSlotService` | 对话/调查/成功/回访后重载；三槽隔离；删除；旧档教学；中断维修；重复结算和回访 |
 | 三轮接线与运行证据 | `BoardGame`、`RedShoeLevelBuilder`、`WorldSession.FirstCaseRewards`、`SettlementPageForm` | 三轮真实拍击、合法机械臂、四选一奖励；特殊目标失败；暂停撤退；成功封存与回访 |
 

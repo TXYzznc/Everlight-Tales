@@ -141,9 +141,7 @@ namespace Everlight.Tales.UI.Editor
                 RectTransform panel = dialogue.GetComponentsInChildren<RectTransform>(true).First(r => r.name == "Panel_Dialog");
                 panel.anchorMin = new Vector2(.06f,.08f); panel.anchorMax = new Vector2(.94f,.43f);
                 panel.offsetMin = panel.offsetMax = Vector2.zero;
-                var portrait = (RectTransform)dialogue.transform.Find("Img_Portrait");
-                portrait.SetSiblingIndex(panel.GetSiblingIndex());
-                portrait.anchorMin = portrait.anchorMax = new Vector2(.5f,.46f); portrait.pivot = new Vector2(.5f,0); portrait.anchoredPosition = Vector2.zero;
+                // 左右立绘的布局和绑定由 FirstCaseArtMigration 统一维护。
                 TMP_Text content = panel.GetComponentsInChildren<TMP_Text>(true).First(t => t.name == "Txt_Content");
                 content.rectTransform.anchorMin = new Vector2(0,0); content.rectTransform.anchorMax = Vector2.one;
                 content.rectTransform.offsetMin = new Vector2(56,144); content.rectTransform.offsetMax = new Vector2(-56,-120);

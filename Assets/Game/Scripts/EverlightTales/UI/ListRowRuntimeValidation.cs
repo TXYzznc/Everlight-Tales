@@ -1,7 +1,9 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
+using Everlight.Tales.Board;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using System.Linq;
 using System.Reflection;
 
@@ -12,33 +14,38 @@ namespace Everlight.Tales.UI
         public static void RunChoices()
         {
             BoardPage page = Resources.FindObjectsOfTypeAll<BoardPage>().First(p => p.gameObject.scene.IsValid() && p.gameObject.activeInHierarchy);
+            ValidateBoardTooltip(page);
+        }
+
+        public static void ValidateBoardTooltip(BoardPage page)
+        {
             var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            Transform root = (Transform)typeof(BoardPage).GetField("m_FormPickerContent", flags).GetValue(page);
-            int count = 0;
-            foreach (var host in WorldSession.Current.World.OwnedParts)
-            {
-                typeof(BoardPage).GetMethod("ShowFormPicker", flags).Invoke(page, new object[] { host });
-                ListRowItem[] rows = root.GetComponentsInChildren<ListRowItem>(true).Where(r => r.gameObject.activeSelf).ToArray();
-                Require(rows.Length >= 2 && rows.All(r => r.Button.interactable), "Board form options");
-                count += rows.Length;
-                rows[rows.Length - 1].Button.onClick.Invoke();
-                Require(!root.gameObject.activeInHierarchy, "Board close choice callback");
-            }
-            GameObject template = (GameObject)typeof(BoardPage).GetField("m_FormChoiceItemTemplate", flags).GetValue(page);
-            GameObject legacy = new GameObject("DialogueListRowValidation", typeof(RectTransform));
-            try
-            {
-                DialoguePanel dialogue = legacy.AddComponent<DialoguePanel>(); dialogue.SetChoiceTemplate(template);
-                var graph = new Everlight.Tales.Data.DialogueGraph("a");
-                var node = new Everlight.Tales.Data.DialogueNode("a", new Everlight.Tales.Data.DialogueLine("验证", "选项验证"));
-                node.Choices.Add(new Everlight.Tales.Data.DialogueChoice("结束", null)); graph.Add(node);
-                int completed = 0; dialogue.Play(graph, () => completed++);
-                ListRowItem choice = legacy.GetComponentInChildren<ListRowItem>();
-                Require(choice != null && choice.Button.interactable, "Dialogue common row");
-                choice.Button.onClick.Invoke(); Require(completed == 1, "Dialogue choice completion");
-            }
-            finally { if (legacy != null) UnityEngine.Object.DestroyImmediate(legacy); }
-            Debug.Log("[ListRow][Choices] PASS formOptions=" + count + "; allHosts; closeCallback; dialogueCompletion.");
+            PartDetailTooltip tooltip = page.GetComponentInChildren<PartDetailTooltip>(true);
+            Require(tooltip != null, "Board detail tooltip instance");
+            BoardEntity part = page.Game.Board.Entities.FirstOrDefault(e => e.Kind == Everlight.Tales.Board.EntityKind.Part);
+            Require(part != null, "Board part entity");
+
+            string originalForm = part.FormId;
+            Require(page.BoardView.TryGetEntityTile(part.Id, out GameObject tile), "Board entity button");
+            tile.GetComponent<Button>().onClick.Invoke();
+            Require(tooltip.gameObject.activeSelf, "Board part click opens detail tooltip");
+            TMP_Text title = (TMP_Text)typeof(PartDetailTooltip).GetField("_title", flags).GetValue(tooltip);
+            TMP_Text body = (TMP_Text)typeof(PartDetailTooltip).GetField("_body", flags).GetValue(tooltip);
+            Require(title.text == PartDetailFormatter.DisplayName(part.PartType, part.FormId), "Shared detail title");
+            Require(body.text == PartDetailFormatter.Build(part.PartType, part.FormId), "Shared detail body");
+            tile.GetComponent<Button>().onClick.Invoke();
+            Require(page.GetComponentsInChildren<PartDetailTooltip>(true).Length == 1, "Tooltip instance reused");
+
+            Button armButton = (Button)typeof(BoardPage).GetField("m_ArmButton", flags).GetValue(page);
+            armButton.onClick.Invoke();
+            Require(!tooltip.gameObject.activeSelf, "Arm mode hides detail tooltip");
+            tile.GetComponent<Button>().onClick.Invoke();
+            BoardEntity selected = (BoardEntity)typeof(BoardPage).GetField("m_SelectedArmEntity", flags).GetValue(page);
+            Require(selected == part, "Arm mode keeps entity selection");
+            Require(!tooltip.gameObject.activeSelf, "Arm entity click does not open tooltip");
+            Require(part.FormId == originalForm, "Clicks preserve part form");
+            armButton.onClick.Invoke();
+            Debug.Log("[Board][Validation] PASS firstClick; sharedText; reusedInstance; armModePriority; formUnchanged.");
         }
 
         public static void PrepareReward()

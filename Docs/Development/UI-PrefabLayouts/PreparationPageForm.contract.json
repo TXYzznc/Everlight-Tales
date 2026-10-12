@@ -1263,7 +1263,7 @@
             "components": [
               {
                 "type": "TextMeshProUGUI",
-                "text": "盘面预览",
+                "text": "任务概览",
                 "fontSize": 26.0,
                 "color": [
                   0.8784,
@@ -1338,7 +1338,7 @@
             "components": [
               {
                 "type": "TextMeshProUGUI",
-                "text": "半径 — · 固定元素 — · 关键件 —",
+                "text": "维修目标\\n特殊任务\\n完成条件",
                 "fontSize": 20.0,
                 "color": [
                   0.6784,
@@ -1347,7 +1347,8 @@
                   1.0
                 ],
                 "raycastTarget": false,
-                "wordWrap": false
+                "wordWrap": true,
+                "alignment": 513
               }
             ],
             "anchorMin": [
@@ -1569,6 +1570,12 @@
       "path": "_previewContent",
       "node": "PreparationPageForm/Panel_Preview/Panel_PreviewContent",
       "kind": "RectTransform"
+    },
+    {
+      "path": "_partDetailTooltipPrefab",
+      "node": "PreparationPageForm",
+      "kind": "GameObject",
+      "assetPath": "Assets/Game/Prefabs/UI/Item/PartDetailTooltip.prefab"
     },
     {
       "path": "_availableContent",

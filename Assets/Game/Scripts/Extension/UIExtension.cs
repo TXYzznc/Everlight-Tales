@@ -33,7 +33,12 @@ public static class UIExtension
         parameters ??= UIParams.Create();
         parameters.AllowEscapeClose ??= view.EscapeClose;
         parameters.SortOrder ??= view.SortOrder + group.Depth;
-        return uiComponent.OpenUIForm(UtilityBuiltin.AssetsPath.GetUIFormPath(view.UIPrefab), group.Name, view.PauseCoveredUI, parameters);
+        // A hosted page is mounted below the parent form's content root. If it
+        // inherits the table's pause flag, GF hides the navigation shell and
+        // static overlays together with the page. The sub-form contract owns
+        // this lifecycle detail; top-level forms still use the table value.
+        bool pauseCovered = parameters.IsSubUIForm ? false : view.PauseCoveredUI;
+        return uiComponent.OpenUIForm(UtilityBuiltin.AssetsPath.GetUIFormPath(view.UIPrefab), group.Name, pauseCovered, parameters);
     }
 
     public static string GetUIFormAssetName(this UIComponent uiComponent, UIViews viewId)

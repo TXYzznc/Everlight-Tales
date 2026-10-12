@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using TMPro;
 using UnityEditor;
@@ -29,16 +29,7 @@ namespace Everlight.Tales.UI.Editor
 
         private static void BindBoardChoiceItem()
         {
-            string page = Root + "BoardPage.prefab";
-            GameObject root = PrefabUtility.LoadPrefabContents(page);
-            try
-            {
-                Component form = root.GetComponent("BoardPageForm");
-                var item = AssetDatabase.LoadAssetAtPath<GameObject>(ListRowPrefabMigration.RowPath);
-                if (form != null && item != null) { SerializedObject so = new SerializedObject(form); so.FindProperty("_formChoiceItemTemplate").objectReferenceValue = item; so.ApplyModifiedPropertiesWithoutUndo(); }
-                PrefabUtility.SaveAsPrefabAsset(root, page);
-            }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
+            // BoardPage 已移除局内形态选择器；保留入口以兼容旧菜单，但不再写入已删除字段。
         }
 
         private static void Edit(string name, Action<GameObject> edit)

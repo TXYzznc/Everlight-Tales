@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Everlight.Tales.Board;
+using Everlight.Tales.Data;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -57,6 +59,11 @@ namespace Everlight.Tales.UI
 
         public void Refresh(SessionState session, LevelState level)
         {
+            Refresh(session, level, null);
+        }
+
+        public void Refresh(SessionState session, LevelState level, BoardState board)
+        {
             if (session == null || level == null || level.Round == null)
             {
                 return;
@@ -66,26 +73,60 @@ namespace Everlight.Tales.UI
             m_RoundTapText.text = "第" + (level.RoundIndex + 1) + "轮/共" + level.Config.Rounds.Count
                 + "轮 拍" + usedTaps + "/" + level.Round.TapCount;
             m_ScoreText.text = session.Score + "/" + level.Round.TargetScore;
-            m_GoalsText.text = BuildGoalsText(level.Round);
+            m_GoalsText.text = BuildGoalsText(level.Round, board);
             m_EnergyText.text = "维修能量 " + session.PublicRepairEnergy;
             m_ArmText.text = "机械臂 " + session.ArmMoves;
         }
 
-        private static string BuildGoalsText(RoundState round)
+        public static string BuildGoalsText(RoundState round, BoardState board = null)
         {
-            if (round.Goals == null || round.Goals.Count == 0)
+            if (round == null)
             {
                 return "本轮无特殊目标";
             }
 
-            var parts = new System.Collections.Generic.List<string>();
-            foreach (SpecialGoalState goal in round.Goals)
+            var parts = new List<string>();
+            var knownIds = new HashSet<string>();
+            if (round.Goals != null)
             {
-                string mark = goal.IsComplete ? "已完成 " : "未完成 ";
-                parts.Add(mark + " " + goal.Id + " " + goal.Current + "/" + goal.Required);
+                foreach (SpecialGoalState goal in round.Goals)
+                {
+                    knownIds.Add(goal.Id);
+                    string mark = goal.IsComplete ? "已完成 " : "未完成 ";
+                    parts.Add(mark + FormatGoalName(goal.Id) + " " + goal.Current + "/" + goal.Required);
+                }
+            }
+
+            if (board != null)
+            {
+                foreach (BoardEntity entity in board.Entities)
+                {
+                    GoalConfig goal = entity.Goal;
+                    if (goal == null || knownIds.Contains(goal.Id))
+                    {
+                        continue;
+                    }
+
+                    bool complete = GoalEvaluator.IsComplete(board, entity);
+                    int required = goal.Required > 0 ? goal.Required : 1;
+                    parts.Add((complete ? "已完成 " : "未完成 ") + FormatGoalName(goal.Id) + " " +
+                        (complete ? required : 0) + "/" + required);
+                }
+            }
+
+            if (parts.Count == 0)
+            {
+                return "本轮无特殊目标";
             }
 
             return string.Join("  ", parts);
+        }
+
+        private static string FormatGoalName(string id)
+        {
+            if (id == "gate") return "门轴联系标记→校正格";
+            if (id == "trial") return "试机标记→目标格";
+            return id ?? "特殊目标";
         }
 
         private TextMeshProUGUI CreateText(string name, Vector2 position)

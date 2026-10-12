@@ -298,13 +298,14 @@ namespace Everlight.Tales.UI
                             group: session.Time.Period == TimeOfDay.Morning ? EventGroup.Actionable : EventGroup.NotOpenYet);
                     if (m_SelectedPlaceId == FirstCaseContent.SceneId)
                     {
+                        CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
                         CaseState firstCase = session.GetCase(FirstCaseContent.CaseId);
                         EventGroup group = TimePeriod.IsNight(session.Time.Period) ? EventGroup.Actionable : EventGroup.NotOpenYet;
-                        if (firstCase?.Kind == CaseStateKind.Investigating)
-                            AddEventEntry("没有结束的排练", "调查", "1格", "确认音乐停止、鞋印增加和反复出现的四拍步法。开放：夜晚、深夜。",
+                        if (caseEvent != null && firstCase?.Kind == CaseStateKind.Investigating)
+                            AddEventEntry(caseEvent.InvestigationTitle, "调查", "1格", caseEvent.InvestigationDescription,
                                 FirstCaseFlow.Investigate, kind: EventKind.Investigate, group: group);
-                        else if (firstCase?.Kind == CaseStateKind.AwaitingRepair)
-                            AddEventEntry("停不下来的排练", "怪谈", "4格", "导流、分离、维修封存匣，再把红鞋封存。开放：夜晚、深夜。",
+                        else if (caseEvent != null && firstCase?.Kind == CaseStateKind.AwaitingRepair)
+                            AddEventEntry(caseEvent.RepairTitle, "怪谈", caseEvent.RepairTimeCost + "格", caseEvent.RepairDescription,
                                 FirstCaseFlow.Prepare, kind: EventKind.Anomaly, group: group);
                     }
                     if (m_SelectedPlaceId == "home")

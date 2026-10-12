@@ -91,7 +91,9 @@ namespace Everlight.Tales.UI
             for (int slot = 1; slot <= 3; slot++) SaveSlotService.Delete(slot);
             yield return WaitFor<SaveSlotPage>();
             SaveSlotItem first = Active<SaveSlotItem>().First(i => Field<int>(i, "_slot") == 1); Field<Button>(first, "_actionButton").onClick.Invoke();
+            Debug.Log("[FirstCase][Runtime] 已点击第 1 槽，等待 MainPageShell");
             yield return WaitFor<MainPageShell>(); yield return new WaitForSecondsRealtime(3.5f);
+            Debug.Log("[FirstCase][Runtime] MainPageShell 已出现并完成序章等待");
             Canvas openingCanvas = Active<OpeningOverlay>().First().GetComponent<Canvas>();
             Require(openingCanvas != null && openingCanvas.overrideSorting && openingCanvas.sortingOrder > Active<MainPageShell>().First().SortOrder,
                 "opening canvas is above hosted map");
@@ -197,10 +199,11 @@ namespace Everlight.Tales.UI
             while (owner.Time.Period != TimeOfDay.Morning) { owner.WaitToNextPeriod(); yield return Delay(); CloseDialogs(); }
             FirstCaseFlow.RefreshMaps(); yield return OpenMapEvent("home", "沈遥的回访"); yield return WaitFor<DialoguePageForm>();
             yield return CaptureImage("06-revisit"); yield return CompleteDialogue(); CloseDialogs();
-            Require(owner.World.RepairFee == fee + 120 && owner.GetCase(FirstCaseContent.CaseId).RewardDelivered, "revisit delivers once");
-            owner.RevisitCase(FirstCaseContent.CaseId); Require(owner.World.RepairFee == fee + 120, "duplicate revisit safe");
+            int revisitFee = CalibrationCatalog.Value("ECO-REVISIT");
+            Require(owner.World.RepairFee == fee + revisitFee && owner.GetCase(FirstCaseContent.CaseId).RewardDelivered, "revisit delivers once");
+            owner.RevisitCase(FirstCaseContent.CaseId); Require(owner.World.RepairFee == fee + revisitFee, "duplicate revisit safe");
             owner = WorldSession.LoadOrNew(WorldSession.DemoSeed, 1);
-            Require(owner.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.Revisited && owner.World.RepairFee == fee + 120, "revisit survives reload");
+            Require(owner.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.Revisited && owner.World.RepairFee == fee + revisitFee, "revisit survives reload");
             SaveSlotService.Delete(1); Require(!PlayerPrefs.HasKey("et.world.firstCase") && !PlayerPrefs.HasKey("et.world.places") && SaveSlotService.HasSlot(2), "delete clears progress and isolates slots");
         }
 
@@ -262,6 +265,13 @@ namespace Everlight.Tales.UI
         private void Require(bool condition, string text) { if (!condition) throw new InvalidOperationException(text); _report.Add("PASS " + text); }
         private static IEnumerator CaptureImage(string name)
         {
+            // BatchMode has no reliable presentation surface; CaptureScreenshot
+            // can block the validation coroutine after the UI flow itself passed.
+            if (Application.isBatchMode)
+            {
+                yield return null;
+                yield break;
+            }
             yield return new WaitForEndOfFrame(); ScreenCapture.CaptureScreenshot(Folder + "/" + name + ".png");
             yield return new WaitForEndOfFrame(); yield return null;
         }

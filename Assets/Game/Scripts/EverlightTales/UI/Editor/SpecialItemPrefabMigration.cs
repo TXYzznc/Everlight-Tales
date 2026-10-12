@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Linq;
 using System.IO;
@@ -35,7 +35,7 @@ namespace Everlight.Tales.UI.Editor
                 TMP_Text label = Text("Txt_Label", top.transform, 22); Size(label.gameObject, -1, 28).flexibleWidth = 1;
                 TMP_Text selected = Text("Txt_Selected", top.transform, 19); Size(selected.gameObject, 46, 28); selected.color = new Color(0.88f, 0.66f, 0.35f);
                 Image anomaly = ImageChild("Img_Anomaly", top.transform); anomaly.sprite = Sprite("图标/ICO-029异化"); Size(anomaly.gameObject, 24, 24);
-                TMP_Text detail = Text("Txt_Detail", root.transform, 18); Size(detail.gameObject, -1, 24);
+                TMP_Text detail = Text("Txt_Detail", root.transform, 18); detail.enableWordWrapping = true; Size(detail.gameObject, -1, 24);
                 TMP_Text hint = Text("Txt_Hint", root.transform, 16); Size(hint.gameObject, -1, 21); hint.color = new Color(0.88f, 0.66f, 0.35f);
                 GameObject form = Rect("Btn_Form", root.transform); Size(form, -1, 28);
                 Image formBg = form.AddComponent<Image>(); formBg.sprite = Sprite("控件/SHR-022-normal次按钮"); formBg.type = Image.Type.Sliced;
@@ -146,7 +146,7 @@ namespace Everlight.Tales.UI.Editor
                 throw new InvalidOperationException("调查热点必须绑定 SCR-16-04/05/06 图片。");
             Check(Root + "Item/CarryAvailableItem.prefab", "Everlight.Tales.UI.CarryAvailableItem", "_label", "_button", "_detail", "_formLabel", "_hint", "_selectedLabel", "_icon", "_anomalyIcon", "_formButton", "_height");
             Check(Root + "Item/InvestigationHotspotItem.prefab", "Everlight.Tales.UI.InvestigationHotspotItem", "_ring", "_label", "_button", "_confirmedIcon");
-            Check(Root + "PreparationPage.prefab", "Everlight.Tales.UI.PreparationPageForm", "_carryStatus", "_spriteCatalog", "_availableContent", "_availableItemTemplate");
+            Check(Root + "PreparationPage.prefab", "Everlight.Tales.UI.PreparationPageForm", "_carryStatus", "_spriteCatalog", "_availableContent", "_availableItemTemplate", "_partDetailTooltipPrefab");
             Check(Root + "InvestigationPage.prefab", "Everlight.Tales.UI.InvestigationView", "_progress", "m_Form", "m_HotspotTemplate", "m_SceneLabel", "m_StaticSceneRoot", "m_StaticFinishButton");
             GameObject carry = AssetDatabase.LoadAssetAtPath<GameObject>(Root + "PreparationPage.prefab");
             if (carry.GetComponentsInChildren(TypeFor("Everlight.Tales.UI.CarrySlotDropTarget"), true).Length != 6) throw new InvalidOperationException("六个携带槽必须全部有投放接入。");
