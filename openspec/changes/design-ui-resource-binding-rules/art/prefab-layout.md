@@ -273,7 +273,7 @@ PortraitRoot（DialoguePage根、ProloguePage根的非交互表现层）
    正式玩家/沈遥Sprite，Simple、preserveAspect=true；不匹配身份则隐藏
 ```
 
-Board的两侧画像用原Txt_LeftPortrait/RightPortrait 的锚点、pivot、sizeDelta和位置（baseline）建立同尺寸Img_LeftPortrait/Img_RightPortrait；具体身份由当前事件传入，原占位说明隐藏，未知人物保留姓名，不借用其它人图。
+DialoguePage 的对话立绘使用左右两个正式图片槽位：左侧固定玩家，右侧承载当前其他说话人（访客、NPC 或怪谈对象）；同一时刻只显示当前说话人对应的一侧，未知身份和旁白清空两侧。两个槽位位于 Panel_Dim 与 Panel_Dialog 之间，图片保持比例且不接收射线。BoardPage 不再包含常驻立绘或旧 Txt_LeftPortrait/Txt_RightPortrait 节点。
 
 Investigation `Panel_Investigation/Panel_Scene/Img_Object`：anchorMin=max=(0.5,0.5)，pivot=(0.5,0.5)，sizeDelta=(320,320)，position=(0,0)，Simple/preserveAspect=true。L-01已公开时用红舞鞋，热点仍读取原归一化配置，位于对象层上方；不得把原热点坐标重设到图片五官/部位。
 

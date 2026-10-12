@@ -64,20 +64,31 @@ namespace Everlight.Tales.Data
     /// <summary>棋盘异常目录（P2-003）。A-003/A-007 文档待补，先登记为保留类型。</summary>
     public static class AnomalyCatalog
     {
+        private static System.Collections.Generic.Dictionary<AnomalyType, AnomalyConfig> _installed;
+
+        public static void Install(System.Collections.Generic.IEnumerable<AnomalyConfig> configs)
+        {
+            var index = new System.Collections.Generic.Dictionary<AnomalyType, AnomalyConfig>();
+            foreach (AnomalyConfig config in configs)
+            {
+                if (config == null || config.Type == AnomalyType.None || !index.TryAdd(config.Type, config))
+                {
+                    throw new System.InvalidOperationException("异常配置存在空条目或重复类型。");
+                }
+            }
+
+            _installed = index;
+        }
+
         public static AnomalyConfig Get(AnomalyType type)
         {
-            switch (type)
+            if (_installed != null)
             {
-                case AnomalyType.LocalSettleDeflection: return new AnomalyConfig(type, deflection: 1);
-                case AnomalyType.ExpandingRift: return new AnomalyConfig(type, threshold: 3);
-                case AnomalyType.ReservedA003: return new AnomalyConfig(type);
-                case AnomalyType.SilenceZone: return new AnomalyConfig(type);
-                case AnomalyType.SettlingRail: return new AnomalyConfig(type, settleDirection: 2);
-                case AnomalyType.OverloadField: return new AnomalyConfig(type, threshold: 3, coreCount: 3);
-                case AnomalyType.ReservedA007: return new AnomalyConfig(type);
-                case AnomalyType.PostTapReversal: return new AnomalyConfig(type, tapPeriod: 2);
-                default: return null;
+                _installed.TryGetValue(type, out AnomalyConfig config);
+                return config;
             }
+
+            return null;
         }
     }
 }

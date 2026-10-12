@@ -37,12 +37,20 @@ namespace Everlight.Tales.Data
     /// <summary>人物立绘目录（P5-008）：首批关键人物，素材由 ART0 挂接。</summary>
     public static class PortraitCatalog
     {
-        private static readonly IReadOnlyList<PortraitConfig> _characters = new[]
+        private static IReadOnlyList<PortraitConfig> _characters = System.Array.Empty<PortraitConfig>();
+
+        public static void Install(IEnumerable<PortraitConfig> characters)
         {
-            new PortraitConfig("CH-MASTER", "师父周衡", "长明修理铺原店主，画作修复期间失联"),
-            new PortraitConfig("CH-SHEN", "沈遥", "舞蹈教室求助者，红舞鞋事件当事人"),
-            new PortraitConfig("CH-PARTNER", "搭档", "维修协作搭档，事件间对话对象"),
-        };
+            var list = new List<PortraitConfig>();
+            var keys = new HashSet<string>();
+            foreach (PortraitConfig character in characters)
+            {
+                if (character == null || string.IsNullOrEmpty(character.CharacterId) || string.IsNullOrEmpty(character.Name) || string.IsNullOrEmpty(character.Description) || !keys.Add(character.CharacterId))
+                    throw new System.ArgumentException("PortraitCatalog 存在空人物或重复键。", nameof(characters));
+                list.Add(character);
+            }
+            _characters = list.AsReadOnly();
+        }
 
         public static IReadOnlyList<PortraitConfig> All() => _characters;
 

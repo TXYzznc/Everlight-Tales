@@ -1,0 +1,10 @@
+#	AudioCueTable					
+#	ID		Key	CueKind	Name	Description
+#	int		string	int	string	string
+#		音效位目录	音效位稳定键	AudioCueKind 数值	音效位名称	音效位用途说明
+	1		CUE-UI	0	点击	按钮/选项点击反馈
+	2		CUE-SNAP	1	零件咬合	零件碰撞/触发咬合
+	3		CUE-ENV	2	环境音	店铺/街巷环境底噪
+	4		CUE-REPAIR	3	维修	有效维修落点
+	5		CUE-TAP	4	拍击	冲击柄拍击定势
+	6		CUE-CULTURE	5	怪谈文化	怪谈事件专属氛围

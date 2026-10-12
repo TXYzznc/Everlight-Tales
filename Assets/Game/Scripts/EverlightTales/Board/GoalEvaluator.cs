@@ -24,6 +24,37 @@ namespace Everlight.Tales.Board
 
             return entityId == 0 || occupant.Id == entityId;
         }
+
+        /// <summary>判断盘面实体携带的特殊目标是否已经完成。</summary>
+        public static bool IsComplete(BoardState board, BoardEntity entity)
+        {
+            if (board == null || entity == null || entity.Goal == null)
+            {
+                return false;
+            }
+
+            switch (entity.Goal.Kind)
+            {
+                case GoalKind.Arrive:
+                    return AtLabel(board, entity.Goal.AnchorLabel, entity.Goal.EntityId == 0 ? entity.Id : entity.Goal.EntityId);
+                case GoalKind.PushedInto:
+                    return IsLockedAtLabel(board, entity.Goal.AnchorLabel, entity.Goal.EntityId == 0 ? entity.Id : entity.Goal.EntityId);
+                default:
+                    // Hold/Order 的跨拍状态由 AnchorGoalState 持有，盘面实体本身无法代表完整进度。
+                    return false;
+            }
+        }
+
+        private static bool IsLockedAtLabel(BoardState board, int label, int entityId)
+        {
+            if (!board.TryGetLabelCoord(label, out HexCoord coord))
+            {
+                return false;
+            }
+
+            BoardEntity occupant = board.EntityAt(coord);
+            return occupant != null && occupant.IsLocked && (entityId == 0 || occupant.Id == entityId);
+        }
     }
 
     /// <summary>

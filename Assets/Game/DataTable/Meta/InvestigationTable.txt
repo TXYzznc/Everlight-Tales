@@ -1,0 +1,5 @@
+#	InvestigationTable					
+#	ID		Key	Name	ObservationCount	CaseKey
+#	int		string	string	int	string
+#		调查入口静态定义	调查稳定键	调查名称	所需观察项数量	绑定案件稳定键
+	1		IV-R1	节拍器失控运动	2	L-01

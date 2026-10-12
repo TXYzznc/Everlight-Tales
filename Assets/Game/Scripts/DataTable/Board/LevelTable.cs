@@ -29,6 +29,15 @@ public class LevelTable : DataRowBase
     }
 
         /// <summary>
+        /// 关卡稳定键
+        /// </summary>
+        public string Key
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 关卡显示名称
         /// </summary>
         public string Name
@@ -38,7 +47,7 @@ public class LevelTable : DataRowBase
         }
 
         /// <summary>
-        /// 盘面半径档位 n，合法格数 3n(n-1)+1
+        /// 盘面半径档位 n
         /// </summary>
         public int Radius
         {
@@ -47,18 +56,54 @@ public class LevelTable : DataRowBase
         }
 
         /// <summary>
-        /// 本关轮数
+        /// 初盘零件总数
         /// </summary>
-        public int RoundCount
+        public int InitialPartCount
         {
             get;
             private set;
         }
 
         /// <summary>
-        /// 本关目标分数
+        /// 初始机械臂次数
         /// </summary>
-        public int TargetScore
+        public int InitialArmMoves
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 初始公共维修能量
+        /// </summary>
+        public int InitialPublicRepairEnergy
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 关卡目标文案
+        /// </summary>
+        public string Objective
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 预计耗时格数
+        /// </summary>
+        public int Duration
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 绑定事件稳定键
+        /// </summary>
+        public string EventKey
         {
             get;
             private set;
@@ -76,10 +121,15 @@ public class LevelTable : DataRowBase
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             index++;
+            Key = columnStrings[index++];
             Name = columnStrings[index++];
             Radius = int.Parse(columnStrings[index++]);
-            RoundCount = int.Parse(columnStrings[index++]);
-            TargetScore = int.Parse(columnStrings[index++]);
+            InitialPartCount = int.Parse(columnStrings[index++]);
+            InitialArmMoves = int.Parse(columnStrings[index++]);
+            InitialPublicRepairEnergy = int.Parse(columnStrings[index++]);
+            Objective = columnStrings[index++];
+            Duration = int.Parse(columnStrings[index++]);
+            EventKey = columnStrings[index++];
 
             return true;
         }
@@ -91,10 +141,15 @@ public class LevelTable : DataRowBase
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
+                    Key = binaryReader.ReadString();
                     Name = binaryReader.ReadString();
                     Radius = binaryReader.Read7BitEncodedInt32();
-                    RoundCount = binaryReader.Read7BitEncodedInt32();
-                    TargetScore = binaryReader.Read7BitEncodedInt32();
+                    InitialPartCount = binaryReader.Read7BitEncodedInt32();
+                    InitialArmMoves = binaryReader.Read7BitEncodedInt32();
+                    InitialPublicRepairEnergy = binaryReader.Read7BitEncodedInt32();
+                    Objective = binaryReader.ReadString();
+                    Duration = binaryReader.Read7BitEncodedInt32();
+                    EventKey = binaryReader.ReadString();
                 }
             }
 

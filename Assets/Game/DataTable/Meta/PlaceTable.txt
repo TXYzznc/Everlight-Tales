@@ -1,0 +1,9 @@
+#	PlaceTable								
+#	ID		Key	Name	Description	UnlockSource	X	Y	IsHome
+#	int		string	string	string	int	float	float	bool
+#		世界地图地点目录	地点稳定键	地点名称	地点描述	PlaceUnlockSource 数值	地图 X 坐标	地图 Y 坐标	是否为家园地点
+	1		home	长明修理铺	家园，加工配装资料索引	0	0	0	True
+	2		street	街区小店	卷帘门／夜班送还	1	1	0	False
+	3		dance	舞蹈教室	红舞鞋调查与维修	1	0	1	False
+	4		tailor	裁缝铺	画皮线索	2	2	1	False
+	5		community	社区活动中心	积水处置／邻里找物	1	2	0	False

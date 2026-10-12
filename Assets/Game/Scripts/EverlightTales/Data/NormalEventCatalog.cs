@@ -50,21 +50,20 @@ namespace Everlight.Tales.Data
     /// <summary>首批普通事件目录（P3-017，09-普通事件库）：EV-D01/D02/I01/N02/N03 可配置加载。</summary>
     public static class NormalEventCatalog
     {
-        public static IReadOnlyList<NormalEventConfig> FirstBatch()
+        private static IReadOnlyList<NormalEventConfig> _entries = System.Array.Empty<NormalEventConfig>();
+
+        public static IReadOnlyList<NormalEventConfig> FirstBatch() => _entries;
+
+        public static void Install(IEnumerable<NormalEventConfig> entries)
         {
-            return new[]
+            var list = new List<NormalEventConfig>();
+            var ids = new HashSet<string>(System.StringComparer.Ordinal);
+            foreach (NormalEventConfig entry in entries)
             {
-                new NormalEventConfig("EV-D01", "夜班送还", EventKind.Life, 1, 1, 20,
-                    0, 1, new[] { TimeOfDay.Night, TimeOfDay.DeepNight }, true, "未交付仍记在订单里", null),
-                new NormalEventConfig("EV-D02", "邻里帮忙找物", EventKind.Life, 1, 1, 20,
-                    1, 0, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon, TimeOfDay.Night }, true, "未找到可继续调查", null),
-                new NormalEventConfig("EV-I01", "修复记录核对", EventKind.Investigate, 1, 1, 20,
-                    1, 1, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon, TimeOfDay.Night, TimeOfDay.DeepNight }, true, "可重新核对", null),
-                new NormalEventConfig("EV-N02", "旧台灯接线", EventKind.Repair, 1, 2, 40,
-                    1, 0, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon }, true, "本单失败结案", "铜芯线"),
-                new NormalEventConfig("EV-N03", "货架后的隔板", EventKind.Repair, 2, 2, 40,
-                    1, 1, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon }, true, "本单失败结案", "校准簧片"),
-            };
+                if (entry == null || string.IsNullOrEmpty(entry.Id) || !ids.Add(entry.Id)) throw new System.InvalidOperationException("普通事件配置存在空条目或重复 ID。");
+                list.Add(entry);
+            }
+            _entries = list.AsReadOnly();
         }
     }
 }

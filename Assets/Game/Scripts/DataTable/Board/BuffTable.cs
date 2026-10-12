@@ -29,6 +29,15 @@ public class BuffTable : DataRowBase
     }
 
         /// <summary>
+        /// 稳定键（BF-001~BF-020）
+        /// </summary>
+        public string Key
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Buff 显示名称
         /// </summary>
         public string Name
@@ -38,18 +47,63 @@ public class BuffTable : DataRowBase
         }
 
         /// <summary>
-        /// 叠加规则（占位，取值域待 P0-011 冻结）
+        /// 最早进入内容池的玩家阶段
         /// </summary>
-        public int StackRule
+        public string Stage
         {
             get;
             private set;
         }
 
         /// <summary>
-        /// 持续轮数，0 表示本关常驻
+        /// 玩家可见效果描述
         /// </summary>
-        public int Duration
+        public string Description
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 是否允许叠加
+        /// </summary>
+        public bool Stackable
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 最大叠加层数
+        /// </summary>
+        public int MaxStacks
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// BuffEffectKind 数值
+        /// </summary>
+        public int Effect
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 每层效果数值
+        /// </summary>
+        public int Value
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 作用零件 PartType 数值，0 表示通用
+        /// </summary>
+        public int TargetPartKind
         {
             get;
             private set;
@@ -67,9 +121,15 @@ public class BuffTable : DataRowBase
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             index++;
+            Key = columnStrings[index++];
             Name = columnStrings[index++];
-            StackRule = int.Parse(columnStrings[index++]);
-            Duration = int.Parse(columnStrings[index++]);
+            Stage = columnStrings[index++];
+            Description = columnStrings[index++];
+            Stackable = bool.Parse(columnStrings[index++]);
+            MaxStacks = int.Parse(columnStrings[index++]);
+            Effect = int.Parse(columnStrings[index++]);
+            Value = int.Parse(columnStrings[index++]);
+            TargetPartKind = int.Parse(columnStrings[index++]);
 
             return true;
         }
@@ -81,9 +141,15 @@ public class BuffTable : DataRowBase
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
+                    Key = binaryReader.ReadString();
                     Name = binaryReader.ReadString();
-                    StackRule = binaryReader.Read7BitEncodedInt32();
-                    Duration = binaryReader.Read7BitEncodedInt32();
+                    Stage = binaryReader.ReadString();
+                    Description = binaryReader.ReadString();
+                    Stackable = binaryReader.ReadBoolean();
+                    MaxStacks = binaryReader.Read7BitEncodedInt32();
+                    Effect = binaryReader.Read7BitEncodedInt32();
+                    Value = binaryReader.Read7BitEncodedInt32();
+                    TargetPartKind = binaryReader.Read7BitEncodedInt32();
                 }
             }
 

@@ -1,0 +1,5 @@
+#	RedShoeTable													
+#	ID		LevelKey	StartQ	StartR	StartDirection	BoxQ	BoxR	BoxRequired	EntryQ	EntryR	RequiredDiversion	RestraintLimit	StepsPerTap
+#	int		string	int	int	int	int	int	int	int	int	int	int	int
+#		红舞鞋关卡专属规则静态定义	绑定关卡稳定键	红鞋起点 Q	红鞋起点 R	红鞋初始方向数值	封存匣 Q	封存匣 R	封存匣维修所需进度	封存入口 Q	封存入口 R	分离所需导流格数	束缚失败上限	每拍规则步进次数
+	1		REDSHOE	0	-2	5	2	0	2	3	0	6	6	1

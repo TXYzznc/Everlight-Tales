@@ -1,0 +1,7 @@
+#	PortraitTable				
+#	ID		Key	Name	Description
+#	int		string	string	string
+#		人物立绘目录	人物稳定键	人物名称	人物说明
+	1		CH-MASTER	师父周衡	长明修理铺原店主，画作修复期间失联
+	2		CH-SHEN	沈遥	舞蹈教室求助者，红舞鞋事件当事人
+	3		CH-PARTNER	搭档	维修协作搭档，事件间对话对象

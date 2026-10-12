@@ -27,12 +27,12 @@ namespace Everlight.Tales.Data
             IEnumerable<PartType> compatibleParts,
             int requiredProgress,
             int energyCost,
-            int repairScore = RepairRules.DefaultRepairScore)
+            int repairScore = -1)
         {
             _compatible = new HashSet<PartType>(compatibleParts ?? System.Array.Empty<PartType>());
             RequiredProgress = requiredProgress;
             EnergyCost = energyCost;
-            RepairScore = repairScore;
+            RepairScore = repairScore < 0 ? RepairRules.DefaultRepairScore : repairScore;
         }
 
         /// <summary>判断零件种类是否适配本维修对象。</summary>
@@ -45,7 +45,13 @@ namespace Everlight.Tales.Data
     /// <summary>维修对象的公共规则常量。</summary>
     public static class RepairRules
     {
-        /// <summary>维修效果分：第一版所有对象统一为 20 分。</summary>
-        public const int DefaultRepairScore = 20;
+        /// <summary>维修效果分，读取校准表中的默认维修效果分。</summary>
+        public static int DefaultRepairScore
+        {
+            get
+            {
+                return CalibrationCatalog.Value("REPAIR-SCORE");
+            }
+        }
     }
 }

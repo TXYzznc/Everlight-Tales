@@ -1,0 +1,16 @@
+#	CopyTable					
+#	ID		Key	Category	Text	Calibrated
+#	int		string	int	string	bool
+#		统一文案定义	文案稳定键	文案分类枚举	文案正文	是否已完成文案校准
+	1		DLG-OPEN	0	你回到槐江市，代管长明修理铺。	True
+	2		DLG-MASTER	0	师父周衡：店里就交给你了，先跟我学怎么看盘面。	True
+	3		DLG-SHEN	0	沈遥：那台节拍器……它停不下来，帮帮我。	True
+	4		HINT-ROTATE	1	旋转内盘，让撞锤沿定势方向撞向标记或固定墙。	True
+	5		HINT-ENERGY	1	把连锁接到棘轮，让它产出公共维修能量。	True
+	6		HINT-BLAST	1	用爆破线圈炸开脆裂隔板，让目标标记通过校正格。	True
+	7		FAIL-NOT-MET	2	未达标	True
+	8		FAIL-RETREAT	2	已撤退，本次尝试不记失败。	True
+	9		UI-TITLE-MAP	3	槐江市地图	True
+	10		UI-TITLE-CODEX	3	图鉴	True
+	11		UI-TITLE-WORKBENCH	3	加工台	True
+	12		UI-UNKNOWN	3	？？？	True

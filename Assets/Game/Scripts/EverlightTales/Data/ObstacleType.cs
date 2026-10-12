@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Everlight.Tales.Data
 {
     /// <summary>障碍设施种类（O-001～O-008）。数值为静态配置，行为由 Board 层解释。</summary>
@@ -53,20 +56,22 @@ namespace Everlight.Tales.Data
     /// <summary>障碍设施目录（P2-002）。初值待试玩校准。</summary>
     public static class ObstacleCatalog
     {
+        private static IReadOnlyDictionary<ObstacleType, ObstacleConfig> _configs = new Dictionary<ObstacleType, ObstacleConfig>();
+
+        public static void Install(IEnumerable<ObstacleConfig> configs)
+        {
+            var map = new Dictionary<ObstacleType, ObstacleConfig>();
+            foreach (ObstacleConfig config in configs)
+            {
+                if (config == null || config.Type == ObstacleType.None || !Enum.IsDefined(typeof(ObstacleType), config.Type) || config.MaxDurability < 0 || config.PassDirection < -1 || config.PassDirection > 5 || !map.TryAdd(config.Type, config))
+                    throw new ArgumentException("ObstacleCatalog 存在无效障碍配置或重复类型。", nameof(configs));
+            }
+            _configs = map;
+        }
+
         public static ObstacleConfig Get(ObstacleType type)
         {
-            switch (type)
-            {
-                case ObstacleType.FixedWall: return new ObstacleConfig(type);
-                case ObstacleType.BrittlePartition: return new ObstacleConfig(type, maxDurability: 2);
-                case ObstacleType.LinkedGate: return new ObstacleConfig(type);
-                case ObstacleType.TurningRail: return new ObstacleConfig(type, passDirection: 1);
-                case ObstacleType.ClampingSeat: return new ObstacleConfig(type);
-                case ObstacleType.OneWayShutter: return new ObstacleConfig(type, passDirection: 0);
-                case ObstacleType.ProliferatingSeal: return new ObstacleConfig(type, maxDurability: 1);
-                case ObstacleType.PressurePillar: return new ObstacleConfig(type, maxDurability: 3);
-                default: return null;
-            }
+            return _configs.TryGetValue(type, out ObstacleConfig config) ? config : null;
         }
     }
 }

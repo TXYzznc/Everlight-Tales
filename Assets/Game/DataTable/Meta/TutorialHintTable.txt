@@ -1,0 +1,7 @@
+#	TutorialHintTable								
+#	ID		Key	StageIndex	Title	TeachGoal	GuideText	HighlightTarget	UnlockPartKind
+#	int		string	int	string	string	string	string	int
+#		教学引导提示	教学提示稳定键	教学段序号，从 0 开始	教学标题	教学目标	引导文案	高亮目标	通过后解锁的零件 PartType 数值
+	1		TUT-001	0	第一段 旋转与碰撞	选方向、拍击、看碰撞	旋转内盘，让撞锤沿定势方向撞向标记或固定墙；压下冲击柄拍击。	旋转按钮	1
+	2		TUT-002	1	第二段 能量与维修	连锁怎样产出维修能量	把连锁接到棘轮，让它触发产出公共维修能量；再让一次有效维修落在待维修对象上。	计量棘轮	2
+	3		TUT-003	2	第三段 爆破与拆障	用爆破打通通路	用爆破线圈炸开脆裂隔板，让目标标记通过校正格。	爆破线圈	3

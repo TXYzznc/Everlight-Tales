@@ -20,11 +20,43 @@ MonoBehaviour:
   - Core/UIGroupTable
   - Core/UITable
   - Board/PartTable
+  - Board/FormTable
+  - Board/FormMaterialTable
   - Board/LevelTable
+  - Board/LevelRoundTable
+  - Board/LevelGoalTable
+  - Board/LevelKeyPieceTable
+  - Board/LevelCarryPartTable
+  - Board/LevelFixedElementTable
+  - Board/RedShoeTable
+  - Board/RedShoeGuideTable
+  - Board/RedShoeTurnTable
   - Board/BuffTable
+  - Board/AnomalyTable
   - Meta/EventTable
+  - Meta/EventOpenPeriodTable
+  - Meta/RewardMaterialTable
+  - Meta/CaseTable
+  - Meta/InvestigationTable
   - Meta/MaterialTable
   - Meta/QuestTable
+  - Meta/StageReleaseTable
+  - Meta/PlaceTable
+  - Meta/TrialTable
+  - Meta/TaskTable
+  - Meta/TaskBlueprintTable
+  - Meta/CopyTable
+  - Meta/PortraitTable
+  - Meta/TutorialHintTable
+  - Meta/CalibrationTable
+  - Board/ObstacleTable
+  - Meta/AudioCueTable
+  - Meta/BgmTable
+  - Meta/AssetBindingTable
+  - Meta/NarrativeTable
+  - Meta/CaseEventTable
+  - Meta/BatchTable
+  - Meta/CaseRewardOptionTable
   mConfigs: []
   mLanguages:
   - English

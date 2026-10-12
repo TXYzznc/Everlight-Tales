@@ -1,0 +1,29 @@
+#	LevelCarryPartTable					
+#	ID		LevelKey	PartKind	SortOrder	IsBorrowed
+#	int		string	int	int	bool
+#		关卡携带池关系	关卡稳定键	PartType 数值	携带池顺序	是否为现场借用种类
+	1		EV-N01	1	0	False
+	2		EV-N01	2	1	False
+	3		EV-N01	3	2	False
+	4		EV-N01	4	3	False
+	5		T-G01	1	0	False
+	6		T-G01	2	1	False
+	7		T-G01	3	2	False
+	8		T-G01	4	3	False
+	9		T-G02	1	0	False
+	10		T-G02	2	1	False
+	11		T-G02	3	2	False
+	12		T-G02	4	3	False
+	13		T-G03	1	0	False
+	14		T-G03	2	1	False
+	15		T-G03	3	2	False
+	16		T-G03	4	3	False
+	17		T-G04	1	0	False
+	18		T-G04	2	1	False
+	19		T-G04	3	2	False
+	20		T-G04	4	3	False
+	21		REDSHOE	1	0	False
+	22		REDSHOE	2	1	False
+	23		REDSHOE	3	2	False
+	24		REDSHOE	5	3	False
+	25		REDSHOE	5	4	True

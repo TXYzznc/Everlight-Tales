@@ -31,21 +31,20 @@ namespace Everlight.Tales.Data
     /// <summary>首批统一文案目录（P6-006）：台词/提示/失败文案/UI 文案。</summary>
     public static class CopyCatalog
     {
-        private static readonly IReadOnlyList<CopyEntry> _entries = new[]
+        private static IReadOnlyList<CopyEntry> _entries = System.Array.Empty<CopyEntry>();
+
+        public static void Install(IEnumerable<CopyEntry> entries)
         {
-            new CopyEntry("DLG-OPEN", CopyCategory.Dialogue, "你回到槐江市，代管长明修理铺。", true),
-            new CopyEntry("DLG-MASTER", CopyCategory.Dialogue, "师父周衡：店里就交给你了，先跟我学怎么看盘面。", true),
-            new CopyEntry("DLG-SHEN", CopyCategory.Dialogue, "沈遥：那台节拍器……它停不下来，帮帮我。", true),
-            new CopyEntry("HINT-ROTATE", CopyCategory.Hint, "旋转内盘，让撞锤沿定势方向撞向标记或固定墙。", true),
-            new CopyEntry("HINT-ENERGY", CopyCategory.Hint, "把连锁接到棘轮，让它产出公共维修能量。", true),
-            new CopyEntry("HINT-BLAST", CopyCategory.Hint, "用爆破线圈炸开脆裂隔板，让目标标记通过校正格。", true),
-            new CopyEntry("FAIL-NOT-MET", CopyCategory.Failure, "未达标", true),
-            new CopyEntry("FAIL-RETREAT", CopyCategory.Failure, "已撤退，本次尝试不记失败。", true),
-            new CopyEntry("UI-TITLE-MAP", CopyCategory.Ui, "槐江市地图", true),
-            new CopyEntry("UI-TITLE-CODEX", CopyCategory.Ui, "图鉴", true),
-            new CopyEntry("UI-TITLE-WORKBENCH", CopyCategory.Ui, "加工台", true),
-            new CopyEntry("UI-UNKNOWN", CopyCategory.Ui, "？？？", true),
-        };
+            var list = new List<CopyEntry>();
+            var keys = new HashSet<string>();
+            foreach (CopyEntry entry in entries)
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.Id) || string.IsNullOrEmpty(entry.Text) || !keys.Add(entry.Id))
+                    throw new System.ArgumentException("CopyCatalog 存在空文案或重复键。", nameof(entries));
+                list.Add(entry);
+            }
+            _entries = list.AsReadOnly();
+        }
 
         public static IReadOnlyList<CopyEntry> All() => _entries;
 

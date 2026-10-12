@@ -33,15 +33,20 @@ namespace Everlight.Tales.Data
     /// <summary>音效位目录（P5-006）：六类音效位，素材由 ART0 挂接。</summary>
     public static class AudioCueCatalog
     {
-        private static readonly IReadOnlyList<AudioCueConfig> _cues = new[]
+        private static IReadOnlyList<AudioCueConfig> _cues = System.Array.Empty<AudioCueConfig>();
+
+        public static void Install(IEnumerable<AudioCueConfig> cues)
         {
-            new AudioCueConfig("CUE-UI", AudioCueKind.UiClick, "点击", "按钮/选项点击反馈"),
-            new AudioCueConfig("CUE-SNAP", AudioCueKind.PartSnap, "零件咬合", "零件碰撞/触发咬合"),
-            new AudioCueConfig("CUE-ENV", AudioCueKind.Environment, "环境音", "店铺/街巷环境底噪"),
-            new AudioCueConfig("CUE-REPAIR", AudioCueKind.Repair, "维修", "有效维修落点"),
-            new AudioCueConfig("CUE-TAP", AudioCueKind.BoardTap, "拍击", "冲击柄拍击定势"),
-            new AudioCueConfig("CUE-CULTURE", AudioCueKind.CaseCulture, "怪谈文化", "怪谈事件专属氛围"),
-        };
+            var list = new List<AudioCueConfig>();
+            var kinds = new HashSet<AudioCueKind>();
+            foreach (AudioCueConfig cue in cues)
+            {
+                if (cue == null || string.IsNullOrEmpty(cue.Id) || string.IsNullOrEmpty(cue.Name) || string.IsNullOrEmpty(cue.Description) || !System.Enum.IsDefined(typeof(AudioCueKind), cue.Kind) || !kinds.Add(cue.Kind))
+                    throw new System.ArgumentException("AudioCueCatalog 存在无效音效位或重复分类。", nameof(cues));
+                list.Add(cue);
+            }
+            _cues = list.AsReadOnly();
+        }
 
         public static IReadOnlyList<AudioCueConfig> All() => _cues;
 
@@ -84,11 +89,20 @@ namespace Everlight.Tales.Data
     /// <summary>昼夜 BGM 目录（P5-007）：白日/夜晚两条轨道。</summary>
     public static class BgmCatalog
     {
-        private static readonly IReadOnlyList<BgmConfig> _tracks = new[]
+        private static IReadOnlyList<BgmConfig> _tracks = System.Array.Empty<BgmConfig>();
+
+        public static void Install(IEnumerable<BgmConfig> tracks)
         {
-            new BgmConfig(BgmTrack.Day, "长明白昼", "白昼店铺与街巷背景音乐"),
-            new BgmConfig(BgmTrack.Night, "长明深夜", "夜晚追查与怪谈背景音乐"),
-        };
+            var list = new List<BgmConfig>();
+            var kinds = new HashSet<BgmTrack>();
+            foreach (BgmConfig track in tracks)
+            {
+                if (track == null || string.IsNullOrEmpty(track.Name) || string.IsNullOrEmpty(track.Description) || !System.Enum.IsDefined(typeof(BgmTrack), track.Track) || !kinds.Add(track.Track))
+                    throw new System.ArgumentException("BgmCatalog 存在无效轨道或重复轨道。", nameof(tracks));
+                list.Add(track);
+            }
+            _tracks = list.AsReadOnly();
+        }
 
         public static IReadOnlyList<BgmConfig> All() => _tracks;
 

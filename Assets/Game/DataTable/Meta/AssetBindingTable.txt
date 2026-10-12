@@ -1,0 +1,13 @@
+#	AssetBindingTable					
+#	ID		Key	Category	Name	Path
+#	int		string	int	string	string
+#		正式资源槽位目录	资源槽位稳定键	AssetCategory 数值	资源槽位名称	资源路径，未挂接时为空
+	1		AS-UI-THEME	0	主题背景	
+	2		AS-UI-HEX	1	盘面六边形底	
+	3		AS-BGM-DAY	2	长明白昼	
+	4		AS-BGM-NIGHT	2	长明深夜	
+	5		AS-PORT-MASTER	3	师父周衡	
+	6		AS-PORT-SHEN	3	沈遥	
+	7		AS-SFX-TAP	4	拍击	
+	8		AS-SFX-REPAIR	4	维修	
+	9		AS-VFX-PULSE	5	连击脉冲	

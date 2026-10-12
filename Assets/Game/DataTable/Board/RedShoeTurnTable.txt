@@ -1,0 +1,5 @@
+#	RedShoeTurnTable						
+#	ID		LevelKey	Q	R	Direction	SortOrder
+#	int		string	int	int	int	int
+#		红舞鞋转向格关系	绑定关卡稳定键	转向格 Q	转向格 R	转向后的方向数值	转向格顺序
+	1		REDSHOE	0	0	4	0

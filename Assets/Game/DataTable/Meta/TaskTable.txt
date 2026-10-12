@@ -1,0 +1,8 @@
+#	TaskTable											
+#	ID		Key	Name	RewardFee	IsMain	Client	Description	TotalSteps	RequiredCaseDone	RequiredSuccessCount	PlaceKey
+#	int		string	string	int	bool	string	string	int	string	int	string
+#		任务模板与投放条件	任务稳定键	任务名称	完成奖励维修费	是否主线任务	委托人	任务描述	总步骤数	前置案件键，空表示无	前置成功普通维修次数	目标地点键
+	1		TASK-MOD-001	改装·贯通撞锤	40	False	周衡	为惯性撞锤打造贯通形态：力从另一头出来。	1	L-01	0	home
+	2		TASK-MOD-002	改装·横推撞锤	40	False	周衡	为惯性撞锤打造横推形态：一边输入，两边接应。	1	L-01	1	home
+	3		TASK-MOD-003	改装·轴向线圈	40	False	周衡	为爆破线圈打造轴向形态：隔着空隙传过去。	1	L-01	1	home
+	4		TASK-MOD-004	改装·定时线圈	40	False	周衡	为爆破线圈打造定时形态：把这一拍留到下一拍。	1	L-01	2	home

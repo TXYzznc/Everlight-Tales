@@ -29,6 +29,15 @@ public class MaterialTable : DataRowBase
     }
 
         /// <summary>
+        /// 稳定键（MT-001~MT-006）
+        /// </summary>
+        public string Key
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 材料显示名称
         /// </summary>
         public string Name
@@ -38,18 +47,27 @@ public class MaterialTable : DataRowBase
         }
 
         /// <summary>
-        /// 材料大类（占位，取值域待 P0-011 冻结）
+        /// 材料稀有度（Common=0、Refined=1、Rare=2）
         /// </summary>
-        public int MaterialKind
+        public int Rarity
         {
             get;
             private set;
         }
 
         /// <summary>
-        /// 单格堆叠上限，0 表示不限
+        /// 是否按来源怪谈类型化
         /// </summary>
-        public int StackLimit
+        public bool IsTypedByCase
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 材料风味描述
+        /// </summary>
+        public string FlavorText
         {
             get;
             private set;
@@ -67,9 +85,11 @@ public class MaterialTable : DataRowBase
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             index++;
+            Key = columnStrings[index++];
             Name = columnStrings[index++];
-            MaterialKind = int.Parse(columnStrings[index++]);
-            StackLimit = int.Parse(columnStrings[index++]);
+            Rarity = int.Parse(columnStrings[index++]);
+            IsTypedByCase = bool.Parse(columnStrings[index++]);
+            FlavorText = columnStrings[index++];
 
             return true;
         }
@@ -81,9 +101,11 @@ public class MaterialTable : DataRowBase
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
+                    Key = binaryReader.ReadString();
                     Name = binaryReader.ReadString();
-                    MaterialKind = binaryReader.Read7BitEncodedInt32();
-                    StackLimit = binaryReader.Read7BitEncodedInt32();
+                    Rarity = binaryReader.Read7BitEncodedInt32();
+                    IsTypedByCase = binaryReader.ReadBoolean();
+                    FlavorText = binaryReader.ReadString();
                 }
             }
 

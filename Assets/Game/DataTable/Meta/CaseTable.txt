@@ -1,0 +1,5 @@
+#	CaseTable							
+#	ID		Key	Name	Batch	TotalStages	Source	FirstPlaceKey
+#	int		string	string	string	int	string	string
+#		怪谈案件模板静态定义	案件稳定键	案件名称	故事批次	案件总阶段数	案件来源类型	首次出现地点稳定键
+	1		L-01	红舞鞋	B-01	1	委托	dance

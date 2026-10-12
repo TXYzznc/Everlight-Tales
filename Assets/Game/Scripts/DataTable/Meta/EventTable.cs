@@ -29,6 +29,15 @@ public class EventTable : DataRowBase
     }
 
         /// <summary>
+        /// 事件稳定键
+        /// </summary>
+        public string Key
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// 事件显示名称
         /// </summary>
         public string Name
@@ -38,9 +47,36 @@ public class EventTable : DataRowBase
         }
 
         /// <summary>
-        /// 事件类型（地图交互／调查／普通维修／怪谈阶段等）
+        /// EventKind 数值
         /// </summary>
-        public int EventType
+        public int EventKind
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 最早投放阶段
+        /// </summary>
+        public int MinStage
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 白天投放权重
+        /// </summary>
+        public int DayWeight
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 夜晚投放权重
+        /// </summary>
+        public int NightWeight
         {
             get;
             private set;
@@ -50,6 +86,51 @@ public class EventTable : DataRowBase
         /// 完成后消耗的时间格
         /// </summary>
         public int TimeCost
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 完成奖励维修费
+        /// </summary>
+        public int RewardFee
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 投放地点稳定键
+        /// </summary>
+        public string PlaceKey
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 是否可重复
+        /// </summary>
+        public bool Repeatable
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 失败收尾文案
+        /// </summary>
+        public string FailureWrapUp
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 奖励材料稳定键，空表示无
+        /// </summary>
+        public string RewardMaterialKey
         {
             get;
             private set;
@@ -67,9 +148,18 @@ public class EventTable : DataRowBase
             index++;
             m_Id = int.Parse(columnStrings[index++]);
             index++;
+            Key = columnStrings[index++];
             Name = columnStrings[index++];
-            EventType = int.Parse(columnStrings[index++]);
+            EventKind = int.Parse(columnStrings[index++]);
+            MinStage = int.Parse(columnStrings[index++]);
+            DayWeight = int.Parse(columnStrings[index++]);
+            NightWeight = int.Parse(columnStrings[index++]);
             TimeCost = int.Parse(columnStrings[index++]);
+            RewardFee = int.Parse(columnStrings[index++]);
+            PlaceKey = columnStrings[index++];
+            Repeatable = bool.Parse(columnStrings[index++]);
+            FailureWrapUp = columnStrings[index++];
+            RewardMaterialKey = columnStrings[index++];
 
             return true;
         }
@@ -81,9 +171,18 @@ public class EventTable : DataRowBase
                 using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
                 {
                     m_Id = binaryReader.Read7BitEncodedInt32();
+                    Key = binaryReader.ReadString();
                     Name = binaryReader.ReadString();
-                    EventType = binaryReader.Read7BitEncodedInt32();
+                    EventKind = binaryReader.Read7BitEncodedInt32();
+                    MinStage = binaryReader.Read7BitEncodedInt32();
+                    DayWeight = binaryReader.Read7BitEncodedInt32();
+                    NightWeight = binaryReader.Read7BitEncodedInt32();
                     TimeCost = binaryReader.Read7BitEncodedInt32();
+                    RewardFee = binaryReader.Read7BitEncodedInt32();
+                    PlaceKey = binaryReader.ReadString();
+                    Repeatable = binaryReader.ReadBoolean();
+                    FailureWrapUp = binaryReader.ReadString();
+                    RewardMaterialKey = binaryReader.ReadString();
                 }
             }
 

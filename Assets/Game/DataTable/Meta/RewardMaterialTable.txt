@@ -1,0 +1,9 @@
+#	RewardMaterialTable						
+#	ID		OwnerKey	MaterialKey	Count	SourceCase	SortOrder
+#	int		string	string	int	string	int
+#		事件与案件奖励材料关系	奖励所属事件或案件稳定键	材料稳定键	奖励数量	类型化材料来源案件，空表示不限定	奖励显示顺序
+	1		EV-N01	MT-002	1		0
+	2		L-01	MT-002	2		0
+	3		L-01	MT-004	2		1
+	4		L-01	MT-005	1		2
+	5		L-01	MT-006	1	L-01	3

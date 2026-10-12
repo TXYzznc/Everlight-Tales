@@ -14,7 +14,7 @@ namespace Everlight.Tales.Data
         public string BorrowedFormId;   // 借用形态（试机内锁定；不永久解锁）
         public PartType HostPart;       // 宿主零件
         public string BlueprintId;      // 完成试机 → 任务领奖图样（= 形态图样）
-        public LevelConfig Level;       // 关卡配置（1 轮 3 拍 + 目标分）
+        public LevelConfig Level;       // 关卡配置（轮次与目标分来自 Meta/TrialTable）
         public string SpecialGoal;      // 特殊目标描述（判定由调用方/关卡实例给出）
 
         public TrialConfig(string id, string name, string borrowedFormId, PartType hostPart,
@@ -33,22 +33,24 @@ namespace Everlight.Tales.Data
     /// <summary>四关试机目录（P4-012，D-062）：T-G01~T-G04 绑定四条改装支线图样。</summary>
     public static class TrialCatalog
     {
-        private static LevelConfig TrialLevel()
-        {
-            return new LevelConfig(new[] { new RoundConfig(3, 30) });
-        }
+        private static IReadOnlyList<TrialConfig> _all = System.Array.Empty<TrialConfig>();
 
-        public static readonly IReadOnlyList<TrialConfig> All = new[]
+        public static IReadOnlyList<TrialConfig> All => _all;
+
+        public static void Install(IEnumerable<TrialConfig> trials)
         {
-            new TrialConfig("T-G01", "贯通撞锤试机", "P-001-F01", PartType.InertiaHammer,
-                "T-G01", TrialLevel(), "输出侧推移到位"),
-            new TrialConfig("T-G02", "横推撞锤试机", "P-001-F02", PartType.InertiaHammer,
-                "T-G02", TrialLevel(), "同次双路推动"),
-            new TrialConfig("T-G03", "轴向线圈试机", "P-003-F01", PartType.BlastCoil,
-                "T-G03", TrialLevel(), "射线越过空格命中端点"),
-            new TrialConfig("T-G04", "定时线圈试机", "P-003-F02", PartType.BlastCoil,
-                "T-G04", TrialLevel(), "待爆后搬位并在下一拍命中端点"),
-        };
+            var list = new List<TrialConfig>();
+            var ids = new System.Collections.Generic.HashSet<string>(System.StringComparer.Ordinal);
+            foreach (TrialConfig trial in trials)
+            {
+                if (trial == null || string.IsNullOrEmpty(trial.Id) || !ids.Add(trial.Id))
+                {
+                    throw new System.InvalidOperationException("试机配置存在空条目或重复 ID。");
+                }
+                list.Add(trial);
+            }
+            _all = list.AsReadOnly();
+        }
 
         public static TrialConfig Get(string id)
         {

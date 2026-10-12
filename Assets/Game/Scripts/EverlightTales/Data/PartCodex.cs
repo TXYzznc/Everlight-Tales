@@ -14,71 +14,64 @@ namespace Everlight.Tales.Data
         public PartType Type;
         public string Stage;       // "S0 开店教学"
         public string SourceHint;  // 来源方向一句话
+        public string UseHint;     // 准备页/详情卡片的一句话功能提示
 
-        public PartCodexConfig(string id, string name, PartType type, string stage, string sourceHint)
+        public PartCodexConfig(string id, string name, PartType type, string stage, string sourceHint, string useHint = "")
         {
             Id = id;
             Name = name;
             Type = type;
             Stage = stage;
             SourceHint = sourceHint;
+            UseHint = useHint;
         }
     }
 
     /// <summary>20 种通用零件图鉴目录（按 P-ID 排序，P4-007）。</summary>
     public static class PartCodexCatalog
     {
-        private static readonly IReadOnlyList<PartCodexConfig> _parts = new[]
+        private static IReadOnlyList<PartCodexConfig> _parts = System.Array.Empty<PartCodexConfig>();
+
+        /// <summary>安装已通过校验的 DataTable 图鉴快照。</summary>
+        public static void Install(IEnumerable<PartCodexConfig> parts)
         {
-            new PartCodexConfig("P-001", "惯性撞锤", PartType.InertiaHammer, "S0 开店教学", "工作台第一段：先完成一次移动碰撞。"),
-            new PartCodexConfig("P-002", "计量棘轮", PartType.MeteringRatchet, "S0 开店教学", "工作台第二段：在撞锤之后展示能量收益。"),
-            new PartCodexConfig("P-003", "爆破线圈", PartType.BlastCoil, "S0 开店教学", "工作台最后一段：接上爆破与脆裂隔板。"),
-            new PartCodexConfig("P-004", "换向齿轮", PartType.ReversalGear, "S1 红鞋首案", "红鞋首关现场演示后永久解锁。"),
-            new PartCodexConfig("P-005", "弹射簧", PartType.SpringLauncher, "S3 城市中期", "第二章普通弹簧维修。"),
-            new PartCodexConfig("P-006", "分裂铸模", PartType.SplitMold, "S4 画壁筹备", "第三章加工台进阶委托。"),
-            new PartCodexConfig("P-007", "储料胃袋", PartType.StorageStomach, "S3 城市中期", "穿墙案完成后的回收试机。"),
-            new PartCodexConfig("P-008", "吞料炉", PartType.MaterialFurnace, "S3 城市中期", "第二章仓库整理委托。"),
-            new PartCodexConfig("P-009", "交换拨叉", PartType.SwapFork, "S4 画壁筹备", "风月案完成后工作台演示。"),
-            new PartCodexConfig("P-010", "旋涡转子", PartType.VortexRotor, "S4 画壁筹备", "交换拨叉试机后六邻格重排。"),
-            new PartCodexConfig("P-011", "蓄能飞轮", PartType.EnergyFlywheel, "S2 街区初期", "扫帚初次处理后的工作台试机。"),
-            new PartCodexConfig("P-012", "导电桥", PartType.ConductiveBridge, "S3 城市中期", "猴爪案调查准备。"),
-            new PartCodexConfig("P-013", "照明棱镜", PartType.LightingPrism, "S2 街区初期", "画皮案识别环节。"),
-            new PartCodexConfig("P-014", "铆合钳", PartType.RivetPliers, "S1 红鞋首案", "红鞋准备阶段由周衡借出。"),
-            new PartCodexConfig("P-015", "叩击音叉", PartType.TuningFork, "S2 街区初期", "裂口女案白天准备后段。"),
-            new PartCodexConfig("P-016", "排水叶轮", PartType.DrainImpeller, "S2 街区初期", "扫帚案前段现场提供。"),
-            new PartCodexConfig("P-017", "缓冲囊", PartType.BufferBladder, "S4 画壁筹备", "画像案前段现场提供。"),
-            new PartCodexConfig("P-018", "校准探针", PartType.CalibrationProbe, "S3 城市中期", "穿墙案白天调查。"),
-            new PartCodexConfig("P-019", "磁吸牵引器", PartType.MagneticTractor, "S2 街区初期", "裂口女案白天车灯委托。"),
-            new PartCodexConfig("P-020", "接力电池", PartType.RelayBattery, "S2 街区初期", "画皮完成后的白天工具维修。"),
-        };
+            if (parts == null)
+            {
+                throw new System.ArgumentNullException(nameof(parts));
+            }
+
+            var replacement = new List<PartCodexConfig>();
+            var types = new HashSet<PartType>();
+            foreach (PartCodexConfig part in parts)
+            {
+                if (part == null || part.Type == PartType.None || !types.Add(part.Type))
+                {
+                    throw new System.ArgumentException("零件图鉴包含空值、None 或重复类型。", nameof(parts));
+                }
+
+                replacement.Add(part);
+            }
+
+            if (replacement.Count == 0)
+            {
+                throw new System.ArgumentException("零件图鉴不能为空。", nameof(parts));
+            }
+
+            _parts = replacement;
+        }
 
         /// <summary>准备页的一句话作用，来源于已确认的零件库索引。</summary>
         public static string UseHint(PartType type)
         {
-            switch (type)
+            foreach (PartCodexConfig part in _parts)
             {
-                case PartType.InertiaHammer: return "把普通碰撞变成下一次位移，承担最基础的连锁接力。";
-                case PartType.MeteringRatchet: return "把布置出来的重复碰撞转化为维修能量与表现分，提供值得保护的收益中心。";
-                case PartType.BlastCoil: return "同时触发多个邻接对象、拆开局面，形成连锁爆发点。";
-                case PartType.ReversalGear: return "改变来撞零件的去向，把两条运动路线接起来。";
-                case PartType.SpringLauncher: return "把一次向下运动重新送回上游，创造回弹接力。";
-                case PartType.SplitMold: return "把值得利用的一枚普通件变成两枚，主动扩大连锁规模。";
-                case PartType.StorageStomach: return "先把零件收起来，等路线合适再吐出，改变连锁时机。";
-                case PartType.MaterialFurnace: return "牺牲普通件清理空间，把拥堵转成当前作业的能量。";
-                case PartType.SwapFork: return "在连锁进行中交换两枚对象，改变后续触发位置。";
-                case PartType.VortexRotor: return "整体重排六邻格，让一圈零件一起换到新位置。";
-                case PartType.EnergyFlywheel: return "把分散的小碰撞积成一次大释放，承接跨拍准备。";
-                case PartType.ConductiveBridge: return "让隔着空隙的设备互相触发，并维持故事需要的通信线路。";
-                case PartType.LightingPrism: return "用连锁获得可操作的情报，处理伪装和视野异常。";
-                case PartType.RivetPliers: return "把连锁能量花在具体修复目标上，连接输出与故事推进。";
-                case PartType.TuningFork: return "把碰撞转成敲门、呼应和引导，支撑声音类挑战。";
-                case PartType.DrainImpeller: return "把积压水负荷转成排水与动力，为水灾连锁提供核心转换。";
-                case PartType.BufferBladder: return "承接可转移的设备负荷，为集中释放争取空间。";
-                case PartType.CalibrationProbe: return "用一次低成本试探确定出口或目标关系，同时承担设备校准。";
-                case PartType.MagneticTractor: return "主动把远处一个对象拉近，接上本来碰不到的连锁。";
-                case PartType.RelayBattery: return "延长关键器械的工作次数，让持续零件支撑更长连锁。";
-                default: return string.Empty;
+                if (part.Type == type && !string.IsNullOrEmpty(part.UseHint))
+                {
+                    return part.UseHint;
+                }
             }
+
+            return string.Empty;
         }
 
         public static IReadOnlyList<PartCodexConfig> All() => _parts;

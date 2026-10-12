@@ -10,22 +10,13 @@ namespace Everlight.Tales.Meta
     /// </summary>
     public static class TutorialService
     {
-        public const int StageCount = 3;
+        public static int StageCount => TutorialHintCatalog.All().Count;
 
-        /// <summary>第 stageIndex 段通过后解锁的零件（P-001/P-002/P-003）。</summary>
+        /// <summary>第 stageIndex 段通过后解锁的零件，来源于教学提示配置。</summary>
         public static PartType StagePart(int stageIndex)
         {
-            switch (stageIndex)
-            {
-                case 0:
-                    return PartType.InertiaHammer;
-                case 1:
-                    return PartType.MeteringRatchet;
-                case 2:
-                    return PartType.BlastCoil;
-                default:
-                    return PartType.None;
-            }
+            TutorialHintConfig hint = TutorialHintCatalog.Get(stageIndex);
+            return hint == null ? PartType.None : hint.UnlockPart;
         }
 
         /// <summary>某段是否已通过（进度 &gt; stageIndex）。</summary>

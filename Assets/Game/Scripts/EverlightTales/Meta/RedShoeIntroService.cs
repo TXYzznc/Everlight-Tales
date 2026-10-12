@@ -26,7 +26,8 @@ namespace Everlight.Tales.Meta
         public RedShoeIntroService()
         {
             Stage = RedShoeIntroStage.None;
-            _config = new InvestigationConfig("IV-R1", "节拍器失控运动", 2, "L-01", "红舞鞋", "B1", 1);
+            _config = InvestigationCatalog.Get("IV-R1");
+            if (_config == null) throw new System.InvalidOperationException("调查入口配置尚未加载：IV-R1");
         }
 
         public void RepairMetronome()

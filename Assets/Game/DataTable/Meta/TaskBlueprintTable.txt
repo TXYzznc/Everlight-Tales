@@ -1,0 +1,8 @@
+#	TaskBlueprintTable				
+#	ID		TaskKey	BlueprintKey	SortOrder
+#	int		string	string	int
+#		任务奖励图样关系	任务稳定键	图样键	奖励图样顺序
+	1		TASK-MOD-001	T-G01	0
+	2		TASK-MOD-002	T-G02	0
+	3		TASK-MOD-003	T-G03	0
+	4		TASK-MOD-004	T-G04	0

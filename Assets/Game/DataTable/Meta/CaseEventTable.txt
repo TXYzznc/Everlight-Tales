@@ -1,0 +1,5 @@
+#	CaseEventTable																		
+#	ID		Key	CaseKey	InvestigationTitle	InvestigationDescription	RepairTitle	RepairDescription	RepairTimeCost	InvestigationPageTitle	Hotspot1Name	Hotspot1X	Hotspot1Y	Hotspot2Name	Hotspot2X	Hotspot2Y	Hotspot3Name	Hotspot3X	Hotspot3Y	RevisitFee	RevisitBlueprintKey	CompletionPartKind
+#	int		string	string	string	string	string	string	int	string	string	float	float	string	float	float	string	float	float	int	string	int
+#		首案事件入口与目标说明	案件事件稳定键	案件稳定键	调查入口标题	调查入口说明	维修入口标题	维修入口说明	维修入口显示耗时格数	调查页面标题	调查热点一名称	调查热点一归一化横坐标	调查热点一归一化纵坐标	调查热点二名称	调查热点二归一化横坐标	调查热点二归一化纵坐标	调查热点三名称	调查热点三归一化横坐标	调查热点三归一化纵坐标	回访奖励维修费	回访图样稳定键	结案后解锁的零件 PartType 数值
+	1		L-01-01	L-01	没有结束的排练	确认音乐停止、鞋印增加和反复出现的四拍步法。开放：夜晚、深夜。	停不下来的排练	导流、分离、维修封存匣，再把红鞋封存。开放：夜晚、深夜。	4	舞蹈教室 · 没有结束的排练	音乐已经停止	0.22	0.65	鞋印仍在增加	0.75	0.4	反复重来的四拍步法	0.25	0.2	120	L-01	5

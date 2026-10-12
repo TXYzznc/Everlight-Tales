@@ -1,0 +1,9 @@
+#	BatchTable					
+#	ID		Key	BatchNumber	Name	RequiredCount
+#	int		string	int	string	int
+#		怪谈批次开放与完成条件目录	批次稳定键	批次序号	批次名称	开放下一批所需完成数量
+	1		B1	1	第一批	1
+	2		B2	2	第二批	3
+	3		B3	3	第三批	5
+	4		B4	4	第四批	5
+	5		B5	5	第五批	1

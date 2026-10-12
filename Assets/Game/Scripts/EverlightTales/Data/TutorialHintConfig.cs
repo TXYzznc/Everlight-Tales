@@ -29,18 +29,20 @@ namespace Everlight.Tales.Data
     /// <summary>S0 三段教学引导目录（P5-002，D-014）：撞锤→棘轮→线圈+隔板。</summary>
     public static class TutorialHintCatalog
     {
-        private static readonly IReadOnlyList<TutorialHintConfig> _hints = new[]
+        private static IReadOnlyList<TutorialHintConfig> _hints = System.Array.Empty<TutorialHintConfig>();
+
+        public static void Install(IEnumerable<TutorialHintConfig> hints)
         {
-            new TutorialHintConfig(0, "第一段 旋转与碰撞", "选方向、拍击、看碰撞",
-                "旋转内盘，让撞锤沿定势方向撞向标记或固定墙；压下冲击柄拍击。",
-                "旋转按钮", PartType.InertiaHammer),
-            new TutorialHintConfig(1, "第二段 能量与维修", "连锁怎样产出维修能量",
-                "把连锁接到棘轮，让它触发产出公共维修能量；再让一次有效维修落在待维修对象上。",
-                "计量棘轮", PartType.MeteringRatchet),
-            new TutorialHintConfig(2, "第三段 爆破与拆障", "用爆破打通通路",
-                "用爆破线圈炸开脆裂隔板，让目标标记通过校正格。",
-                "爆破线圈", PartType.BlastCoil),
-        };
+            var list = new List<TutorialHintConfig>();
+            var indices = new HashSet<int>();
+            foreach (TutorialHintConfig hint in hints)
+            {
+                if (hint == null || string.IsNullOrEmpty(hint.Title) || string.IsNullOrEmpty(hint.TeachGoal) || string.IsNullOrEmpty(hint.GuideText) || string.IsNullOrEmpty(hint.HighlightTarget) || hint.UnlockPart == PartType.None || !indices.Add(hint.StageIndex))
+                    throw new System.ArgumentException("TutorialHintCatalog 存在无效教学提示或重复段序号。", nameof(hints));
+                list.Add(hint);
+            }
+            _hints = list.AsReadOnly();
+        }
 
         public static IReadOnlyList<TutorialHintConfig> All() => _hints;
 

@@ -12,7 +12,9 @@ namespace Everlight.Tales.Meta
         /// <summary>调查入口：创建怪谈案件并进入调查中（未触发→调查中）。</summary>
         public static CaseState StartInvestigation(InvestigationConfig config)
         {
-            var caseConfig = new CaseConfig(config.CaseId, config.CaseName, config.CaseBatch, config.CaseTotalStages, config.Name, "");
+            CaseConfig template = CaseCatalog.Get(config.CaseId);
+            if (template == null) throw new System.InvalidOperationException("案件配置尚未加载：" + config.CaseId);
+            var caseConfig = new CaseConfig(template.Id, template.Name, template.Batch, template.TotalStages, template.Source, template.FirstPlace);
             var state = new CaseState(caseConfig);
             CaseStateMachine.StartInvestigate(state);
             return state;

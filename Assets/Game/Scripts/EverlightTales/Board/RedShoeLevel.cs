@@ -64,44 +64,46 @@ namespace Everlight.Tales.Board
         /// <summary>红舞鞋第一关（D-051）：一关三轮各 3 拍，30/100/170 分，导流→分离修匣→封存。</summary>
         public static RedShoeLevelConfig Tutorial()
         {
+            LevelPreset preset = LevelPresetCatalog.Get("REDSHOE");
+            if (preset == null) throw new System.InvalidOperationException("红舞鞋关卡配置尚未加载。");
+            RedShoePreset redShoePreset = RedShoePresetCatalog.Get("REDSHOE");
+            if (redShoePreset == null) throw new System.InvalidOperationException("红舞鞋专属规则配置尚未加载。");
             var redShoe = new RedShoeConfig(
-                new HexCoord(0, -2),
-                HexDirection.D5,
-                new[]
+                redShoePreset.StartCoord,
+                redShoePreset.StartDirection,
+                redShoePreset.GuideCells,
+                redShoePreset.TurnCells,
+                redShoePreset.BoxCoord,
+                redShoePreset.BoxRequired,
+                redShoePreset.EntryCoord,
+                redShoePreset.RequiredDiversion,
+                redShoePreset.RestraintLimit,
+                redShoePreset.StepsPerTap);
+
+            var parts = new List<RedShoePartPlacement>();
+            foreach (KeyPieceConfig key in preset.Board.KeyPieces)
+                parts.Add(new RedShoePartPlacement(key.PartType, key.Position));
+
+            var rounds = new List<RedShoeRoundConfig>();
+            for (int i = 0; i < preset.Level.Rounds.Count; i++)
+            {
+                RoundConfig round = preset.Level.Rounds[i];
+                int minDiversion = 0;
+                bool requireBoxRepaired = false;
+                bool requireSealed = false;
+                foreach (SpecialGoalConfig goal in round.Goals)
                 {
-                    new HexCoord(0, -1),
-                    new HexCoord(1, -2),
-                    new HexCoord(1, -3),
-                    new HexCoord(2, -4),
-                    new HexCoord(2, -3),
-                    new HexCoord(3, -3),
-                },
-                new[] { new RedShoeTurnCell(new HexCoord(0, 0), HexDirection.D4) },
-                new HexCoord(2, 0),
-                2,
-                new HexCoord(3, 0),
-                6,
-                6,
-                1);
+                    if (goal.Id == "diversion") minDiversion = goal.Required;
+                    else if (goal.Id == "box_repaired") requireBoxRepaired = goal.Required > 0;
+                    else if (goal.Id == "sealed") requireSealed = goal.Required > 0;
+                }
+                rounds.Add(new RedShoeRoundConfig(round.TargetScore, round.TapCount,
+                    minDiversion: minDiversion,
+                    requireBoxRepaired: requireBoxRepaired,
+                    requireSealed: requireSealed));
+            }
 
-            var parts = new[]
-            {
-                new RedShoePartPlacement(PartType.InertiaHammer, new HexCoord(-2, -2)),
-                new RedShoePartPlacement(PartType.InertiaHammer, new HexCoord(-2, 0)),
-                new RedShoePartPlacement(PartType.InertiaHammer, new HexCoord(0, -3)),
-                new RedShoePartPlacement(PartType.MeteringRatchet, new HexCoord(-1, -1)),
-                new RedShoePartPlacement(PartType.BlastCoil, new HexCoord(1, -2)),
-                new RedShoePartPlacement(PartType.RivetPliers, new HexCoord(1, 1)),
-            };
-
-            var rounds = new[]
-            {
-                new RedShoeRoundConfig(30, 3, minDiversion: 3),
-                new RedShoeRoundConfig(100, 3, minDiversion: 6, requireBoxRepaired: true),
-                new RedShoeRoundConfig(170, 3, requireSealed: true),
-            };
-
-            return new RedShoeLevelConfig(5, redShoe, parts, 2, rounds, 4);
+            return new RedShoeLevelConfig(preset.Board.BoardRadius, redShoe, parts, preset.Board.InitialArmMoves, rounds, preset.Board.Duration);
         }
     }
 
@@ -127,6 +129,15 @@ namespace Everlight.Tales.Board
     {
         public static RedShoeLevel Build(RedShoeLevelConfig config)
         {
+            LevelPreset preset = LevelPresetCatalog.Get("REDSHOE");
+            FixedElementConfig repairElement = null;
+            if (preset != null)
+            {
+                foreach (FixedElementConfig element in preset.Board.FixedElements)
+                    if (element.Kind == FixedElementKind.RepairTarget) { repairElement = element; break; }
+            }
+            if (repairElement == null || repairElement.RepairTarget == null)
+                throw new System.InvalidOperationException("红舞鞋维修对象配置尚未加载。");
             var board = new BoardState(config.BoardRadius);
 
             int id = 1;
@@ -137,8 +148,8 @@ namespace Everlight.Tales.Board
 
             int boxId = id;
             board.Place(
-                BoardEntity.RepairTarget(boxId, new RepairTargetConfig(new[] { PartType.RivetPliers }, config.RedShoe.BoxRequired, 2)),
-                config.RedShoe.BoxCoord);
+                BoardEntity.RepairTarget(boxId, repairElement.RepairTarget),
+                repairElement.Position);
 
             var redShoe = new RedShoeState(config.RedShoe.StartCoord, config.RedShoe.StartDirection, config.RedShoe.RestraintLimit);
 

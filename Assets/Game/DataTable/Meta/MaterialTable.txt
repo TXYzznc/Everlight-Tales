@@ -1,4 +1,10 @@
-#	MaterialTable				
-#	ID		Name	MaterialKind	StackLimit
-#	int		string	int	int
-#		材料的基础定义	材料显示名称	材料大类（占位，取值域待 P0-011 冻结）	单格堆叠上限，0 表示不限
+#	MaterialTable						
+#	ID		Key	Name	Rarity	IsTypedByCase	FlavorText
+#	int		string	string	int	bool	string
+#		材料的完整静态定义	稳定键（MT-001~MT-006）	材料显示名称	材料稀有度（Common=0、Refined=1、Rare=2）	是否按来源怪谈类型化	材料风味描述
+	1		MT-001	铜芯线	0	False	细细的铜线绕成一圈，像把没说完的话收进了口袋。
+	2		MT-002	精密齿轮	0	False	每一枚齿都认真咬合，只有时间偶尔偷懒。
+	3		MT-003	玻璃镜片	0	False	擦净之后，映出来的世界似乎比昨天清楚一点。
+	4		MT-004	校准簧片	0	False	轻轻一拨就会颤动，像在替某台旧机器清嗓子。
+	5		MT-005	定势残晶	1	False	一小块安静的光，握久了，总觉得它记得某个瞬间。
+	6		MT-006	异常纹样	2	True	纹路没有固定的方向。你移开视线时，它似乎又换了一种写法。

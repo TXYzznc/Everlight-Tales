@@ -1,0 +1,18 @@
+#	CaseRewardOptionTable						
+#	ID		Key	OwnerKey	RewardKind	RewardId	SortOrder	Label
+#	int		string	string	int	string	int	string
+#		案件局内奖励选项关系	奖励选项关系稳定键	所属案件事件稳定键	RewardKind 数值	Buff、零件或机械臂奖励键	奖励池顺序	奖励显示文案
+	1		RO-L01-001	L-01-01	0	BF-001	0	增压回路
+	2		RO-L01-002	L-01-01	0	BF-002	1	缓冲线圈
+	3		RO-L01-003	L-01-01	0	BF-003	2	余震
+	4		RO-L01-004	L-01-01	0	BF-004	3	导流增幅
+	5		RO-L01-005	L-01-01	0	BF-011	4	能量回灌
+	6		RO-L01-006	L-01-01	0	BF-014	5	校准偏置
+	7		RO-L01-007	L-01-01	0	BF-015	6	拆障加速
+	8		RO-L01-008	L-01-01	0	BF-016	7	长程撞锤
+	9		RO-L01-009	L-01-01	0	BF-020	8	维修折返
+	10		RO-L01-010	L-01-01	2	arm	9	机械臂 +1
+	11		RO-L01-011	L-01-01	1	InertiaHammer	10	本关补给 · 惯性撞锤
+	12		RO-L01-012	L-01-01	1	MeteringRatchet	11	本关补给 · 计量棘轮
+	13		RO-L01-013	L-01-01	1	BlastCoil	12	本关补给 · 爆破线圈
+	14		RO-L01-014	L-01-01	1	RivetPliers	13	本关补给 · 铆钉钳

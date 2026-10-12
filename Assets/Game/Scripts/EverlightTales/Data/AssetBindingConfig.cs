@@ -35,18 +35,20 @@ namespace Everlight.Tales.Data
     /// <summary>首批正式资源槽位目录（P6-007）：UI/盘面/音乐/立绘/音效/特效，路径由 ART2 接入。</summary>
     public static class AssetBindingCatalog
     {
-        private static readonly IReadOnlyList<AssetSlot> _slots = new[]
+        private static IReadOnlyList<AssetSlot> _slots = System.Array.Empty<AssetSlot>();
+
+        public static void Install(IEnumerable<AssetSlot> slots)
         {
-            new AssetSlot("AS-UI-THEME", AssetCategory.Ui, "主题背景"),
-            new AssetSlot("AS-UI-HEX", AssetCategory.Board, "盘面六边形底"),
-            new AssetSlot("AS-BGM-DAY", AssetCategory.Music, "长明白昼"),
-            new AssetSlot("AS-BGM-NIGHT", AssetCategory.Music, "长明深夜"),
-            new AssetSlot("AS-PORT-MASTER", AssetCategory.Portrait, "师父周衡"),
-            new AssetSlot("AS-PORT-SHEN", AssetCategory.Portrait, "沈遥"),
-            new AssetSlot("AS-SFX-TAP", AssetCategory.Sfx, "拍击"),
-            new AssetSlot("AS-SFX-REPAIR", AssetCategory.Sfx, "维修"),
-            new AssetSlot("AS-VFX-PULSE", AssetCategory.Vfx, "连击脉冲"),
-        };
+            var list = new List<AssetSlot>();
+            var keys = new HashSet<string>();
+            foreach (AssetSlot slot in slots)
+            {
+                if (slot == null || string.IsNullOrEmpty(slot.Id) || string.IsNullOrEmpty(slot.Name) || !System.Enum.IsDefined(typeof(AssetCategory), slot.Category) || !keys.Add(slot.Id))
+                    throw new System.ArgumentException("AssetBindingCatalog 存在无效资源槽位或重复键。", nameof(slots));
+                list.Add(slot);
+            }
+            _slots = list.AsReadOnly();
+        }
 
         public static IReadOnlyList<AssetSlot> All() => _slots;
 

@@ -23,10 +23,16 @@ namespace Everlight.Tales.Data
     /// <summary>事件费用装配规则（P3-002，D-082 经济基准）。</summary>
     public static class EventPricing
     {
-        /// <summary>普通收入基准：20 维修费／格。</summary>
-        public const int FeePerCell = 20;
+        /// <summary>普通收入基准，读取校准表中的维修费单价。</summary>
+        public static int FeePerCell
+        {
+            get
+            {
+                return CalibrationCatalog.Value("ECO-FEE-CELL");
+            }
+        }
 
-        /// <summary>普通事件按时间格换算维修费（1 格 20、2 格 40、3 格 60）。</summary>
+        /// <summary>普通事件按时间格与校准表单价换算维修费。</summary>
         public static int BaselineFee(int timeCost)
         {
             return timeCost * FeePerCell;

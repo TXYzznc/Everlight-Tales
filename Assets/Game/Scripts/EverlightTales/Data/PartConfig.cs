@@ -94,160 +94,47 @@ namespace Everlight.Tales.Data
     /// </summary>
     public static class PartCatalog
     {
-        private static readonly Dictionary<PartType, PartConfig> _byType = new Dictionary<PartType, PartConfig>
+        private static readonly Dictionary<PartType, PartConfig> _byType = new Dictionary<PartType, PartConfig>();
+
+        /// <summary>
+        /// 用已加载的全局配置快照替换目录。调用方必须先完成表级和字段级校验。
+        /// 该入口不承载存档状态；它只更新当前进程使用的静态规则参数。
+        /// </summary>
+        public static void Install(IEnumerable<PartConfig> configs)
         {
-            [PartType.InertiaHammer] = new PartConfig(
-                type: PartType.InertiaHammer,
-                triggerScore: 4,
-                energyCapacity: 2,
-                effectCost: 1,
-                effectScorePerCell: 8),
+            if (configs == null)
+            {
+                throw new ArgumentNullException(nameof(configs));
+            }
 
-            [PartType.MeteringRatchet] = new PartConfig(
-                type: PartType.MeteringRatchet,
-                triggerScore: 10,
-                energyCapacity: 5,
-                effectCost: 1,
-                publicEnergyPerEffect: 1,
-                bonusScoreFromNth: 5,
-                bonusNth: 3),
+            var replacement = new Dictionary<PartType, PartConfig>();
+            foreach (PartConfig config in configs)
+            {
+                if (config == null || config.Type == PartType.None || replacement.ContainsKey(config.Type))
+                {
+                    throw new ArgumentException("零件配置包含空值、None 或重复类型。", nameof(configs));
+                }
 
-            [PartType.BlastCoil] = new PartConfig(
-                type: PartType.BlastCoil,
-                triggerScore: 6,
-                energyCapacity: 1,
-                effectCost: 1,
-                effectScorePerTarget: 6,
-                removesSelf: true),
+                replacement.Add(config.Type, config);
+            }
 
-            [PartType.ReversalGear] = new PartConfig(
-                type: PartType.ReversalGear,
-                triggerScore: 4,
-                energyCapacity: 4,
-                effectCost: 1,
-                effectScorePerCell: 8),
+            if (replacement.Count == 0)
+            {
+                throw new ArgumentException("零件配置不能为空。", nameof(configs));
+            }
 
-            [PartType.RivetPliers] = new PartConfig(
-                type: PartType.RivetPliers,
-                triggerScore: 4,
-                energyCapacity: 0,
-                effectCost: 0),
+            _byType.Clear();
+            foreach (KeyValuePair<PartType, PartConfig> pair in replacement)
+            {
+                _byType.Add(pair.Key, pair.Value);
+            }
+        }
 
-            [PartType.SpringLauncher] = new PartConfig(
-                type: PartType.SpringLauncher,
-                triggerScore: 4,
-                energyCapacity: 3,
-                effectCost: 1,
-                effectScorePerCell: 5,
-                pushDistance: 2),
-
-            [PartType.SplitMold] = new PartConfig(
-                type: PartType.SplitMold,
-                triggerScore: 4,
-                energyCapacity: 1,
-                effectCost: 1,
-                effectScorePerTarget: 18),
-
-            [PartType.MaterialFurnace] = new PartConfig(
-                type: PartType.MaterialFurnace,
-                triggerScore: 4,
-                energyCapacity: 3,
-                effectCost: 1,
-                effectScorePerTarget: 12,
-                publicEnergyPerEffect: 2,
-                effectScorePerEnergy: 2),
-
-            [PartType.SwapFork] = new PartConfig(
-                type: PartType.SwapFork,
-                triggerScore: 4,
-                energyCapacity: 2,
-                effectCost: 1,
-                effectScorePerTarget: 6),
-
-            [PartType.VortexRotor] = new PartConfig(
-                type: PartType.VortexRotor,
-                triggerScore: 4,
-                energyCapacity: 2,
-                effectCost: 1,
-                effectScorePerTarget: 4),
-
-            [PartType.EnergyFlywheel] = new PartConfig(
-                type: PartType.EnergyFlywheel,
-                triggerScore: 4,
-                energyCapacity: 6,
-                effectCost: 1,
-                effectScorePerTarget: 6,
-                rayRange: 2,
-                chargeThreshold: 3),
-
-            [PartType.MagneticTractor] = new PartConfig(
-                type: PartType.MagneticTractor,
-                triggerScore: 4,
-                energyCapacity: 3,
-                effectCost: 1,
-                effectScorePerCell: 5,
-                rayRange: 3,
-                pushDistance: 2),
-
-            [PartType.RelayBattery] = new PartConfig(
-                type: PartType.RelayBattery,
-                triggerScore: 4,
-                energyCapacity: 2,
-                effectCost: 0,
-                effectScorePerCell: 8),
-
-            [PartType.StorageStomach] = new PartConfig(
-                type: PartType.StorageStomach,
-                triggerScore: 4,
-                energyCapacity: 4,
-                effectCost: 1,
-                effectScorePerTarget: 6,
-                secondaryEffectScore: 10),
-
-            [PartType.LightingPrism] = new PartConfig(
-                type: PartType.LightingPrism,
-                triggerScore: 4,
-                energyCapacity: 3,
-                effectCost: 1,
-                effectScorePerTarget: 2,
-                secondaryEffectScore: 6),
-
-            [PartType.DrainImpeller] = new PartConfig(
-                type: PartType.DrainImpeller,
-                triggerScore: 4,
-                energyCapacity: 4,
-                effectCost: 1,
-                effectScorePerTarget: 8,
-                publicEnergyPerEffect: 1),
-
-            [PartType.CalibrationProbe] = new PartConfig(
-                type: PartType.CalibrationProbe,
-                triggerScore: 6,
-                energyCapacity: 3,
-                effectCost: 1,
-                effectScorePerTarget: 8),
-
-            [PartType.ConductiveBridge] = new PartConfig(
-                type: PartType.ConductiveBridge,
-                triggerScore: 4,
-                energyCapacity: 4,
-                effectCost: 1,
-                effectScorePerTarget: 8),
-
-            [PartType.TuningFork] = new PartConfig(
-                type: PartType.TuningFork,
-                triggerScore: 6,
-                energyCapacity: 4,
-                effectCost: 1,
-                effectScorePerTarget: 4),
-
-            [PartType.BufferBladder] = new PartConfig(
-                type: PartType.BufferBladder,
-                triggerScore: 4,
-                energyCapacity: 4,
-                effectCost: 1,
-                effectScorePerTarget: 8),
-        };
+        /// <summary>返回当前进程使用的零件配置快照。</summary>
+        public static IReadOnlyList<PartConfig> All()
+        {
+            return new List<PartConfig>(_byType.Values);
+        }
 
         /// <summary>取零件配置；无能力零件返回 null。</summary>
         public static PartConfig Get(PartType type)

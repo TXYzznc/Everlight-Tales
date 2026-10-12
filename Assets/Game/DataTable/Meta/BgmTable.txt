@@ -1,0 +1,6 @@
+#	BgmTable					
+#	ID		Key	Track	Name	Description
+#	int		string	int	string	string
+#		昼夜背景音乐目录	BGM 稳定键	BgmTrack 数值	BGM 名称	BGM 用途说明
+	1		BGM-DAY	0	长明白昼	白昼店铺与街巷背景音乐
+	2		BGM-NIGHT	1	长明深夜	夜晚追查与怪谈背景音乐

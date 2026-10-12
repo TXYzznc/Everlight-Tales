@@ -1,0 +1,13 @@
+#	LevelGoalTable									
+#	ID		LevelKey	RoundIndex	GoalKey	GoalKind	EntityId	AnchorLabel	Required	Text
+#	int		string	int	string	int	int	int	int	string
+#		关卡轮次特殊目标关系	关卡稳定键	轮次序号	目标稳定键	GoalKind 数值	被追踪实体 ID	目标锚点标签	所需进度量	目标显示文案
+	1		EV-N01	0	gate	4	0	1	1	门轴联系标记推入校正格
+	2		T-G01	0	trial	4	0	2	1	试机标记推入端点格
+	3		T-G02	0	trial	4	0	2	1	试机标记推入端点格
+	4		T-G03	0	trial	4	0	2	1	试机标记推入端点格
+	5		T-G04	0	trial	4	0	2	1	试机标记推入端点格
+	6		REDSHOE	0	diversion	0	0	0	3	导流分离次数
+	7		REDSHOE	1	diversion	0	0	0	6	导流分离次数
+	8		REDSHOE	1	box_repaired	0	0	0	2	封存匣维修进度
+	9		REDSHOE	2	sealed	0	0	0	1	红舞鞋封存

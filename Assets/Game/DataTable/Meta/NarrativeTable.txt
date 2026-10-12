@@ -1,0 +1,13 @@
+#	NarrativeTable										
+#	ID		Key	ScriptKey	SortOrder	NodeKey	Speaker	Text	ChoiceLabel	NextNodeKey	Duration
+#	int		string	string	int	string	string	string	string	string	float
+#		首案序章与对话节点目录	叙事条目稳定键	脚本图稳定键，opening/request/confirmed/thanks	脚本内顺序	对话节点键，序章可为空	说话人	台词或旁白正文	当前节点选项文案，空表示无选项	选项目标节点，空表示结束	序章停留秒数，对话为 0
+	1		N-OPEN-001	opening	0		旁白	夜雨落在旧城区的铁皮屋顶上。			2.5
+	2		N-OPEN-002	opening	1		玩家	我回来了。长明修理铺的灯还亮着。			3.0
+	3		N-OPEN-003	opening	2		周衡	先熟悉工作台，再一起接下邻里的维修委托。			3.0
+	4		N-REQ-001	request	0	request	沈遥	节拍器和音乐停下了，我的脚却还在补完下一组动作。	去舞蹈教室查看	reply	0.0
+	5		N-REQ-002	request	1	reply	玩家	先确认红鞋和动作之间的联系，别强行抓住她。			0.0
+	6		N-CON-001	confirmed	0	confirmed	玩家	音乐停止后，红鞋仍在带动身体。先导流、分离，再修好封存匣。	记下作业目标	response	0.0
+	7		N-CON-002	confirmed	1	response	沈遥	让我停下来。鞋还在动，也请把它单独封存。			0.0
+	8		N-REV-001	thanks	0	thanks	沈遥	今天终于能按自己的节奏走路了。谢谢你，这份报酬请收下。	领取回访报酬	reply	0.0
+	9		N-REV-002	thanks	1	reply	玩家	红鞋已经封存。如果还有异常，就来长明修理铺找我。			0.0

@@ -89,24 +89,9 @@ namespace Everlight.Tales.Board
     {
         public static LevelBoardConfig Create()
         {
-            return new LevelBoardConfig(
-                levelName: "S0 教学样张",
-                boardRadius: 5,
-                keyPieces: new[]
-                {
-                    new KeyPieceConfig(PartType.InertiaHammer, new HexCoord(0, 0)),
-                    new KeyPieceConfig(PartType.MeteringRatchet, new HexCoord(1, 0)),
-                },
-                carryPool: new[]
-                {
-                    PartType.InertiaHammer,
-                    PartType.MeteringRatchet,
-                    PartType.BlastCoil,
-                    PartType.None,
-                },
-                initialPartCount: 6,
-                initialArmMoves: 2,
-                initialPublicRepairEnergy: 0);
+            LevelPreset preset = LevelPresetCatalog.Get("TUT-RC");
+            if (preset == null) throw new System.InvalidOperationException("教学关卡配置尚未加载：TUT-RC");
+            return preset.Board;
         }
     }
 }

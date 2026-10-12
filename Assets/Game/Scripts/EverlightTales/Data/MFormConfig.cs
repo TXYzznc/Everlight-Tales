@@ -43,7 +43,9 @@ namespace Everlight.Tales.Data
             switch (type)
             {
                 case MFormType.RedShoe:
-                    return new MFormConfig(type, "M-012", "借力改道夹（红舞鞋形态）", PartType.ReversalGear, usesPerJob: 1);
+                    FormConfig configured = FormCatalog.Get("M-012");
+                    if (configured == null) return null;
+                    return new MFormConfig(type, configured.Id, configured.Name, configured.HostPart, usesPerJob: 1);
                 default:
                     return null;
             }

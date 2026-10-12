@@ -1,4 +1,13 @@
-#	LevelTable					
-#	ID		Name	Radius	RoundCount	TargetScore
-#	int		string	int	int	int
-#		维修关卡的骨架定义	关卡显示名称	盘面半径档位 n，合法格数 3n(n-1)+1	本关轮数	本关目标分数
+#	LevelTable										
+#	ID		Key	Name	Radius	InitialPartCount	InitialArmMoves	InitialPublicRepairEnergy	Objective	Duration	EventKey
+#	int		string	string	int	int	int	int	string	int	string
+#		维修关卡的基础定义	关卡稳定键	关卡显示名称	盘面半径档位 n	初盘零件总数	初始机械臂次数	初始公共维修能量	关卡目标文案	预计耗时格数	绑定事件稳定键
+	1		EV-N01	卡住的卷帘门	5	6	2	0	把门轴联系标记推入校正格，让卷帘门重新卡回轨道	2	EV-N01
+	2		T-G01	贯通撞锤试机	5	4	2	0	输出侧推移到位	2	
+	3		T-G02	横推撞锤试机	5	4	2	0	同次双路推动	2	
+	4		T-G03	轴向线圈试机	5	4	2	0	射线越过空格命中端点	2	
+	5		T-G04	定时线圈试机	5	4	2	0	待爆后搬位并在下一拍命中端点	2	
+	6		TUT-RC	旋转与碰撞	5	3	0	0	来撞件沿重力撞上撞锤	0	
+	7		TUT-ER	能量与维修	5	3	0	1	棘轮产出公共维修能量并完成维修	0	
+	8		TUT-BC	爆破与拆障	5	4	0	0	爆破线圈起爆并冲击邻件	0	
+	9		REDSHOE	停不下来的排练	5	6	2	0	导流→与沈遥分离→维修封存匣→封存红鞋	4	L-01-01

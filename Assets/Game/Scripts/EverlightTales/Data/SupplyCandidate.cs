@@ -34,17 +34,23 @@ namespace Everlight.Tales.Data
     /// <summary>首批普通供给目录（P3-008，D-071）：白天/夜晚权重与开放时段已确认。</summary>
     public static class SupplyCatalog
     {
-        public static IReadOnlyList<SupplyCandidate> FirstBatch()
+        private static IReadOnlyList<SupplyCandidate> _entries = System.Array.Empty<SupplyCandidate>();
+
+        public static IReadOnlyList<SupplyCandidate> FirstBatch() => _entries;
+
+        public static void Install(IEnumerable<SupplyCandidate> entries)
         {
-            return new[]
+            var list = new List<SupplyCandidate>();
+            var ids = new HashSet<string>(System.StringComparer.Ordinal);
+            foreach (SupplyCandidate entry in entries)
             {
-                new SupplyCandidate("EV-N01", "卡住的卷帘门", 1, 3, 3, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon, TimeOfDay.Night, TimeOfDay.DeepNight }, 2, 40, EventKind.Repair, "home"),
-                new SupplyCandidate("EV-N02", "旧台灯接线", 1, 3, 0, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon }, 2, 40, EventKind.Repair, "home"),
-                new SupplyCandidate("EV-N03", "货架后的隔板", 2, 2, 2, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon, TimeOfDay.Night, TimeOfDay.DeepNight }, 2, 40, EventKind.Repair, "home"),
-                new SupplyCandidate("EV-D01", "夜班送还", 1, 0, 1, new[] { TimeOfDay.Night, TimeOfDay.DeepNight }, 1, 20, EventKind.Life, "street"),
-                new SupplyCandidate("EV-D02", "邻里帮忙找物", 1, 1, 1, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon, TimeOfDay.Night }, 1, 20, EventKind.Life, "community"),
-                new SupplyCandidate("EV-I01", "修复记录核对", 1, 1, 1, new[] { TimeOfDay.Morning, TimeOfDay.Afternoon, TimeOfDay.Night, TimeOfDay.DeepNight }, 1, 20, EventKind.Investigate, "home"),
-            };
+                if (entry == null || string.IsNullOrEmpty(entry.TemplateId) || !ids.Add(entry.TemplateId))
+                {
+                    throw new System.InvalidOperationException("供给配置存在空条目或重复模板 ID。");
+                }
+                list.Add(entry);
+            }
+            _entries = list.AsReadOnly();
         }
     }
 }
