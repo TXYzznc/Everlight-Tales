@@ -64,6 +64,15 @@ public class ObstacleTable : DataRowBase
             private set;
         }
 
+        /// <summary>
+        /// 逐项参数，k=v;k=v 分号分隔；空表示用代码默认值
+        /// </summary>
+        public string ExtraData
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -80,6 +89,7 @@ public class ObstacleTable : DataRowBase
             ObstacleKind = int.Parse(columnStrings[index++]);
             MaxDurability = int.Parse(columnStrings[index++]);
             PassDirection = int.Parse(columnStrings[index++]);
+            ExtraData = columnStrings[index++];
 
             return true;
         }
@@ -95,6 +105,7 @@ public class ObstacleTable : DataRowBase
                     ObstacleKind = binaryReader.Read7BitEncodedInt32();
                     MaxDurability = binaryReader.Read7BitEncodedInt32();
                     PassDirection = binaryReader.Read7BitEncodedInt32();
+                    ExtraData = binaryReader.ReadString();
                 }
             }
 

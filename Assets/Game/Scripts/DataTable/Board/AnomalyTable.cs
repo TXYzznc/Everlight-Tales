@@ -91,6 +91,15 @@ public class AnomalyTable : DataRowBase
             private set;
         }
 
+        /// <summary>
+        /// 逐项参数，k=v;k=v 分号分隔；空表示用代码默认值
+        /// </summary>
+        public string ExtraData
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -110,6 +119,7 @@ public class AnomalyTable : DataRowBase
             Threshold = int.Parse(columnStrings[index++]);
             CoreCount = int.Parse(columnStrings[index++]);
             TapPeriod = int.Parse(columnStrings[index++]);
+            ExtraData = columnStrings[index++];
 
             return true;
         }
@@ -128,6 +138,7 @@ public class AnomalyTable : DataRowBase
                     Threshold = binaryReader.Read7BitEncodedInt32();
                     CoreCount = binaryReader.Read7BitEncodedInt32();
                     TapPeriod = binaryReader.Read7BitEncodedInt32();
+                    ExtraData = binaryReader.ReadString();
                 }
             }
 

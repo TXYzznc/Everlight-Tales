@@ -53,6 +53,10 @@ CS_ROOT = REPO_ROOT / "Assets" / "Game" / "Scripts" / "DataTable"
 COMMENT_MARKER = "#"
 SHEET_NAME = "Sheet 1"
 
+# 逐项参数列（ExtraData）的统一备注。键值编码 `k=v;k=v`，空表示用代码默认值；
+# 解析与严格校验落在 Data 层 ExtraParamSet，不在本工具里解释内容。
+EXTRA_DATA_NOTE = "逐项参数，k=v;k=v 分号分隔；空表示用代码默认值"
+
 # Table-level header rows. Row 0 carries the table name in column B, row 4 carries the note row.
 HEADER_ROWS = 4
 TABLE_NAME_ROW = 0
@@ -288,6 +292,32 @@ TABLE_SCHEMAS: list[dict] = [
             ("Threshold", "int", "扩张或过载阈值"),
             ("CoreCount", "int", "过载场芯数量"),
             ("TapPeriod", "int", "拍击后反转周期"),
+            ("ExtraData", "string", EXTRA_DATA_NOTE),
+        ],
+        "sample_rows": [
+            (1, "AN-001", 1, 1, 0, 0, 0, 0, "Priority=10;Controllable=1"),
+            (2, "AN-002", 2, 0, 0, 3, 0, 0, "MaxExpansion=2"),
+            (3, "AN-003", 3, 0, 0, 0, 0, 0, "EchoQuota=3;Resettable=1;NoEchoOfEcho=1"),
+            (4, "AN-004", 4, 0, 0, 0, 0, 0, "SuppressStoryNodes=0;Controllable=1"),
+            (5, "AN-005", 5, 0, 2, 0, 0, 0, "StepLength=1"),
+            (6, "AN-006", 6, 0, 0, 3, 3, 0, "RechargeAmount=1"),
+            (7, "AN-007", 7, 0, 0, 0, 0, 0, "MaxLayers=2;PerRoundTargets=1"),
+            (8, "AN-008", 8, 0, 0, 0, 0, 2, "FlipDegrees=180"),
+        ],
+    },
+    {
+        "key": "Board/ChallengeTable",
+        "comment": "怪谈专属挑战配置",
+        "fields": [
+            ("Key", "string", "挑战稳定键（C-001~C-015）"),
+            ("CaseKey", "string", "绑定案件稳定键"),
+            ("Name", "string", "挑战显示名称"),
+            ("LevelKey", "string", "绑定关卡稳定键，空表示逐关参数后置"),
+            ("ChallengeKind", "int", "ChallengeKind 数值"),
+            ("RuleId", "string", "规则库编号（CR-xxx）"),
+            ("Stage", "string", "首次投放阶段（S1~S5）"),
+            ("GoalText", "string", "挑战目标文案"),
+            ("ExtraData", "string", EXTRA_DATA_NOTE),
         ],
     },
     {
@@ -530,16 +560,17 @@ TABLE_SCHEMAS: list[dict] = [
             ("ObstacleKind", "int", "ObstacleType 数值"),
             ("MaxDurability", "int", "最大耐久，无耐久为 0"),
             ("PassDirection", "int", "方向参数，无方向为 -1"),
+            ("ExtraData", "string", EXTRA_DATA_NOTE),
         ],
         "sample_rows": [
-            (1, "O-001", 1, 0, -1),
-            (2, "O-002", 2, 2, -1),
-            (3, "O-003", 3, 0, -1),
-            (4, "O-004", 4, 0, 1),
-            (5, "O-005", 5, 0, -1),
-            (6, "O-006", 6, 0, 0),
-            (7, "O-007", 7, 1, -1),
-            (8, "O-008", 8, 3, -1),
+            (1, "O-001", 1, 0, -1, ""),
+            (2, "O-002", 2, 2, -1, "RootBlastOncePerRoot=1"),
+            (3, "O-003", 3, 0, -1, "InitialOpen=0;ToggleOncePerRoot=1;DeferCloseWhenOccupied=1"),
+            (4, "O-004", 4, 0, 1, ""),
+            (5, "O-005", 5, 0, -1, "AllowTags=normal;InitialClampedEntityId=0;ReleaseWindowTaps=1"),
+            (6, "O-006", 6, 0, 0, "ToggleDirection=3"),
+            (7, "O-007", 7, 1, -1, "GrowthPerTap=1;SegmentMaxDurability=1"),
+            (8, "O-008", 8, 3, -1, "AttachedPartitions=2;ProtectedObject=0;Repairable=1"),
         ],
     },
     {

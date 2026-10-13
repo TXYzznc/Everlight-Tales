@@ -61,6 +61,9 @@ namespace Everlight.Tales.Board
         /// <summary>障碍最大耐久。</summary>
         public int MaxDurability { get; private set; }
 
+        /// <summary>障碍静态配置（创建时写入；供行为解释器读取逐项参数）。</summary>
+        public ObstacleConfig ObstacleSetup { get; private set; }
+
         /// <summary>障碍当前耐久（跨拍保留）。</summary>
         public int Durability { get; internal set; }
 
@@ -336,9 +339,10 @@ namespace Everlight.Tales.Board
             entity.ObstacleType = config.Type;
             entity.MaxDurability = config.MaxDurability;
             entity.Durability = config.MaxDurability;
+            entity.ObstacleSetup = config;
             if (config.Type == ObstacleType.LinkedGate)
             {
-                entity.IsOpen = false; // O-003 初始关闭。
+                entity.IsOpen = config.InitialOpen; // O-003 初始开闭由配置表给出。
             }
 
             if (config.Type == ObstacleType.ProliferatingSeal)

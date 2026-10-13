@@ -1,12 +1,12 @@
-#	AnomalyTable								
-#	ID		Key	AnomalyKind	Deflection	SettleDirection	Threshold	CoreCount	TapPeriod
-#	int		string	int	int	int	int	int	int
-#		棋盘异常的完整静态参数	稳定键（AN-001~AN-008）	AnomalyType 数值	局部定势偏转步数	沉降方向相位序号	扩张或过载阈值	过载场芯数量	拍击后反转周期
-	1		AN-001	1	1	2	3	3	2
-	2		AN-002	2	1	2	3	3	2
-	3		AN-003	3	1	2	3	3	2
-	4		AN-004	4	1	2	3	3	2
-	5		AN-005	5	1	2	3	3	2
-	6		AN-006	6	1	2	3	3	2
-	7		AN-007	7	1	2	3	3	2
-	8		AN-008	8	1	2	3	3	2
+#	AnomalyTable									
+#	ID		Key	AnomalyKind	Deflection	SettleDirection	Threshold	CoreCount	TapPeriod	ExtraData
+#	int		string	int	int	int	int	int	int	string
+#		棋盘异常的完整静态参数	稳定键（AN-001~AN-008）	AnomalyType 数值	局部定势偏转步数	沉降方向相位序号	扩张或过载阈值	过载场芯数量	拍击后反转周期	逐项参数，k=v;k=v 分号分隔；空表示用代码默认值
+	1		AN-001	1	1	0	0	0	0	Priority=10;Controllable=1
+	2		AN-002	2	0	0	3	0	0	MaxExpansion=2
+	3		AN-003	3	0	0	0	0	0	EchoQuota=3;Resettable=1;NoEchoOfEcho=1
+	4		AN-004	4	0	0	0	0	0	SuppressStoryNodes=0;Controllable=1
+	5		AN-005	5	0	2	0	0	0	StepLength=1
+	6		AN-006	6	0	0	3	3	0	RechargeAmount=1
+	7		AN-007	7	0	0	0	0	0	MaxLayers=2;PerRoundTargets=1
+	8		AN-008	8	0	0	0	0	2	FlipDegrees=180

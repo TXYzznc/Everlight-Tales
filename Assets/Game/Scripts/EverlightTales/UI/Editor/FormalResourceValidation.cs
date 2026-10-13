@@ -54,7 +54,7 @@ namespace Everlight.Tales.UI.Editor
                 }
             }
             foreach(string name in new[]{"ICO-063","ICO-064","ICO-057-generic","SHR-041-info","SHR-041-success","SHR-041-warning","SHR-041-danger"})Require(catalog.Get(name)!=null,"必需资源："+name,errors);
-            Require(catalog.Get("anomaly:ReservedA003")==null && catalog.Get("anomaly:ReservedA007")==null,"保留异常未绑定",errors);
+            Require(catalog.Get("anomaly:EchoZone")==null && catalog.Get("anomaly:RedrawCurtain")==null && catalog.Get("anomaly:ReservedA003")==null && catalog.Get("anomaly:ReservedA007")==null,"异常尚无正式资源且不得残留旧保留键",errors);
             Directory.CreateDirectory("Library/FormalResourceValidation");
             string report="prefabs="+prefabs+"; semanticEntries="+sprites+"; errors="+errors.Count+"\n"+string.Join("\n",errors);
             File.WriteAllText("Library/FormalResourceValidation/assets.txt",report);

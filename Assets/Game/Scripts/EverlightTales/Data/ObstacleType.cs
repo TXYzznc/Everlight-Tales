@@ -37,25 +37,180 @@ namespace Everlight.Tales.Data
     /// <summary>障碍设施静态配置。方向以 0～5 的相位序号存，Board 层转 HexDirection。</summary>
     public sealed class ObstacleConfig
     {
+        public ObstacleConfig(
+            ObstacleType type,
+            int maxDurability = 0,
+            int passDirection = -1,
+            ExtraParamSet extra = null)
+        {
+            Type = type;
+            MaxDurability = maxDurability;
+            PassDirection = passDirection;
+            Extra = extra ?? ExtraParamSet.Empty;
+        }
+
         public ObstacleType Type { get; }
 
-        /// <summary>最大耐久（O-002=2、O-008=3，无耐久为 0）。</summary>
+        /// <summary>最大耐久（O-002=2、O-007 段=1、O-008=3，无耐久为 0）。</summary>
         public int MaxDurability { get; }
 
         /// <summary>方向参数（-1 无）：O-004 输出 D1=1、O-006 入口 D0=0。</summary>
         public int PassDirection { get; }
 
-        public ObstacleConfig(ObstacleType type, int maxDurability = 0, int passDirection = -1)
+        /// <summary>逐项参数（配置表 ExtraData 列）。</summary>
+        public ExtraParamSet Extra { get; }
+
+        /// <summary>O-002：同一根爆破只扣一次耐久。</summary>
+        public bool RootBlastOncePerRoot
         {
-            Type = type;
-            MaxDurability = maxDurability;
-            PassDirection = passDirection;
+            get { return Extra.GetBool("RootBlastOncePerRoot", true); }
+        }
+
+        /// <summary>O-003：闸门初始是否开启。</summary>
+        public bool InitialOpen
+        {
+            get { return Extra.GetBool("InitialOpen", false); }
+        }
+
+        /// <summary>O-003：同一根信号对开关只切换一次。</summary>
+        public bool ToggleOncePerRoot
+        {
+            get { return Extra.GetBool("ToggleOncePerRoot", true); }
+        }
+
+        /// <summary>O-003：关闭时若闸门格有实体，标记待关闭、腾空后落闸。</summary>
+        public bool DeferCloseWhenOccupied
+        {
+            get { return Extra.GetBool("DeferCloseWhenOccupied", true); }
+        }
+
+        /// <summary>O-005：允许夹持的对象标签，逗号分隔；基础只夹普通件。</summary>
+        public string AllowTags
+        {
+            get { return Extra.GetText("AllowTags", "normal"); }
+        }
+
+        /// <summary>O-005：初始已夹持的实体 ID，0 表示初始空闲。</summary>
+        public int InitialClampedEntityId
+        {
+            get { return Extra.GetInt("InitialClampedEntityId", 0); }
+        }
+
+        /// <summary>O-005：释放后保持开放的拍数。</summary>
+        public int ReleaseWindowTaps
+        {
+            get { return Extra.GetInt("ReleaseWindowTaps", 1); }
+        }
+
+        /// <summary>O-006：信号切换后的入口方向相位序号。</summary>
+        public int ToggleDirection
+        {
+            get { return Extra.GetInt("ToggleDirection", 3); }
+        }
+
+        /// <summary>O-007：拍末最多新增的封条段数。</summary>
+        public int GrowthPerTap
+        {
+            get { return Extra.GetInt("GrowthPerTap", 1); }
+        }
+
+        /// <summary>O-007：单个封条段的耐久。</summary>
+        public int SegmentMaxDurability
+        {
+            get { return Extra.GetInt("SegmentMaxDurability", 1); }
+        }
+
+        /// <summary>O-008：支柱归零时一并移除的预登记附属隔板数。</summary>
+        public int AttachedPartitions
+        {
+            get { return Extra.GetInt("AttachedPartitions", 0); }
+        }
+
+        /// <summary>O-008：支柱是否登记为保护对象（归零另记结构事故）。</summary>
+        public bool ProtectedObject
+        {
+            get { return Extra.GetBool("ProtectedObject", false); }
+        }
+
+        /// <summary>O-008：是否允许修复能力每次恢复 1 耐久。</summary>
+        public bool Repairable
+        {
+            get { return Extra.GetBool("Repairable", true); }
+        }
+
+        /// <summary>O-005：该标签是否允许被本夹持座锁定。</summary>
+        public bool AllowsTag(string tag)
+        {
+            if (string.IsNullOrEmpty(tag))
+            {
+                return false;
+            }
+
+            string[] tags = AllowTags.Split(',');
+            for (int i = 0; i < tags.Length; i++)
+            {
+                if (string.Equals(tags[i].Trim(), tag, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
     /// <summary>障碍设施目录（P2-002）。初值待试玩校准。</summary>
     public static class ObstacleCatalog
     {
+        /// <summary>各障碍类型接受的逐项参数键；未列出的键在装载时判为拼写错误。</summary>
+        private static readonly Dictionary<ObstacleType, Dictionary<string, ExtraParamKind>> ExtraSchema =
+            new Dictionary<ObstacleType, Dictionary<string, ExtraParamKind>>
+            {
+                {
+                    ObstacleType.BrittlePartition, new Dictionary<string, ExtraParamKind>
+                    {
+                        { "RootBlastOncePerRoot", ExtraParamKind.Bool },
+                    }
+                },
+                {
+                    ObstacleType.LinkedGate, new Dictionary<string, ExtraParamKind>
+                    {
+                        { "InitialOpen", ExtraParamKind.Bool },
+                        { "ToggleOncePerRoot", ExtraParamKind.Bool },
+                        { "DeferCloseWhenOccupied", ExtraParamKind.Bool },
+                    }
+                },
+                {
+                    ObstacleType.ClampingSeat, new Dictionary<string, ExtraParamKind>
+                    {
+                        { "AllowTags", ExtraParamKind.Text },
+                        { "InitialClampedEntityId", ExtraParamKind.Int },
+                        { "ReleaseWindowTaps", ExtraParamKind.Int },
+                    }
+                },
+                {
+                    ObstacleType.OneWayShutter, new Dictionary<string, ExtraParamKind>
+                    {
+                        { "ToggleDirection", ExtraParamKind.Int },
+                    }
+                },
+                {
+                    ObstacleType.ProliferatingSeal, new Dictionary<string, ExtraParamKind>
+                    {
+                        { "GrowthPerTap", ExtraParamKind.Int },
+                        { "SegmentMaxDurability", ExtraParamKind.Int },
+                    }
+                },
+                {
+                    ObstacleType.PressurePillar, new Dictionary<string, ExtraParamKind>
+                    {
+                        { "AttachedPartitions", ExtraParamKind.Int },
+                        { "ProtectedObject", ExtraParamKind.Bool },
+                        { "Repairable", ExtraParamKind.Bool },
+                    }
+                },
+            };
+
         private static IReadOnlyDictionary<ObstacleType, ObstacleConfig> _configs = new Dictionary<ObstacleType, ObstacleConfig>();
 
         public static void Install(IEnumerable<ObstacleConfig> configs)
@@ -65,6 +220,9 @@ namespace Everlight.Tales.Data
             {
                 if (config == null || config.Type == ObstacleType.None || !Enum.IsDefined(typeof(ObstacleType), config.Type) || config.MaxDurability < 0 || config.PassDirection < -1 || config.PassDirection > 5 || !map.TryAdd(config.Type, config))
                     throw new ArgumentException("ObstacleCatalog 存在无效障碍配置或重复类型。", nameof(configs));
+
+                ExtraSchema.TryGetValue(config.Type, out Dictionary<string, ExtraParamKind> schema);
+                config.Extra.Validate("障碍 " + config.Type, schema);
             }
             _configs = map;
         }

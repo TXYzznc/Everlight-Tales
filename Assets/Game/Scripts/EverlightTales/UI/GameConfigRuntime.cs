@@ -49,7 +49,7 @@ namespace Everlight.Tales.UI
                 !GF.DataTable.HasDataTable<PortraitTable>() || !GF.DataTable.HasDataTable<TutorialHintTable>() ||
                 !GF.DataTable.HasDataTable<CalibrationTable>() || !GF.DataTable.HasDataTable<ObstacleTable>() ||
                 !GF.DataTable.HasDataTable<AudioCueTable>() || !GF.DataTable.HasDataTable<BgmTable>() ||
-                !GF.DataTable.HasDataTable<AssetBindingTable>() || !GF.DataTable.HasDataTable<NarrativeTable>() || !GF.DataTable.HasDataTable<CaseEventTable>() || !GF.DataTable.HasDataTable<BatchTable>() || !GF.DataTable.HasDataTable<CaseRewardOptionTable>())
+                !GF.DataTable.HasDataTable<AssetBindingTable>() || !GF.DataTable.HasDataTable<NarrativeTable>() || !GF.DataTable.HasDataTable<CaseEventTable>() || !GF.DataTable.HasDataTable<BatchTable>() || !GF.DataTable.HasDataTable<CaseRewardOptionTable>() || !GF.DataTable.HasDataTable<ChallengeTable>())
             {
                 return false;
             }
@@ -208,13 +208,22 @@ namespace Everlight.Tales.UI
             {
                 if (row == null || row.Key != string.Format("AN-{0:000}", row.Id) || row.AnomalyKind != row.Id ||
                     row.AnomalyKind < 1 || row.AnomalyKind > 8 || !anomalyTypes.Add((AnomalyType)row.AnomalyKind) ||
-                    row.SettleDirection < 0 || row.SettleDirection > 5 || row.Threshold <= 0 || row.CoreCount < 0 || row.TapPeriod <= 0)
+                    row.Deflection < 0 || row.SettleDirection < 0 || row.SettleDirection > 5 ||
+                    row.Threshold < 0 || row.CoreCount < 0 || row.TapPeriod < 0)
                 {
-                    throw new InvalidOperationException("Board/AnomalyTable 存在无效稳定键、方向、阈值或重复类型。");
+                    throw new InvalidOperationException("Board/AnomalyTable 存在无效稳定键、方向、数值或重复类型。");
                 }
 
                 AnomalyType type = (AnomalyType)row.AnomalyKind;
-                anomalyConfigs.Add(new AnomalyConfig(type, row.Deflection, row.SettleDirection, row.Threshold, row.CoreCount, row.TapPeriod));
+                if ((type == AnomalyType.LocalSettleDeflection && row.Deflection <= 0) ||
+                    (type == AnomalyType.ExpandingRift && row.Threshold <= 0) ||
+                    (type == AnomalyType.OverloadField && (row.Threshold <= 0 || row.CoreCount <= 0)) ||
+                    (type == AnomalyType.PostTapReversal && row.TapPeriod <= 0))
+                {
+                    throw new InvalidOperationException("Board/AnomalyTable 的 " + type + " 缺少必需数值。");
+                }
+
+                anomalyConfigs.Add(new AnomalyConfig(type, row.Deflection, row.SettleDirection, row.Threshold, row.CoreCount, row.TapPeriod, ExtraParamSet.Parse(row.ExtraData, "异常 " + type)));
             }
 
             if (anomalyConfigs.Count != 8)
@@ -233,9 +242,9 @@ namespace Everlight.Tales.UI
                 }
                 releases.Add(new ReleaseEntry(row.Key, (ReleaseKind)row.ReleaseKind, (StageLevel)row.Stage, row.FirstAppearance, row.UnlockCondition));
             }
-            if (releases.Count != 39)
+            if (releases.Count != 54)
             {
-                throw new InvalidOperationException("Meta/StageReleaseTable 应包含 39 个投放条目，实际 " + releases.Count + "。");
+                throw new InvalidOperationException("Meta/StageReleaseTable 应包含 54 个投放条目，实际 " + releases.Count + "。");
             }
 
             var places = new List<PlaceConfig>();
@@ -436,7 +445,7 @@ namespace Everlight.Tales.UI
                 if (string.IsNullOrEmpty(row.Key) || row.Key != string.Format("O-{0:000}", row.ObstacleKind) || !obstacleTypes.Add(type) ||
                     !Enum.IsDefined(typeof(ObstacleType), type) || type == ObstacleType.None || row.ObstacleKind < 1 || row.ObstacleKind > 8 || row.MaxDurability < 0 || row.PassDirection < -1 || row.PassDirection > 5)
                     throw new InvalidOperationException("Board/ObstacleTable 存在无效稳定键、障碍类型、耐久或方向参数。");
-                obstacles.Add(new ObstacleConfig(type, row.MaxDurability, row.PassDirection));
+                obstacles.Add(new ObstacleConfig(type, row.MaxDurability, row.PassDirection, ExtraParamSet.Parse(row.ExtraData, "障碍 " + type)));
             }
             if (obstacles.Count != 8) throw new InvalidOperationException("Board/ObstacleTable 应包含 8 个障碍类型，实际为 " + obstacles.Count + "。");
 
@@ -543,9 +552,30 @@ namespace Everlight.Tales.UI
             }
             if (caseRewardOptions.Count != 14) throw new InvalidOperationException("Meta/CaseRewardOptionTable 应包含 14 个首案奖励选项，实际为 " + caseRewardOptions.Count + "。");
 
+            var challenges = new List<ChallengeConfig>();
+            var challengeKeys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (ChallengeTable row in GF.DataTable.GetDataTable<ChallengeTable>().GetAllDataRows())
+            {
+                if (row == null) throw new InvalidOperationException("Board/ChallengeTable 存在空行。");
+                ChallengeKind kind = (ChallengeKind)row.ChallengeKind;
+                if (string.IsNullOrEmpty(row.Key) || row.Key != string.Format("C-{0:000}", row.Id) || !challengeKeys.Add(row.Key) ||
+                    string.IsNullOrEmpty(row.CaseKey) || string.IsNullOrEmpty(row.Name) || string.IsNullOrEmpty(row.RuleId) ||
+                    string.IsNullOrEmpty(row.Stage) || !Enum.IsDefined(typeof(ChallengeKind), kind) || kind == ChallengeKind.None)
+                {
+                    throw new InvalidOperationException("Board/ChallengeTable 存在无效稳定键、案件键、规则编号或类型。");
+                }
+
+                challenges.Add(new ChallengeConfig(row.Key, row.CaseKey, row.Name, row.LevelKey, kind, row.RuleId, row.Stage, row.GoalText, ExtraParamSet.Parse(row.ExtraData, "挑战 " + row.Key)));
+            }
+
+            if (challenges.Count != 15)
+            {
+                throw new InvalidOperationException("Board/ChallengeTable 应包含 15 个专属挑战，实际为 " + challenges.Count + "。");
+            }
+
             var levels = BuildLevelPresets(calibrations);
             var redShoePresets = BuildRedShoePresets();
-            var snapshot = new GameConfigSnapshot(partConfigs, codexConfigs, materialConfigs, formConfigs, buffConfigs, anomalyConfigs, releases, places, supplies, trials, tasks, normalEvents, rewards, cases, investigations, copies, portraits, tutorialHints, calibrations, obstacles, audioCues, bgms, assetBindings, narratives, caseEvents, batches, caseRewardOptions);
+            var snapshot = new GameConfigSnapshot(partConfigs, codexConfigs, materialConfigs, formConfigs, buffConfigs, anomalyConfigs, releases, places, supplies, trials, tasks, normalEvents, rewards, cases, investigations, copies, portraits, tutorialHints, calibrations, obstacles, audioCues, bgms, assetBindings, narratives, caseEvents, batches, caseRewardOptions, challenges);
             PartCatalog.Install(snapshot.Parts);
             PartCodexCatalog.Install(snapshot.PartCodex);
             MaterialCatalog.Install(snapshot.Materials);
@@ -573,10 +603,11 @@ namespace Everlight.Tales.UI
             CaseEventCatalog.Install(snapshot.CaseEvents);
             BatchCatalog.Install(snapshot.Batches);
             CaseRewardOptionCatalog.Install(snapshot.CaseRewardOptions);
+            ChallengeCatalog.Install(snapshot.Challenges);
             LevelPresetCatalog.Install(levels);
             RedShoePresetCatalog.Install(redShoePresets);
             Current = snapshot;
-            Debug.Log("[GameConfigRuntime] 全局 DataTable 配置校验通过，已安装零件 20、材料 6、形态 19、配方 54、Buff 20、异常 8、投放 39、地点 5、供给 6、试机 4、任务 4、普通事件 6、奖励 " + rewards.Count + "、案件 " + cases.Count + "、调查 " + investigations.Count + "、文案 " + copies.Count + "、立绘 " + portraits.Count + "、教学 " + tutorialHints.Count + "、校准 " + calibrations.Count + "、障碍 " + obstacles.Count + "、音效位 " + audioCues.Count + "、BGM " + bgms.Count + "、资源槽位 " + assetBindings.Count + "、叙事 " + narratives.Count + "、案件事件 " + caseEvents.Count + "、关卡 " + levels.Count + "、红舞鞋规则 " + redShoePresets.Count + "。");
+            Debug.Log("[GameConfigRuntime] 全局 DataTable 配置校验通过，已安装零件 20、材料 6、形态 19、配方 54、Buff 20、异常 8、投放 39、地点 5、供给 6、试机 4、任务 4、普通事件 6、奖励 " + rewards.Count + "、案件 " + cases.Count + "、调查 " + investigations.Count + "、文案 " + copies.Count + "、立绘 " + portraits.Count + "、教学 " + tutorialHints.Count + "、校准 " + calibrations.Count + "、障碍 " + obstacles.Count + "、音效位 " + audioCues.Count + "、BGM " + bgms.Count + "、资源槽位 " + assetBindings.Count + "、叙事 " + narratives.Count + "、案件事件 " + caseEvents.Count + "、关卡 " + levels.Count + "、红舞鞋规则 " + redShoePresets.Count + "、专属挑战 " + challenges.Count + "。");
             return true;
         }
 

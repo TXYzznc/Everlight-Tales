@@ -57,6 +57,7 @@ MonoBehaviour:
   - Meta/CaseEventTable
   - Meta/BatchTable
   - Meta/CaseRewardOptionTable
+  - Board/ChallengeTable
   mConfigs: []
   mLanguages:
   - English

@@ -35,7 +35,8 @@ namespace Everlight.Tales.Data
         public IReadOnlyList<CaseEventConfig> CaseEvents { get; }
         public IReadOnlyList<BatchConfig> Batches { get; }
         public IReadOnlyList<CaseRewardOptionConfig> CaseRewardOptions { get; }
-        public GameConfigSnapshot(IReadOnlyList<PartConfig> parts, IReadOnlyList<PartCodexConfig> partCodex, IReadOnlyList<MaterialConfig> materials, IReadOnlyList<FormConfig> forms, IReadOnlyList<BuffConfig> buffs, IReadOnlyList<AnomalyConfig> anomalies, IReadOnlyList<ReleaseEntry> releases, IReadOnlyList<PlaceConfig> places, IReadOnlyList<SupplyCandidate> supplies, IReadOnlyList<TrialConfig> trials, IReadOnlyList<TaskConfig> tasks, IReadOnlyList<NormalEventConfig> normalEvents, IReadOnlyList<RewardMaterialEntry> rewards, IReadOnlyList<CaseConfig> cases, IReadOnlyList<InvestigationConfig> investigations, IReadOnlyList<CopyEntry> copies, IReadOnlyList<PortraitConfig> portraits, IReadOnlyList<TutorialHintConfig> tutorialHints, IReadOnlyList<CalibrationBound> calibrations, IReadOnlyList<ObstacleConfig> obstacles, IReadOnlyList<AudioCueConfig> audioCues, IReadOnlyList<BgmConfig> bgms, IReadOnlyList<AssetSlot> assetBindings, IReadOnlyList<NarrativeEntry> narratives, IReadOnlyList<CaseEventConfig> caseEvents, IReadOnlyList<BatchConfig> batches, IReadOnlyList<CaseRewardOptionConfig> caseRewardOptions)
+        public IReadOnlyList<ChallengeConfig> Challenges { get; }
+        public GameConfigSnapshot(IReadOnlyList<PartConfig> parts, IReadOnlyList<PartCodexConfig> partCodex, IReadOnlyList<MaterialConfig> materials, IReadOnlyList<FormConfig> forms, IReadOnlyList<BuffConfig> buffs, IReadOnlyList<AnomalyConfig> anomalies, IReadOnlyList<ReleaseEntry> releases, IReadOnlyList<PlaceConfig> places, IReadOnlyList<SupplyCandidate> supplies, IReadOnlyList<TrialConfig> trials, IReadOnlyList<TaskConfig> tasks, IReadOnlyList<NormalEventConfig> normalEvents, IReadOnlyList<RewardMaterialEntry> rewards, IReadOnlyList<CaseConfig> cases, IReadOnlyList<InvestigationConfig> investigations, IReadOnlyList<CopyEntry> copies, IReadOnlyList<PortraitConfig> portraits, IReadOnlyList<TutorialHintConfig> tutorialHints, IReadOnlyList<CalibrationBound> calibrations, IReadOnlyList<ObstacleConfig> obstacles, IReadOnlyList<AudioCueConfig> audioCues, IReadOnlyList<BgmConfig> bgms, IReadOnlyList<AssetSlot> assetBindings, IReadOnlyList<NarrativeEntry> narratives, IReadOnlyList<CaseEventConfig> caseEvents, IReadOnlyList<BatchConfig> batches, IReadOnlyList<CaseRewardOptionConfig> caseRewardOptions, IReadOnlyList<ChallengeConfig> challenges)
         {
             Parts = parts ?? throw new ArgumentNullException(nameof(parts));
             PartCodex = partCodex ?? throw new ArgumentNullException(nameof(partCodex));
@@ -64,6 +65,7 @@ namespace Everlight.Tales.Data
             CaseEvents = caseEvents ?? throw new ArgumentNullException(nameof(caseEvents));
             Batches = batches ?? throw new ArgumentNullException(nameof(batches));
             CaseRewardOptions = caseRewardOptions ?? throw new ArgumentNullException(nameof(caseRewardOptions));
+            Challenges = challenges ?? throw new ArgumentNullException(nameof(challenges));
         }
     }
 }
