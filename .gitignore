@@ -158,3 +158,6 @@ Assets/Game/Font/Common/SIMHEI SDF.asset
 
 # Õ¼Î»×ÊÔ´Éú³ÉÔ¤ÀÀ£¨¿ÉÔÙÉú³É£¬²»Èë¿â£©
 /tools/_art_preview.png
+# æœ¬åœ°ç›®å½•å‰¯æœ¬ä¸ Codely CLI å·¥å…·äº§ç‰©ï¼ˆä¸å…¥åº“ï¼‰
+/Docs/GameDesign/11-ç¾æœ¯è§„èŒƒ - å‰¯æœ¬/
+.codely-cli/
