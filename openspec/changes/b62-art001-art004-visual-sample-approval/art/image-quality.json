@@ -1,0 +1,142 @@
+[
+  {
+    "file": "Assets/Game/Sprites/人物/玩家/玩家.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bbox_alpha32": [
+      387,
+      8,
+      867,
+      1241
+    ],
+    "saturated_boundary_alpha_below32": 535,
+    "saturated_boundary_alpha_at_least32": 0,
+    "sha256": "00f5b4a18f6fefd29224eed08420809168ee18c92dcee844fccd58de36e7a161"
+  },
+  {
+    "file": "Assets/Game/Sprites/人物/沈遥/沈遥.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bbox_alpha32": [
+      459,
+      9,
+      805,
+      1242
+    ],
+    "saturated_boundary_alpha_below32": 1951,
+    "saturated_boundary_alpha_at_least32": 0,
+    "sha256": "6b8992d02ecb3b1c832a3ca59152c71b5deb8a7e6b029872293556001955374b"
+  },
+  {
+    "file": "openspec/changes/b62-art001-art004-visual-sample-approval/art/raw/BG-P01-day-v1.png",
+    "size": [
+      941,
+      1672
+    ],
+    "alpha_range": [
+      255,
+      255
+    ],
+    "visible_bbox_alpha32": [
+      0,
+      0,
+      941,
+      1672
+    ],
+    "saturated_boundary_alpha_below32": 0,
+    "saturated_boundary_alpha_at_least32": 0,
+    "sha256": "546572e63d1c0e94e97fdc743f7804db44dffa497a49d86c6e4eed015eb1b477"
+  },
+  {
+    "file": "openspec/changes/b62-art001-art004-visual-sample-approval/art/raw/BG-P01-night-v1.png",
+    "size": [
+      941,
+      1672
+    ],
+    "alpha_range": [
+      255,
+      255
+    ],
+    "visible_bbox_alpha32": [
+      0,
+      0,
+      941,
+      1672
+    ],
+    "saturated_boundary_alpha_below32": 0,
+    "saturated_boundary_alpha_at_least32": 0,
+    "sha256": "a52708204e9e76cd102e7b799f2f66753ca6770de13f757845351d44118f2103"
+  },
+  {
+    "file": "openspec/changes/b62-art001-art004-visual-sample-approval/art/raw/CHAR-MASTER-v1.png",
+    "size": [
+      986,
+      1596
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bbox_alpha32": [
+      209,
+      7,
+      777,
+      1584
+    ],
+    "saturated_boundary_alpha_below32": 1129,
+    "saturated_boundary_alpha_at_least32": 0,
+    "sha256": "a18c85da3aed59bb2f940561deab373ecc2cfd335f04b67598166755a730bbc5"
+  },
+  {
+    "file": "openspec/changes/b62-art001-art004-visual-sample-approval/art/raw/CHAR-RESIDENT-v1.png",
+    "size": [
+      986,
+      1596
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bbox_alpha32": [
+      206,
+      27,
+      788,
+      1565
+    ],
+    "saturated_boundary_alpha_below32": 746,
+    "saturated_boundary_alpha_at_least32": 0,
+    "sha256": "f30ba32fd28aea12789e56cb26cfe1c68056fc116ff8c666a55cf111abb24b12"
+  },
+  {
+    "file": "openspec/changes/b62-art001-art004-visual-sample-approval/art/raw/CHAR-SHEN-v2.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bbox_alpha32": [
+      459,
+      7,
+      807,
+      1243
+    ],
+    "saturated_boundary_alpha_below32": 1308,
+    "saturated_boundary_alpha_at_least32": 0,
+    "sha256": "52d603a9e7ff121c78b1f698abafcdcabd8ddd703618c91e06e920a32e65a786"
+  }
+]

@@ -1,0 +1,23 @@
+# b62 提示词版本 v1
+
+美术素材状态: 样张制作中。
+
+## CHAR-SHEN-v2
+
+Use case: identity-preserve. Edit the supplied Shen Yao character PNG. Preserve her exact face, hair bun, red hair ribbon, rose dance wrap top, ivory wide trousers, ballet shoes, full-body pose, painted shading, framing and proportions. Only remove the thin stray red/yellow/white pixels and colored matte halos around the outside silhouette, especially hair, wrists, hem and footwear. Keep the intentional red ribbon and warm clothing colors inside the silhouette. Clean natural anti-aliased cutout edge, truly transparent background. No backdrop, floor, contact shadow, added glow, text or costume changes. Preserve original canvas proportions as closely as possible.
+
+## CHAR-MASTER-v1
+
+Use case: stylized-concept. A single full-body male Chinese repair-shop mentor named Zhou Heng, mature middle-aged, calm and dependable, distinct from a young apprentice. Standing three-quarter front, organizing a small set of tools, worn goggles resting above his forehead, a short old restoration paintbrush in one hand and a small copper key ring at the belt. Practical cream rolled-sleeve shirt, faded slate-blue work vest, warm brown work apron, dark trousers and work boots. Polished hand-painted 2D character illustration matching the existing warm everyday urban folktale game: clear readable silhouette, large controlled color planes, selective fine facial lines, broad light/midtone/shadow groups, restrained cloth texture, no uniform heavy black outline, no photorealism or 3D/PBR finish. Light from upper left, subtle warm face/hands, restrained blue-gray and warm copper palette. Head-to-toe centered vertical composition, ample transparent margin, about 840:1360 working proportion. One character only. Real transparent background, no ground/shadow, no frame or background, no text/watermark, no supernatural lost/rescued effects.
+
+## CHAR-RESIDENT-v1
+
+Use case: stylized-concept. A single full-body everyday Chinese female neighborhood resident, mature adult, short slightly wavy dark hair, relaxed upright three-quarter front pose, carrying a modest fabric shopping tote in one hand. Slate-blue cardigan over a plain warm off-white top, muted brown ankle-length skirt and simple practical shoes. Neutral kind expression, simple readable everyday silhouette, distinct from a dance teacher and craftsperson. Polished hand-painted 2D game character illustration, large controlled color planes, delicate selective facial lines, broad light/midtone/shadow groups, restrained cloth texture, no thick uniform outline or photographic texture. Upper-left warm light, cool gray-blue and warm brown palette. Full body head to toe centered, about 840:1360 vertical working proportion with generous transparent margin. One character only, true transparent background, no scenery, floor, shadow, stage, text, logos, watermark or lore-specific props.
+
+## BG-P01-day-v1
+
+Use case: stylized-concept. A vertical 9:16 background illustration for a repair preparation screen in a quiet urban folktale game. A close slightly elevated view of an old craftsman's workbench inside the same humble repair shop: worn dark walnut tabletop fills most of the frame, old hand tools neatly pushed to the far top and side edges, small copper desk lamp near upper left, modest drawers and a faded slate-blue tool wall only along the top edge. Natural cool daylight from offscreen left with gentle warm copper highlights. The central 65 percent and lower half of the table are uncluttered, low-contrast, broad readable dark wood planes reserved for separate UI overlays. Hand-painted 2D environmental concept art, believable proportions, broad designed hard-edge light and shadow shapes, restrained brush texture and blue-gray, warm brown, tarnished brass palette, consistent with existing repair-shop and dance-studio backgrounds. No people, no shoes, no characters, no text or letters, no logos, no labels, no UI panels, no icons, no buttons, no hex board or drawn interactive slots. Full opaque background, not transparency, portrait 1080:1920 composition.
+
+## BG-P01-night-v1
+
+Use case: lighting-weather. Edit the day workbench illustration into the exact same camera, composition, furniture, tools and clean central empty area at night. Cool blue ambient light with the upper-left copper lamp now giving a restrained warm pool on the tabletop; dark lower half stays readable for UI. Change only time of day and lighting. Preserve object positions, perspective, painted medium and low-texture central 65 percent. No new objects, no people, no text, no UI or hex slots. Opaque portrait image, preserve original dimensions and framing.
