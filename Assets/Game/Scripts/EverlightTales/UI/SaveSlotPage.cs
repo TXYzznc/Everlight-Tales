@@ -27,13 +27,28 @@ namespace Everlight.Tales.UI
         private void EnterSlot(int slot)
         {
             Debug.Log($"[UI诊断][SaveSlotPage] EnterSlot slot={slot}, hadSave={SaveSlotService.HasSlot(slot)}", this);
-            WorldSession.LoadOrNew(WorldSession.DemoSeed, slot);
+            try { WorldSession.LoadOrNew(WorldSession.DemoSeed, slot); }
+            catch (System.Exception exception)
+            {
+                GlobalUI.ShowToast("存档恢复未完成，请重试：" + exception.Message, ToastKind.Warning);
+                return;
+            }
+            if (WorldSession.Current.HasPendingRecovery)
+            {
+                OnClickClose();
+                GF.UI.OpenUIForm(UIViews.RecoveryPage);
+                return;
+            }
+            if (!string.IsNullOrEmpty(WorldSession.Current.RecoveryNotice))
+                GlobalUI.ShowToast(WorldSession.Current.RecoveryNotice, ToastKind.Warning);
             Debug.Log($"[UI诊断][SaveSlotPage] WorldSession loaded current={(WorldSession.Current != null ? "ok" : "null")}, day={(WorldSession.Current != null ? WorldSession.Current.Time.Day.ToString() : "n/a")}", this);
             UIValidationHarness.ApplyTestData(WorldSession.Current);
             // 先关闭存档选择页，再打开常驻主页，避免 GF 同组 Refresh 在两个顶层窗体
             // 交接期间把 MainPageShell 留在暂停/不可见状态。
             OnClickClose();
-            int shellId = GF.UI.OpenUIForm(UIViews.MainPageShell);
+            var args = UIParams.Create();
+            if (WorldSession.Current.HasPendingSettlementReward) args.Set("Recovery.Settlement", true);
+            int shellId = GF.UI.OpenUIForm(UIViews.MainPageShell, args);
             Debug.Log($"[UI诊断][SaveSlotPage] Open MainPageShell serialId={shellId}", this);
         }
 

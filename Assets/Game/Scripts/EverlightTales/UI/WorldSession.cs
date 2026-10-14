@@ -104,6 +104,9 @@ namespace Everlight.Tales.UI
         public int PendingArmMoves { get; private set; }
 
         private List<SupplyInstance> _supply = new List<SupplyInstance>();
+        private int _supplyDay;
+        private bool _supplyNight;
+        private int _supplyEpoch;
 
         /// <summary>当前昼/夜的一批普通供给。</summary>
         public IReadOnlyList<SupplyInstance> Supply => _supply;
@@ -150,12 +153,14 @@ namespace Everlight.Tales.UI
         }
 
         /// <summary>是否有未完成的维修尝试存档（首版 PlayerPrefs 最简存档未持久化尝试，暂恒 false；恢复面板预留）。</summary>
-        public bool HasAttemptSave => false;
+        public bool HasAttemptSave => _checkpoint != null && !(_cleanupPending || _pendingJournal != null);
 
         /// <summary>新档：建世界 + 开局地图 + 初始零件 + 刷新供给。</summary>
         public static WorldSession NewGame(int seed, int slot = 1)
         {
-            GameConfigRuntime.EnsureLoaded();
+            if (!GameConfigRuntime.EnsureLoaded()) throw new InvalidOperationException("游戏配置尚未完成加载。");
+            SaveSlotService.Delete(slot);
+            string generation = SaveSlotService.EnsureGeneration(slot);
             var s = new WorldSession
             {
                 World = new WorldState(),
@@ -166,6 +171,7 @@ namespace Everlight.Tales.UI
                 HeldBuffs = new BuffSet(),
                 Slot = slot,
                 IsNewGame = true,
+                _generationId = generation,
             };
             s.RegisterMap();
             // S0 新档不预置零件：P-001~P-003 由三段教学逐步解锁（P5-003），
@@ -179,8 +185,18 @@ namespace Everlight.Tales.UI
         /// <summary>有存档则恢复，无存档则新档（slot 默认 1，兼容原单存档入口）。</summary>
         public static WorldSession LoadOrNew(int seed, int slot = 1)
         {
-            GameConfigRuntime.EnsureLoaded();
-            return HasSave(slot) ? Restore(seed, slot) : NewGame(seed, slot);
+            if (!GameConfigRuntime.EnsureLoaded()) throw new InvalidOperationException("游戏配置尚未完成加载。");
+            Current = null;
+            string generation = SaveSlotService.EnsureGeneration(slot);
+            _startupNotice = null;
+            ReconcileJournal(slot, generation);
+            if (!HasSave(slot)) return NewGame(seed, slot);
+            WorldSession session = Restore(seed, slot, null, false);
+            session._generationId = generation;
+            session.CheckRecovery();
+            session.RecoveryNotice = _startupNotice ?? session.RecoveryNotice;
+            Current = session;
+            return session;
         }
 
         /// <summary>
@@ -190,6 +206,7 @@ namespace Everlight.Tales.UI
         /// <summary>设置跟踪任务（P3-011），空 id 取消跟踪。</summary>
         public void TrackTask(string taskId)
         {
+            if (!IsWorldWritable) return;
             TrackedTaskId = taskId;
         }
 
@@ -218,17 +235,26 @@ namespace Everlight.Tales.UI
 
         public void Save()
         {
-            int slot = Slot;
-            // 时间条读取 Time；存档也必须保留同一份时间状态，避免读档后剩余格数被重置。
-            PlayerPrefs.SetInt(SlotKey(KeyDay, slot), Time.Day);
-            PlayerPrefs.SetInt(SlotKey(KeyPeriod, slot), (int)Time.Period);
-            PlayerPrefs.SetInt(SlotKey("et.world.remainingCells", slot), Time.RemainingCells);
-            PlayerPrefs.SetInt(SlotKey(KeyRepairFee, slot), World.RepairFee);
-            PlayerPrefs.SetInt(SlotKey(KeyBatch, slot), World.BatchNumber);
-            PlayerPrefs.SetInt(SlotKey(KeyTutorial, slot), World.TutorialComplete ? 1 : 0);
+            EnsureWorldWritable();
+            var store = new PlayerPrefsWorldImageStore(Slot, GenerationId);
+            store.Apply(CaptureWorldImage());
+            store.CommitReceipt(checked(store.Revision + 1), "");
+        }
 
-            PlayerPrefs.SetString(SlotKey(KeyOwned, slot), JoinParts(World.OwnedParts));
-            PlayerPrefs.SetString(SlotKey(KeyKnown, slot), JoinParts(World.KnownParts));
+        public WorldImage CaptureWorldImage()
+        {
+            int slot = Slot;
+            var image = new WorldImage();
+            // 时间条读取 Time；存档也必须保留同一份时间状态，避免读档后剩余格数被重置。
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey(KeyDay, slot), Time.Day);
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey(KeyPeriod, slot), (int)Time.Period);
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey("et.world.remainingCells", slot), Time.RemainingCells);
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey(KeyRepairFee, slot), World.RepairFee);
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey(KeyBatch, slot), World.BatchNumber);
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey(KeyTutorial, slot), World.TutorialComplete ? 1 : 0);
+
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyOwned, slot), JoinParts(World.OwnedParts));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyKnown, slot), JoinParts(World.KnownParts));
 
             var materials = new List<string>();
             foreach (MaterialStack stack in World.Materials.Stacks)
@@ -236,9 +262,9 @@ namespace Everlight.Tales.UI
                 materials.Add(stack.MaterialId + ":" + stack.Count + ":" + (stack.SourceCase ?? ""));
             }
 
-            PlayerPrefs.SetString(SlotKey(KeyMaterials, slot), string.Join(";", materials));
-            PlayerPrefs.SetString(SlotKey(KeyBlueprints, slot), string.Join(",", World.Blueprints));
-            PlayerPrefs.SetString(SlotKey(KeyForms, slot), string.Join(",", World.UnlockedForms));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyMaterials, slot), string.Join(";", materials));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyBlueprints, slot), string.Join(",", World.Blueprints));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyForms, slot), string.Join(",", World.UnlockedForms));
 
             var currentForms = new List<string>();
             foreach (var pair in World.CurrentForms)
@@ -249,7 +275,7 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            PlayerPrefs.SetString(SlotKey(KeyCurrentForms, slot), string.Join(";", currentForms));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyCurrentForms, slot), string.Join(";", currentForms));
 
             var tasks = new List<string>();
             foreach (TaskState task in World.Tasks)
@@ -257,7 +283,7 @@ namespace Everlight.Tales.UI
                 tasks.Add(task.Config.Id + ":" + (int)task.Kind + ":" + task.CurrentStep);
             }
 
-            PlayerPrefs.SetString(SlotKey(KeyTasks, slot), string.Join(";", tasks));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyTasks, slot), string.Join(";", tasks));
 
             var displays = new List<string>();
             foreach (DisplayItem item in World.DisplayItems)
@@ -265,20 +291,24 @@ namespace Everlight.Tales.UI
                 displays.Add(item.Id + ":" + item.Name + ":" + (int)item.Kind + ":" + item.Source + ":" + item.ObtainedDay);
             }
 
-            PlayerPrefs.SetString(SlotKey(KeyDisplay, slot), string.Join(";", displays));
-            PlayerPrefs.SetInt(SlotKey(KeyJobs, slot), World.SuccessfulJobs);
-            PlayerPrefs.SetInt(SlotKey(KeyTutorialStage, slot), World.TutorialStage);
-            PlayerPrefs.SetString(SlotMetaKey(slot), DateTime.UtcNow.ToString("O"));
-            SaveFirstCaseProgress();
-            PlayerPrefs.Save();
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey(KeyDisplay, slot), string.Join(";", displays));
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey(KeyJobs, slot), World.SuccessfulJobs);
+            PlayerPrefsWorldImageStore.AddInt(image, SlotKey(KeyTutorialStage, slot), World.TutorialStage);
+            PlayerPrefsWorldImageStore.AddString(image, SlotMetaKey(slot), DateTime.UtcNow.ToString("O"));
+            SaveFirstCaseProgress(image);
+            CaptureRuntime(image);
+            return image;
         }
 
         /// <summary>
         /// 准备卷帘门事件（EV-N01，P2-007）：创建盘面配置 + 事件配置 + 携带选择并暂存，
         /// 供准备页展示与调整；不建盘面、不进盘面。确认后调用 <see cref="ConfirmRollerDoor"/>。
         /// </summary>
-        public LevelBoardConfig PrepareRollerDoor()
+        public LevelBoardConfig PrepareRollerDoor(SupplyInstance source = null)
         {
+            if (!IsWorldWritable) return null;
+            if (source != null && (!_supply.Contains(source) || source.Processed || source.Template?.TemplateId != "EV-N01")) return null;
+            _pendingSupplyInstanceId = source?.InstanceId;
             LevelBoardConfig boardConfig = RollerDoorEvent.CreateBoardConfig();
             RepairEventConfig eventConfig = RollerDoorEvent.CreateConfig();
 
@@ -320,10 +350,27 @@ namespace Everlight.Tales.UI
         /// </summary>
         public RepairEventInstance ConfirmRollerDoor()
         {
+            if (_pendingCheckpoint != null)
+            {
+                if (!RetryPersistence()) return null;
+                PendingCarry = null; PendingEventConfig = null;
+                return CurrentEvent;
+            }
+            if (!OwnsSession || _attempt != null || PersistenceBlocked || _recoveryPending) return null;
             if (CurrentBoardConfig == null || PendingCarry == null || PendingEventConfig == null)
             {
                 return null;
             }
+            if (!string.IsNullOrEmpty(_pendingSupplyInstanceId))
+            {
+                bool available = false;
+                foreach (SupplyInstance supply in _supply)
+                    if (supply.InstanceId == _pendingSupplyInstanceId && !supply.Processed
+                        && supply.Template.TemplateId == PendingEventConfig.Id) available = true;
+                if (!available) return null;
+            }
+            if (PendingCarry.MissingKeyParts().Count != 0
+                || PendingCarry.SelectedCount != Math.Min(CarrySelection.MaxSlots, PendingCarry.Available.Count)) return null;
 
             // 盘面用 null 表示基础形态；只传非基础映射，保持既有形态判断契约。
             var preparedForms = new Dictionary<PartType, string>();
@@ -331,6 +378,7 @@ namespace Everlight.Tales.UI
                 if (!string.IsNullOrEmpty(pair.Value)) preparedForms[pair.Key] = pair.Value;
             BoardState board = InitialBoardBuilder.Build(CurrentBoardConfig, PendingCarry.SelectedParts(), Rng, preparedForms);
             CurrentEvent = RepairEventShell.Begin(PendingEventConfig, board);
+            _currentSupplyInstanceId = _pendingSupplyInstanceId;
 
             // 注入四选一累计的机械臂次数奖励（跨事件保留，注入后清零）。
             if (PendingArmMoves > 0)
@@ -339,6 +387,7 @@ namespace Everlight.Tales.UI
                 PendingArmMoves = 0;
             }
 
+            if (!BeginAttempt()) return null;
             PendingCarry = null;
             PendingEventConfig = null;
             return CurrentEvent;
@@ -347,7 +396,8 @@ namespace Everlight.Tales.UI
         /// <summary>开始卷帘门事件（EV-N01）：准备 + 确认一步到位（快捷路径，供无准备页调用）。</summary>
         public RepairEventInstance StartRollerDoor()
         {
-            PrepareRollerDoor();
+            if (PrepareRollerDoor() == null) return null;
+            foreach (PartType part in PendingCarry.Available) PendingCarry.Fill(part);
             return ConfirmRollerDoor();
         }
 
@@ -355,7 +405,7 @@ namespace Everlight.Tales.UI
         /// 结算当前事件：终局判定（由调用方传 success）→ 结算事务推进时间 →
         /// 世界结算发放奖励 → 写档 → 刷新供给。返回成功奖励（失败为 null）。
         /// </summary>
-        public EventReward SettleEvent(SettlementOutcomeKind outcome)
+        private EventReward ComputeSettlement(SettlementOutcomeKind outcome)
         {
             if (CurrentEvent == null || CurrentEvent.IsSettled)
             {
@@ -409,8 +459,11 @@ namespace Everlight.Tales.UI
 
             LastReward = reward;
             SettleFirstCase(outcome);
-            Save();
+            if (!string.IsNullOrEmpty(_currentSupplyInstanceId))
+                foreach (SupplyInstance supply in _supply)
+                    if (supply.InstanceId == _currentSupplyInstanceId) supply.Processed = true;
             RefreshSupply();
+            FreezeTerminalRewards(outcome);
             return reward;
         }
 
@@ -429,6 +482,7 @@ namespace Everlight.Tales.UI
         /// <summary>开始一次试机（P4-012）：按改装支线图样定位试机关卡，借用样机、进入准备完成态。</summary>
         public TrialInstance StartTrial(string taskId)
         {
+            if (!IsWorldWritable) return null;
             TaskConfig task = FindModTaskConfig(taskId);
             if (task == null)
             {
@@ -459,6 +513,7 @@ namespace Everlight.Tales.UI
         /// <summary>结算试机：成功推进对应改装支线（不发直接奖励、不解锁永久形态）。</summary>
         public bool SettleTrial(bool success)
         {
+            if (!IsWorldWritable) return false;
             if (CurrentTrial == null)
             {
                 return false;
@@ -487,6 +542,7 @@ namespace Everlight.Tales.UI
         /// <summary>回访交付（P4-011）：已解决→待回访→已回访，一次性发图样/材料/维修费。</summary>
         public RevisitResult RevisitCase(string caseId)
         {
+            EnsureWorldWritable();
             if (caseId == FirstCaseContent.CaseId && Time.Period != TimeOfDay.Morning) return RevisitResult.NotAvailable;
             CaseState state = FindCase(caseId);
             if (state == null)
@@ -609,6 +665,7 @@ namespace Everlight.Tales.UI
         /// <summary>通过某段 S0 教学（P5-001/P5-003）：解锁对应零件 + 推进进度 + 写档。</summary>
         public bool CompleteTutorialStage(int stageIndex)
         {
+            if (!IsWorldWritable) return false;
             bool ok = TutorialService.CompleteStage(World, stageIndex);
             if (ok)
             {
@@ -624,6 +681,7 @@ namespace Everlight.Tales.UI
         /// <summary>新档开场推进一步（P5-004）：回城接管→师父引导→教学衔接。</summary>
         public void AdvanceOpening()
         {
+            if (!IsWorldWritable) return;
             if (Opening == null)
             {
                 return;
@@ -646,6 +704,7 @@ namespace Everlight.Tales.UI
         /// <summary>回归/演示入口（P5-011）：一键完成新档开场 + S0 三段教学（解锁 P-001~P-003）。</summary>
         public void CompleteOpeningAndTutorial()
         {
+            if (!IsWorldWritable) return;
             while (Opening != null && Opening.Stage != OpeningStage.TutorialReady)
             {
                 AdvanceOpening();
@@ -685,21 +744,21 @@ namespace Everlight.Tales.UI
             return PlayerPrefs.HasKey(SlotKey(KeyDay, slot));
         }
 
-        private static WorldSession Restore(int seed, int slot)
+        private static WorldSession Restore(int seed, int slot, WorldImage image = null, bool publish = true)
         {
-            int day = PlayerPrefs.GetInt(SlotKey(KeyDay, slot), 1);
-            var period = (TimeOfDay)PlayerPrefs.GetInt(SlotKey(KeyPeriod, slot), (int)TimeOfDay.Morning);
+            int day = PlayerPrefsWorldImageStore.ReadInt(image, SlotKey(KeyDay, slot), 1);
+            var period = (TimeOfDay)PlayerPrefsWorldImageStore.ReadInt(image, SlotKey(KeyPeriod, slot), (int)TimeOfDay.Morning);
 
             var s = new WorldSession
             {
                 World = new WorldState(day, period)
                 {
-                    RepairFee = PlayerPrefs.GetInt(SlotKey(KeyRepairFee, slot), 0),
-                    BatchNumber = PlayerPrefs.GetInt(SlotKey(KeyBatch, slot), 1),
-                    TutorialComplete = PlayerPrefs.GetInt(SlotKey(KeyTutorial, slot), 0) != 0,
+                    RepairFee = PlayerPrefsWorldImageStore.ReadInt(image, SlotKey(KeyRepairFee, slot), 0),
+                    BatchNumber = PlayerPrefsWorldImageStore.ReadInt(image, SlotKey(KeyBatch, slot), 1),
+                    TutorialComplete = PlayerPrefsWorldImageStore.ReadInt(image, SlotKey(KeyTutorial, slot), 0) != 0,
                 },
                 Time = new TimeState(day, period, Mathf.Clamp(
-                    PlayerPrefs.GetInt(SlotKey("et.world.remainingCells", slot), TimeState.CellsPerPeriod),
+                    PlayerPrefsWorldImageStore.ReadInt(image, SlotKey("et.world.remainingCells", slot), TimeState.CellsPerPeriod),
                     1, TimeState.CellsPerPeriod)),
                 Rng = new RandomService(seed),
                 Intro = new RedShoeIntroService(),
@@ -711,10 +770,10 @@ namespace Everlight.Tales.UI
 
             s.RegisterMap();
 
-            ParseParts(PlayerPrefs.GetString(SlotKey(KeyOwned, slot), ""), s.World.OwnedParts);
-            ParseParts(PlayerPrefs.GetString(SlotKey(KeyKnown, slot), ""), s.World.KnownParts);
+            ParseParts(PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyOwned, slot), ""), s.World.OwnedParts);
+            ParseParts(PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyKnown, slot), ""), s.World.KnownParts);
 
-            foreach (string item in PlayerPrefs.GetString(SlotKey(KeyMaterials, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string item in PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyMaterials, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] parts = item.Split(':');
                 if (parts.Length >= 2 && int.TryParse(parts[1], out int count))
@@ -723,17 +782,17 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            foreach (string id in PlayerPrefs.GetString(SlotKey(KeyBlueprints, slot), "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string id in PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyBlueprints, slot), "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 s.World.Blueprints.Add(id);
             }
 
-            foreach (string id in PlayerPrefs.GetString(SlotKey(KeyForms, slot), "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string id in PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyForms, slot), "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 s.World.UnlockedForms.Add(id);
             }
 
-            foreach (string item in PlayerPrefs.GetString(SlotKey(KeyCurrentForms, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string item in PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyCurrentForms, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] parts = item.Split(':');
                 if (parts.Length >= 2 && int.TryParse(parts[0], out int host) && host != 0)
@@ -742,14 +801,14 @@ namespace Everlight.Tales.UI
                 }
             }
 
-            RestoreTasks(s.World);
-            s.RestoreFirstCaseProgress();
-            s.World.SuccessfulJobs = PlayerPrefs.GetInt(SlotKey(KeyJobs, slot), 0);
-            s.World.TutorialStage = PlayerPrefs.GetInt(SlotKey(KeyTutorialStage, slot), 0);
+            RestoreTasks(s.World, slot, image);
+            s.RestoreFirstCaseProgress(image, true);
+            s.World.SuccessfulJobs = PlayerPrefsWorldImageStore.ReadInt(image, SlotKey(KeyJobs, slot), 0);
+            s.World.TutorialStage = PlayerPrefsWorldImageStore.ReadInt(image, SlotKey(KeyTutorialStage, slot), 0);
             // 旧版本只写入三段进度而未同步完成标记；已通过教学的旧档仍可进入首案。
             s.World.TutorialComplete |= TutorialService.IsComplete(s.World);
 
-            foreach (string item in PlayerPrefs.GetString(SlotKey(KeyDisplay, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string item in PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyDisplay, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] parts = item.Split(':');
                 if (parts.Length >= 5 && int.TryParse(parts[2], out int kind) && int.TryParse(parts[4], out int obtainedDay))
@@ -761,19 +820,23 @@ namespace Everlight.Tales.UI
             // 门槛满足但尚未播种的改装支线补种（旧档升级路径）。
             RefreshModTasks(s.World);
 
-            s.RefreshSupply();
-            Current = s;
+            s.RestoreRuntime(image);
+            if (publish) Current = s;
             return s;
         }
 
         /// <summary>抽四选一奖励（Buff / 零件补给 / 机械臂次数）。</summary>
         public IReadOnlyList<RewardOption> DrawRewardChoice()
         {
-            return RewardChoiceService.Draw(Rng, BuildRewardPool(), HeldBuffs, 4);
+            if (_terminalRewards != null) return _terminalRewards;
+            return LastSettlement == null ? RewardChoiceService.Draw(Rng, BuildRewardPool(), HeldBuffs, 4)
+                : Array.Empty<RewardOption>();
         }
 
         /// <summary>应用一个四选一奖励（Buff 入本关持有集、零件入世界、机械臂累计到下次事件）。</summary>
-        public void ApplyReward(RewardOption option)
+        public void ApplyReward(RewardOption option) => TryApplyReward(option);
+
+        private void ApplyRewardCore(RewardOption option)
         {
             if (option == null)
             {
@@ -804,7 +867,6 @@ namespace Everlight.Tales.UI
                     break;
             }
 
-            Save();
         }
 
         private IReadOnlyList<RewardOption> BuildRewardPool()
@@ -869,12 +931,17 @@ namespace Everlight.Tales.UI
         private void RefreshSupply()
         {
             bool night = TimePeriod.IsNight(World.Period);
+            if (_supplyDay == World.Day && _supplyNight == night) return;
             _supply = SupplyService.Refresh(SupplyCatalog.FirstBatch(), night, 1, Rng);
+            _supplyDay = World.Day; _supplyNight = night; _supplyEpoch++;
+            for (int i = 0; i < _supply.Count; i++)
+                _supply[i].InstanceId = GenerationId + "-" + _supplyEpoch + "-" + i;
         }
 
         /// <summary>等待到下一时段：推进剩余时间格 + 刷新供给 + 保存（P3-004 等待按钮）。</summary>
         public TimeAdvanceResult WaitToNextPeriod()
         {
+            EnsureWorldWritable();
             TimeAdvanceResult result = Time.Advance(Time.RemainingCells);
             World.Day = Time.Day;
             World.Period = Time.Period;
@@ -926,9 +993,9 @@ namespace Everlight.Tales.UI
         }
 
         /// <summary>从存档恢复改装支线任务（用完整配置，保留图样列表；旧档无 key 则跳过）。</summary>
-        private static void RestoreTasks(WorldState world)
+        private static void RestoreTasks(WorldState world, int slot, WorldImage image)
         {
-            foreach (string item in PlayerPrefs.GetString(KeyTasks, "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string item in PlayerPrefsWorldImageStore.ReadString(image, SlotKey(KeyTasks, slot), "").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 string[] parts = item.Split(':');
                 if (parts.Length < 3)

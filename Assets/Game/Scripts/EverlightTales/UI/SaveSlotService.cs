@@ -1,4 +1,6 @@
 using Everlight.Tales.Data;
+using Everlight.Tales.Meta;
+using System;
 using UnityEngine;
 
 namespace Everlight.Tales.UI
@@ -31,15 +33,6 @@ namespace Everlight.Tales.UI
         private const string KeyRepairFee = "et.world.repairFee";
         private const string KeyMetaPrefix = "et.world.meta.";
 
-        private static readonly string[] AllKeys =
-        {
-            "et.world.day", "et.world.period", "et.world.repairFee", "et.world.batch",
-            "et.world.tutorial", "et.world.owned", "et.world.known", "et.world.materials",
-            "et.world.blueprints", "et.world.forms", "et.world.currentForms", "et.world.tasks",
-            "et.world.display", "et.world.jobs", "et.world.tutorialStage",
-            "et.world.firstCase", "et.world.places",
-        };
-
         public static string SlotKey(string key, int slot)
         {
             return slot <= 1 ? key : key.Replace("et.world.", "et.world." + slot + ".");
@@ -47,7 +40,28 @@ namespace Everlight.Tales.UI
 
         public static bool HasSlot(int slot)
         {
+            ValidateSlot(slot);
+            if (PlayerPrefs.GetInt(PlayerPrefsWorldImageStore.Key(slot, "deleting"), 0) != 0) return false;
             return PlayerPrefs.HasKey(SlotKey(KeyDay, slot));
+        }
+
+        public static string EnsureGeneration(int slot)
+        {
+            ValidateSlot(slot);
+            if (PlayerPrefs.GetInt(PlayerPrefsWorldImageStore.Key(slot, "deleting"), 0) != 0) Delete(slot);
+            string key = PlayerPrefsWorldImageStore.Key(slot, "generation");
+            string generation = PlayerPrefs.GetString(key, "");
+            if (!Guid.TryParseExact(generation, "N", out _))
+            {
+                generation = Guid.NewGuid().ToString("N");
+                PlayerPrefs.SetString(key, generation); PlayerPrefs.Save();
+            }
+            return generation;
+        }
+
+        private static void ValidateSlot(int slot)
+        {
+            if (slot < 1 || slot > MaxSlots) throw new ArgumentOutOfRangeException(nameof(slot));
         }
 
         public static SaveSlotInfo Read(int slot)
@@ -68,14 +82,16 @@ namespace Everlight.Tales.UI
 
         public static void Delete(int slot)
         {
-            foreach (string key in AllKeys)
-            {
-                PlayerPrefs.DeleteKey(SlotKey(key, slot));
-            }
-
-            PlayerPrefs.DeleteKey(SlotKey("et.world.remainingCells", slot));
-            PlayerPrefs.DeleteKey(KeyMetaPrefix + slot);
+            ValidateSlot(slot);
+            // 先持久失效世代和删除意图，中断后EnsureGeneration会继续清理。
+            PlayerPrefs.SetString(PlayerPrefsWorldImageStore.Key(slot, "generation"), Guid.NewGuid().ToString("N"));
+            PlayerPrefs.SetInt(PlayerPrefsWorldImageStore.Key(slot, "deleting"), 1);
             PlayerPrefs.Save();
+            new SlotSaveStore(WorldSession.PersistenceRoot).DeleteSlot(slot);
+            foreach (string key in PlayerPrefsWorldImageStore.EnumerateKeys(slot, true))
+                if (key != PlayerPrefsWorldImageStore.Key(slot, "deleting")) PlayerPrefs.DeleteKey(key);
+            PlayerPrefs.Save();
+            PlayerPrefs.DeleteKey(PlayerPrefsWorldImageStore.Key(slot, "deleting")); PlayerPrefs.Save();
         }
     }
 }

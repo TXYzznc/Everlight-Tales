@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -22,11 +22,14 @@ namespace Everlight.Tales.UI
         private sealed class PlacesSave { public List<string> Unlocked = new List<string>(); }
 
         public RedShoeLevel CurrentRedShoeLevel { get; private set; }
-        public bool IsFirstCaseEvent => CurrentEvent?.Config?.Id == FirstCaseContent.EventId;
-        public bool CanStartFirstCase => World.TutorialComplete && GetCase(FirstCaseContent.CaseId) == null;
+        public bool IsFirstCaseEvent => CurrentEvent != null ? CurrentEvent.Config?.Id == FirstCaseContent.EventId
+            : _lastSettlementEventId == FirstCaseContent.EventId;
+        public bool FirstCaseChallengeEnabled => ChallengeAssemblyCatalog.GetByCase(FirstCaseContent.CaseId) != null;
+        public bool CanStartFirstCase => FirstCaseChallengeEnabled && World.TutorialComplete && GetCase(FirstCaseContent.CaseId) == null;
 
         public bool AcceptFirstCase()
         {
+            if (!IsWorldWritable) return false;
             if (!CanStartFirstCase) return false;
             CaseState state = Intro.Confirm();
             ConfigureFirstCase(state);
@@ -38,6 +41,7 @@ namespace Everlight.Tales.UI
 
         public bool ConfirmFirstCaseInvestigation()
         {
+            if (!IsWorldWritable) return false;
             CaseState state = GetCase(FirstCaseContent.CaseId);
             if (!InvestigationService.ConfirmAnomaly(state)) return false;
             SpendInvestigationTime();
@@ -47,6 +51,7 @@ namespace Everlight.Tales.UI
 
         public void CancelFirstCaseInvestigation()
         {
+            if (!IsWorldWritable) return;
             if (GetCase(FirstCaseContent.CaseId)?.Kind != CaseStateKind.Investigating) return;
             SpendInvestigationTime(); Save();
         }
@@ -77,11 +82,12 @@ namespace Everlight.Tales.UI
 
         public LevelBoardConfig PrepareFirstCase()
         {
+            if (!IsWorldWritable || !FirstCaseChallengeEnabled) return null;
             if (GetCase(FirstCaseContent.CaseId)?.Kind != CaseStateKind.AwaitingRepair
                 || !TimePeriod.IsNight(Time.Period)) return null;
-            RedShoeLevelConfig config = RedShoeLevelConfig.Tutorial();
-            LevelPreset preset = LevelPresetCatalog.Get("REDSHOE");
-            if (preset == null) return null;
+            ChallengeAssembly assembly = ChallengeAssemblyCatalog.RequireCase(FirstCaseContent.CaseId);
+            RedShoeLevelConfig config = assembly.CreateConfig();
+            LevelPreset preset = assembly.Level;
             var keys = new List<KeyPieceConfig>();
             var types = new List<PartType>();
             foreach (RedShoePartPlacement part in config.InitialParts)
@@ -100,17 +106,28 @@ namespace Everlight.Tales.UI
 
         public RepairEventInstance ConfirmPreparedEvent()
         {
+            if (_pendingCheckpoint != null)
+            {
+                if (!RetryPersistence()) return null;
+                PendingCarry = null; PendingEventConfig = null; return CurrentEvent;
+            }
+            if (!OwnsSession || _attempt != null || PersistenceBlocked || _recoveryPending) return null;
             if (PendingEventConfig?.Id != FirstCaseContent.EventId) return ConfirmRollerDoor();
+            if (!FirstCaseChallengeEnabled) return null;
             CaseState state = GetCase(FirstCaseContent.CaseId);
             if (PendingCarry == null || PendingCarry.MissingKeyParts().Count != 0
-                || !TimePeriod.IsNight(Time.Period) || !CaseStateMachine.StartRepair(state)) return null;
-            CurrentRedShoeLevel = RedShoeLevelBuilder.Build(RedShoeLevelConfig.Tutorial());
+                || !TimePeriod.IsNight(Time.Period)) return null;
+            // 先完整装配再改变世界案件状态，配置错误不能留下半初始化维修。
+            RedShoeLevel runtime = ChallengeAssemblyCatalog.RequireCase(FirstCaseContent.CaseId).CreateRuntime();
+            if (!CaseStateMachine.StartRepair(state)) return null;
+            CurrentRedShoeLevel = runtime;
+            _currentSupplyInstanceId = null;
             HeldBuffs = new BuffSet(); PendingFirstCaseRewards = null;
             CurrentEvent = RepairEventShell.Begin(PendingEventConfig, CurrentRedShoeLevel.Board);
             // 三轮状态只持有一份，避免盘面和专属目标读取不同Session。
             CurrentRedShoeLevel.Level = CurrentEvent.Level;
+            if (!BeginAttempt()) return null;
             PendingCarry = null; PendingEventConfig = null;
-            Save();
             return CurrentEvent;
         }
 
@@ -153,7 +170,7 @@ namespace Everlight.Tales.UI
             else CaseStateMachine.FailRetreat(state);
         }
 
-        private void SaveFirstCaseProgress()
+        private void SaveFirstCaseProgress(WorldImage image)
         {
             CaseState state = GetCase(FirstCaseContent.CaseId);
             var save = new FirstCaseSave();
@@ -162,29 +179,29 @@ namespace Everlight.Tales.UI
                 save.Kind = (int)state.Kind; save.CurrentStage = state.CurrentStage;
                 save.BatchCounted = state.BatchCounted; save.RewardDelivered = state.RewardDelivered;
             }
-            PlayerPrefs.SetString(SlotKey("et.world.firstCase", Slot), JsonUtility.ToJson(save));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey("et.world.firstCase", Slot), JsonUtility.ToJson(save));
             var places = new PlacesSave();
             foreach (PlaceConfig config in PlaceCatalog.FirstBatch())
                 if (World.Map.Get(config.Id)?.Status == PlaceNodeStatus.Unlocked) places.Unlocked.Add(config.Id);
-            PlayerPrefs.SetString(SlotKey("et.world.places", Slot), JsonUtility.ToJson(places));
+            PlayerPrefsWorldImageStore.AddString(image, SlotKey("et.world.places", Slot), JsonUtility.ToJson(places));
         }
 
-        private void RestoreFirstCaseProgress()
+        private void RestoreFirstCaseProgress(WorldImage image, bool preserveRepairing)
         {
             try
             {
-                string json = PlayerPrefs.GetString(SlotKey("et.world.firstCase", Slot), "");
+                string json = PlayerPrefsWorldImageStore.ReadString(image, SlotKey("et.world.firstCase", Slot), "");
                 FirstCaseSave save = string.IsNullOrEmpty(json) ? null : JsonUtility.FromJson<FirstCaseSave>(json);
                 if (save != null && save.Kind >= (int)CaseStateKind.Investigating && save.Kind <= (int)CaseStateKind.Revisited)
                 {
                     CaseState state = Intro.Confirm(); ConfigureFirstCase(state);
                     // 旧运行链未保存专属盘面快照；中断后保留调查并重开维修，不伪造续轮。
-                    state.Kind = save.Kind == (int)CaseStateKind.Repairing ? CaseStateKind.AwaitingRepair : (CaseStateKind)save.Kind;
+                    state.Kind = !preserveRepairing && save.Kind == (int)CaseStateKind.Repairing ? CaseStateKind.AwaitingRepair : (CaseStateKind)save.Kind;
                     state.CurrentStage = save.CurrentStage; state.BatchCounted = save.BatchCounted;
                     state.RewardDelivered = save.RewardDelivered; World.Cases.Add(state);
                     World.Map.Unlock(FirstCaseContent.SceneId);
                 }
-                json = PlayerPrefs.GetString(SlotKey("et.world.places", Slot), "");
+                json = PlayerPrefsWorldImageStore.ReadString(image, SlotKey("et.world.places", Slot), "");
                 PlacesSave places = string.IsNullOrEmpty(json) ? null : JsonUtility.FromJson<PlacesSave>(json);
                 if (places?.Unlocked != null) foreach (string id in places.Unlocked) World.Map.Unlock(id);
             }

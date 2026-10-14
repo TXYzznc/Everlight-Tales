@@ -24,6 +24,8 @@ namespace Everlight.Tales.UI
 
         public bool ChooseFirstCaseRoundReward(RewardOption option)
         {
+            if (!OwnsSession) return false;
+            if (_pendingCheckpoint != null) return RetryPersistence();
             if (!IsFirstCaseEvent || CurrentEvent.IsSettled || PendingFirstCaseRewards == null) return false;
             bool valid = false;
             foreach (RewardOption candidate in PendingFirstCaseRewards) if (candidate == option) valid = true;
@@ -35,19 +37,18 @@ namespace Everlight.Tales.UI
             else if (option.Kind == RewardKind.ArmMove) session.ArmMoves++;
             else
             {
-                var free = new List<HexCoord>(); int id = 1;
-                foreach (BoardEntity entity in board.Entities) id = System.Math.Max(id, entity.Id + 1);
+                var free = new List<HexCoord>();
                 foreach (HexCoord cell in board.EnumerateNormal())
                     if (!board.IsOccupied(cell) && cell != CurrentRedShoeLevel.RedShoe.Coord) free.Add(cell);
                 if (free.Count > 0 && System.Enum.TryParse(option.Id, out PartType part))
-                    board.Place(BoardEntity.Part(id, part), free[Rng.NextInt(0, free.Count)]);
+                    board.Place(BoardEntity.Part(board.AllocateEntityId(), part), free[Rng.NextInt(0, free.Count)]);
             }
             CurrentEvent.Level.AdvanceRound();
             BuffBonuses bonuses = BuffEffectService.Resolve(HeldBuffs);
             session.ArmMoves += bonuses.RoundStartArm;
             foreach (BoardEntity entity in board.Entities)
                 if (entity.EnergyCapacity > 0) entity.SetEnergy(entity.Energy + bonuses.RoundStartEnergy);
-            return true;
+            return SaveRoundBoundary();
         }
     }
 }
