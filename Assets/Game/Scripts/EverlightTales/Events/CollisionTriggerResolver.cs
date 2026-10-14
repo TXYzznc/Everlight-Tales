@@ -15,7 +15,7 @@ namespace Everlight.Tales.Events
         /// <summary>按结算顺序排列的即时结果（每个已结算触发一个，含实际分数与能量增量）。</summary>
         public IReadOnlyList<IBoardEffect> Effects { get; }
 
-        /// <summary>已填充的能力事件队列（FIFO，含去重）。</summary>
+        /// <summary>已填充的能力事实队列（FIFO，不丢弃合法重复碰撞）。</summary>
         public FifoAbilityEventQueue Queue { get; }
 
         public TriggerResolution(
@@ -39,7 +39,7 @@ namespace Everlight.Tales.Events
     /// - 单次触发：每条事实恰好一个触发；静止相邻不产出事实，故不重复触发。
     /// - 推落回新触发：被推开再落回是角色反转（A→B 再 B→A），触发源不同，各自保留。
     /// - 原子事件：每条触发对应一个 <c>BoardEffect</c>，携带实际 <c>ScoreDelta</c>／<c>EnergyDelta</c>。
-    /// - 去重粒度：能力事件以 <c>(SourceId, Kind, TargetId)</c> 去重，冲击到多个不同目标互不合并。
+    /// - 来源：保留Board事实的根/父/派生身份；只翻译，不二次执行能力或全局去重。
     /// 保持纯数据、不引用引擎。
     /// </summary>
     public sealed class CollisionTriggerResolver
@@ -60,7 +60,8 @@ namespace Everlight.Tales.Events
             for (int i = 0; i < result.Events.Count; i++)
             {
                 SettlementEvent e = result.Events[i];
-                if (e.Kind != SettlementEventKind.TriggerResolved)
+                if (e.Kind != SettlementEventKind.TriggerResolved && e.Kind != SettlementEventKind.SoundReceived
+                    && e.Kind != SettlementEventKind.ControlApplied)
                 {
                     continue;
                 }
@@ -68,7 +69,7 @@ namespace Everlight.Tales.Events
                 CollisionTrigger trigger = new CollisionTrigger(e.EntityId, e.TargetId, e.Message ?? CollisionTrigger.CollisionKind);
                 triggers.Add(trigger);
 
-                AbilityEvent boardEvent = new AbilityEvent(sequence++, e.EntityId, trigger.Kind, e.TargetId);
+                AbilityEvent boardEvent = new AbilityEvent(sequence++, e.EntityId, trigger.Kind, e.TargetId, e.Provenance);
                 queue.Enqueue(boardEvent);
 
                 effects.Add(new BoardEffect(trigger, e.ScoreDelta, e.EnergyDelta));

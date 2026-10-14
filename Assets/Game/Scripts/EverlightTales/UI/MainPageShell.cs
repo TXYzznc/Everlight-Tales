@@ -1,6 +1,7 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityGameFramework.Runtime;
 
 namespace Everlight.Tales.UI
 {
@@ -46,6 +47,9 @@ namespace Everlight.Tales.UI
 
         [SerializeField] private OpeningOverlay m_Opening;
         private bool m_HostedPageRefreshPending;
+        private bool _openRecoveredBoard;
+        private bool _openRecoveredSettlement;
+        private WorldSession _recoveryOwner;
 
         protected override void OnInit(object userData)
         {
@@ -84,6 +88,11 @@ namespace Everlight.Tales.UI
             {
                 WorldSession.LoadOrNew(WorldSession.DemoSeed);
             }
+            _openRecoveredBoard = Params.TryGet<VarObject>("Recovery.Board", out VarObject recoverBoard)
+                && recoverBoard.Value is bool board && board;
+            _openRecoveredSettlement = Params.TryGet<VarObject>("Recovery.Settlement", out VarObject recoverSettlement)
+                && recoverSettlement.Value is bool settlement && settlement;
+            _recoveryOwner = WorldSession.Current;
             // 内容由独立 UIForm 作为子界面承载，MainPageShell 只保留导航壳。
 
             if (m_NavigationCanvas == null || m_TopCanvas == null || m_Content == null)
@@ -110,22 +119,8 @@ namespace Everlight.Tales.UI
             Debug.Log("[UI诊断][MainPageShell] 默认页签=0(Map)，开始加载 MapPage", this);
             ShowTab(0);
 
-            // 恢复面板：有未完成维修尝试时弹「继续/放弃」。
-            if (WorldSession.Current.HasAttemptSave)
-            {
-                GlobalUI.Confirm("恢复维修尝试", "检测到未完成的维修尝试，是否继续？", OnRecoveryContinue, OnRecoveryAbandon);
-            }
-        }
-
-        private void OnRecoveryContinue()
-        {
-            // 首版尝试存档未持久化，恢复逻辑待接入维修尝试存档时补齐。
-            GlobalUI.ShowToast("继续维修（首版尝试存档未持久化，暂跳过）");
-        }
-
-        private void OnRecoveryAbandon()
-        {
-            GlobalUI.ShowToast("已放弃维修尝试");
+            if (WorldSession.Current.HasPendingRecovery)
+                GF.UI.OpenUIForm(UIViews.RecoveryPage);
         }
 
         private void Update()
@@ -329,6 +324,21 @@ namespace Everlight.Tales.UI
                 hostedPage.InitializeHostedPage();
                 Debug.Log($"[UI诊断][MainPageShell] 完成挂载后初始化 page={hosted.GetType().Name}, id={hosted.Id}, active={hosted.gameObject.activeInHierarchy}", this);
             }
+            if (_openRecoveredBoard || _openRecoveredSettlement)
+            {
+                bool board = _openRecoveredBoard;
+                _openRecoveredBoard = false; _openRecoveredSettlement = false;
+                StartCoroutine(OpenRecoveryDestination(board, _recoveryOwner));
+            }
+        }
+
+        private IEnumerator OpenRecoveryDestination(bool board, WorldSession owner)
+        {
+            // 等派生子页OnOpen完成，避免加载地图的迟到回调覆盖刚恢复的盘面。
+            yield return null;
+            if (owner != WorldSession.Current || !owner.CanOperateAttempt) yield break;
+            GF.UI.OpenUIForm(board ? UIViews.BoardPage : UIViews.SettlementPage,
+                UIParams.Create(board && owner.IsFirstCaseEvent ? false : (bool?)null));
         }
 
         private static string GetTransformPath(Transform target)

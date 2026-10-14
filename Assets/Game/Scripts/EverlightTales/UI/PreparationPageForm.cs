@@ -21,9 +21,18 @@ namespace Everlight.Tales.UI
         [SerializeField] private UIFormalSpriteCatalog _spriteCatalog;
         private readonly List<CarryAvailableItem> _availableItems = new List<CarryAvailableItem>();
         private PartDetailTooltip _partDetailTooltip;
+        private WorldSession _owner;
+        private CarrySelection _carryOwner;
+
+        private WorldSession PreparationOwner(bool allowRetry = false)
+        {
+            return _owner != null && _owner == WorldSession.Current && _owner.IsCurrentOwner
+                && ReferenceEquals(_owner.PendingCarry, _carryOwner) && (allowRetry || !_owner.PersistenceBlocked) ? _owner : null;
+        }
 
         protected override void OnClose(bool isShutdown, object userData)
         {
+            _owner = null; _carryOwner = null;
             _availableItems.Clear();
             _partDetailTooltip?.Hide();
             foreach (Button slot in CarrySlots) slot.GetComponent<CarrySlotDropTarget>()?.ResetForPool();
@@ -37,6 +46,7 @@ namespace Everlight.Tales.UI
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
+            _owner = WorldSession.Current; _carryOwner = _owner?.PendingCarry;
             BuildContent();
         }
 
@@ -46,7 +56,7 @@ namespace Everlight.Tales.UI
             _availableItems.Clear();
             UnspawnAllItem<CarryAvailableItemObject>(AvailableItemTemplate);
 
-            WorldSession session = WorldSession.Current;
+            WorldSession session = PreparationOwner();
             if (session == null || session.PendingEventConfig == null || session.PendingCarry == null
                 || session.CurrentBoardConfig == null)
             {
@@ -123,7 +133,7 @@ namespace Everlight.Tales.UI
 
         private void OnAutoFillKeys()
         {
-            WorldSession session = WorldSession.Current;
+            WorldSession session = PreparationOwner();
             if (session == null || session.PendingCarry == null)
             {
                 return;
@@ -238,7 +248,7 @@ namespace Everlight.Tales.UI
 
         private void OnFormClicked(PartType part)
         {
-            WorldSession session = WorldSession.Current;
+            WorldSession session = PreparationOwner();
             if (session?.PendingCarry == null) return;
             List<string> choices = new List<string> { FormService.BaseFormId };
             foreach (FormConfig form in FormCatalog.OfHost(part)) if (FormService.IsUnlocked(session.World, form.Id)) choices.Add(form.Id);
@@ -249,7 +259,7 @@ namespace Everlight.Tales.UI
         }
         private void OnPartDropped(int slot, PartType part)
         {
-            CarrySelection carry = WorldSession.Current?.PendingCarry;
+            CarrySelection carry = PreparationOwner()?.PendingCarry;
             if (carry == null) return;
             if (!carry.Replace(slot, part)) GlobalUI.ShowToast("该零件已经携带，请先移除原槽位", ToastKind.Warning);
             RefreshCarry();
@@ -257,7 +267,7 @@ namespace Everlight.Tales.UI
 
         private void OnSlotClicked(int slot)
         {
-            WorldSession session = WorldSession.Current;
+            WorldSession session = PreparationOwner();
             if (session == null || session.PendingCarry == null)
             {
                 return;
@@ -269,7 +279,7 @@ namespace Everlight.Tales.UI
 
         private void OnAvailableClicked(PartType part)
         {
-            WorldSession session = WorldSession.Current;
+            WorldSession session = PreparationOwner();
             if (session == null || session.PendingCarry == null)
             {
                 return;
@@ -290,7 +300,7 @@ namespace Everlight.Tales.UI
 
         private void RefreshCarry()
         {
-            WorldSession session = WorldSession.Current;
+            WorldSession session = PreparationOwner();
             if (session == null || session.PendingCarry == null)
             {
                 return;
@@ -326,7 +336,7 @@ namespace Everlight.Tales.UI
 
         private void OnConfirm()
         {
-            WorldSession session = WorldSession.Current;
+            WorldSession session = PreparationOwner(true);
             if (session == null || session.PendingCarry == null)
             {
                 return;
@@ -335,6 +345,8 @@ namespace Everlight.Tales.UI
             RepairEventInstance evt = session.ConfirmPreparedEvent();
             if (evt == null)
             {
+                if (!string.IsNullOrEmpty(session.LastPersistenceError))
+                    GlobalUI.ShowToast("入场保存失败，请再次点击开始重试：" + session.LastPersistenceError, ToastKind.Warning);
                 return;
             }
 

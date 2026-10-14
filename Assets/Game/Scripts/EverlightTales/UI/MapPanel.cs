@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -296,7 +296,7 @@ namespace Everlight.Tales.UI
                     if (m_SelectedPlaceId == "home" && session.GetCase(FirstCaseContent.CaseId)?.Kind == CaseStateKind.AwaitingRevisit)
                         AddEventEntry("沈遥的回访", "回访", "0格", "红鞋已封存。清晨向沈遥领取回访报酬。", FirstCaseFlow.Revisit,
                             group: session.Time.Period == TimeOfDay.Morning ? EventGroup.Actionable : EventGroup.NotOpenYet);
-                    if (m_SelectedPlaceId == FirstCaseContent.SceneId)
+                    if (m_SelectedPlaceId == FirstCaseContent.SceneId && session.FirstCaseChallengeEnabled)
                     {
                         CaseEventConfig caseEvent = CaseEventCatalog.Get(FirstCaseContent.EventId);
                         CaseState firstCase = session.GetCase(FirstCaseContent.CaseId);
@@ -310,8 +310,8 @@ namespace Everlight.Tales.UI
                     }
                     if (m_SelectedPlaceId == "home")
                     {
-                        AddEventEntry("卡住的卷帘门", "维修", "1 格",
-                            "说明：长明修理铺的卷帘门卡住了，需要用撞锤把门轴推移进轨道。\n前置：无\n奖励：40 维修费 + 精密齿轮 ×1",
+                        AddEventEntry("卡住的卷帘门", "维修", RollerDoorEvent.CreateConfig().TimeCost + " 格",
+                            "说明：长明修理铺的卷帘门卡住了，需要用撞锤把门轴推移进轨道。\n前置：携带本关关键件\n奖励：40 维修费 + 精密齿轮 ×1",
                             StartRollerDoor, kind: EventKind.Repair);
                     }
 
@@ -394,10 +394,18 @@ namespace Everlight.Tales.UI
         {
             WorldSession session = WorldSession.Current;
             if (session == null || supply == null || supply.Template == null || supply.Processed) return;
+            bool owned = false;
+            foreach (SupplyInstance current in session.Supply) if (ReferenceEquals(current, supply)) owned = true;
+            if (!owned) return;
             PlaceState place = session.World.Map.Get(supply.PlaceId);
             if (place == null || place.Status != PlaceNodeStatus.Unlocked
                 || EventPageLayout.GroupOf(EventEntry.FromSupply(supply, place.Config.Name), session.Time.Period) != EventGroup.Actionable)
                 return;
+            if (supply.Template.TemplateId == "EV-N01")
+            {
+                if (session.PrepareRollerDoor(supply) != null) GF.UI.OpenUIForm(UIViews.PreparationPage);
+                return;
+            }
             GlobalUI.ShowToast("开始处理（待接入）：" + supply.Template.Name);
         }
 
@@ -419,8 +427,7 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            session.PrepareRollerDoor();
-            GF.UI.OpenUIForm(UIViews.PreparationPage);
+            if (session.PrepareRollerDoor() != null) GF.UI.OpenUIForm(UIViews.PreparationPage);
         }
 
         private void OnWaitNextPeriod()

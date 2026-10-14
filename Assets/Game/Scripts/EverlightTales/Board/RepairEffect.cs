@@ -29,6 +29,18 @@ namespace Everlight.Tales.Board
                 return;
             }
 
+            if (target.Kind == EntityKind.Facility)
+            {
+                RepairTargetConfig setup = target.RepairConfig;
+                if (setup == null || !setup.Accepts(RepairingPart) || context.Session.PublicRepairEnergy < setup.EnergyCost) return;
+                bool changed = target.ObstacleType == ObstacleType.PressurePillar ? ObstacleService.RepairPillar(context.Board, target)
+                    : target.ObstacleType == ObstacleType.ProliferatingSeal && ObstacleService.StopGrowth(context.Board, target);
+                if (!changed) return;
+                context.Session.PublicRepairEnergy -= setup.EnergyCost; context.Tap.EffectScore += setup.RepairScore;
+                context.Log.Add(new SettlementEvent(SettlementEventKind.RepairApplied, target.Id, targetId: target.Id,
+                    message: "obstacle-repair", scoreDelta: setup.RepairScore, energyDelta: -setup.EnergyCost, provenance: context.CurrentEffect));
+                return;
+            }
             if (target.Kind != EntityKind.RepairTarget || target.RepairCompleted)
             {
                 return;
@@ -51,6 +63,9 @@ namespace Everlight.Tales.Board
             if (target.RepairProgress >= config.RequiredProgress)
             {
                 target.RepairCompleted = true;
+                if (target.StabilizesSettling && RepairingPart == PartType.RivetPliers)
+                    foreach (AnomalyRegion region in context.Board.AnomalyRegions)
+                        if (region.TryEnter(target.Coord)) AnomalyService.Stabilize(region);
             }
 
             context.Tap.EffectScore += score;
@@ -60,7 +75,7 @@ namespace Everlight.Tales.Board
                 targetId: TargetId,
                 message: "repair",
                 scoreDelta: score,
-                energyDelta: -config.EnergyCost));
+                energyDelta: -config.EnergyCost, provenance: context.CurrentEffect));
         }
     }
 }

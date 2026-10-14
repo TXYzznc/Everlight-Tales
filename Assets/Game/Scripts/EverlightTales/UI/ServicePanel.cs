@@ -52,7 +52,8 @@ namespace Everlight.Tales.UI
             _recover.onClick.AddListener(() =>
             {
                 bool has = WorldSession.Current != null && WorldSession.Current.HasAttemptSave;
-                GlobalUI.ShowDialog("恢复维修尝试", has ? "检测到未完成的维修尝试，可继续或放弃。" : "当前没有未完成的维修尝试。");
+                if (has) GF.UI.OpenUIForm(UIViews.RecoveryPage);
+                else GlobalUI.ShowToast("当前没有未完成的维修尝试。");
             });
             _settings.onClick.RemoveAllListeners();
             _settings.onClick.AddListener(() => GF.UI.OpenUIForm(UIViews.Settings));

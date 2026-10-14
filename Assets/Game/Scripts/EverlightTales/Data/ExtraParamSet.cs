@@ -152,16 +152,20 @@ namespace Everlight.Tales.Data
                     throw new ArgumentException(string.Format("{0} 不支持逐项参数键 '{1}'。", owner, key));
                 }
 
-                switch (kind)
+                try
                 {
-                    case ExtraParamKind.Int:
-                        GetInt(key, 0);
-                        break;
-
-                    case ExtraParamKind.Bool:
-                        GetBool(key, false);
-                        break;
+                    switch (kind)
+                    {
+                        case ExtraParamKind.Int:
+                            GetInt(key, 0);
+                            break;
+                        case ExtraParamKind.Bool:
+                            GetBool(key, false);
+                            break;
+                    }
                 }
+                catch (ArgumentException exception)
+                { throw new ArgumentException(owner + "：" + exception.Message, exception); }
             }
         }
     }

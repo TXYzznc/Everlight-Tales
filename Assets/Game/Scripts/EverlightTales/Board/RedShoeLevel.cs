@@ -44,6 +44,7 @@ namespace Everlight.Tales.Board
         public int InitialArmMoves;
         public IReadOnlyList<RedShoeRoundConfig> Rounds;
         public int TimeCost;
+        public LevelPreset SourceLevel { get; }
 
         public RedShoeLevelConfig(
             int boardRadius,
@@ -51,7 +52,8 @@ namespace Everlight.Tales.Board
             IReadOnlyList<RedShoePartPlacement> initialParts,
             int initialArmMoves,
             IReadOnlyList<RedShoeRoundConfig> rounds,
-            int timeCost)
+            int timeCost,
+            LevelPreset sourceLevel = null)
         {
             BoardRadius = boardRadius;
             RedShoe = redShoe;
@@ -59,20 +61,24 @@ namespace Everlight.Tales.Board
             InitialArmMoves = initialArmMoves;
             Rounds = rounds ?? System.Array.Empty<RedShoeRoundConfig>();
             TimeCost = timeCost;
+            SourceLevel = sourceLevel;
         }
 
         /// <summary>红舞鞋第一关（D-051）：一关三轮各 3 拍，30/100/170 分，导流→分离修匣→封存。</summary>
         public static RedShoeLevelConfig Tutorial()
         {
-            LevelPreset preset = LevelPresetCatalog.Get("REDSHOE");
-            if (preset == null) throw new System.InvalidOperationException("红舞鞋关卡配置尚未加载。");
-            RedShoePreset redShoePreset = RedShoePresetCatalog.Get("REDSHOE");
-            if (redShoePreset == null) throw new System.InvalidOperationException("红舞鞋专属规则配置尚未加载。");
+            return ChallengeAssemblyCatalog.RequireCase(FirstCaseContent.CaseId).CreateConfig();
+        }
+
+        public static RedShoeLevelConfig From(LevelPreset preset, RedShoePreset redShoePreset)
+        {
+            if (preset == null || redShoePreset == null || preset.Key != redShoePreset.LevelKey)
+                throw new System.ArgumentException("红鞋装配缺少匹配关卡/专属规则。");
             var redShoe = new RedShoeConfig(
                 redShoePreset.StartCoord,
                 redShoePreset.StartDirection,
-                redShoePreset.GuideCells,
-                redShoePreset.TurnCells,
+                new List<HexCoord>(redShoePreset.GuideCells),
+                CopyTurns(redShoePreset.TurnCells),
                 redShoePreset.BoxCoord,
                 redShoePreset.BoxRequired,
                 redShoePreset.EntryCoord,
@@ -103,7 +109,13 @@ namespace Everlight.Tales.Board
                     requireSealed: requireSealed));
             }
 
-            return new RedShoeLevelConfig(preset.Board.BoardRadius, redShoe, parts, preset.Board.InitialArmMoves, rounds, preset.Board.Duration);
+            return new RedShoeLevelConfig(preset.Board.BoardRadius, redShoe, parts, preset.Board.InitialArmMoves, rounds, preset.Board.Duration, preset);
+        }
+        private static IReadOnlyList<RedShoeTurnCell> CopyTurns(IReadOnlyList<RedShoeTurnCell> source)
+        {
+            var result = new List<RedShoeTurnCell>();
+            foreach (RedShoeTurnCell turn in source) result.Add(new RedShoeTurnCell(turn.Coord, turn.Direction));
+            return result;
         }
     }
 
@@ -129,32 +141,30 @@ namespace Everlight.Tales.Board
     {
         public static RedShoeLevel Build(RedShoeLevelConfig config)
         {
-            LevelPreset preset = LevelPresetCatalog.Get("REDSHOE");
-            FixedElementConfig repairElement = null;
-            if (preset != null)
-            {
-                foreach (FixedElementConfig element in preset.Board.FixedElements)
-                    if (element.Kind == FixedElementKind.RepairTarget) { repairElement = element; break; }
-            }
-            if (repairElement == null || repairElement.RepairTarget == null)
-                throw new System.InvalidOperationException("红舞鞋维修对象配置尚未加载。");
+            LevelPreset preset = config.SourceLevel ?? throw new System.ArgumentException("红鞋运行时必须提供显式装配的关卡。");
+            FixedElementBinding.Validate(preset.Board);
             var board = new BoardState(config.BoardRadius);
-
             int id = 1;
             foreach (RedShoePartPlacement placement in config.InitialParts)
+                if (board.Place(BoardEntity.Part(id++, placement.PartType), placement.Coord) != PlaceResult.Ok)
+                    throw new System.InvalidOperationException(preset.Key + " 关键件落位失败。");
+            var ids = new Dictionary<int, int>();
+            foreach (FixedElementConfig element in preset.Board.FixedElements)
             {
-                board.Place(BoardEntity.Part(id++, placement.PartType), placement.Coord);
+                if (element.Kind == FixedElementKind.EndpointLabel) { board.SetEndpointLabel(element.Position, element.Label); continue; }
+                BoardEntity entity = element.CreateEntity(id++);
+                if (board.Place(entity, element.Position) != PlaceResult.Ok)
+                    throw new System.InvalidOperationException(element.OwnerKey + " 红鞋固定元素落位失败。");
+                if (element.ElementId != 0) ids.Add(element.ElementId, entity.Id);
             }
-
-            int boxId = id;
-            board.Place(
-                BoardEntity.RepairTarget(boxId, repairElement.RepairTarget),
-                repairElement.Position);
+            FixedElementBinding.Resolve(board, preset.Board, ids);
 
             var redShoe = new RedShoeState(config.RedShoe.StartCoord, config.RedShoe.StartDirection, config.RedShoe.RestraintLimit);
 
             var level = new LevelState(CreateLevelConfig(config));
             level.BeginLevel();
+            level.Session.ArmMoves = config.InitialArmMoves;
+            level.Session.PublicRepairEnergy = preset.Board.InitialPublicRepairEnergy;
 
             return new RedShoeLevel(board, redShoe, level, config);
         }

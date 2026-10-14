@@ -20,7 +20,7 @@ namespace Everlight.Tales.Board
         public bool IsFixed { get; }
 
         /// <summary>是否可移动：非固定且未锁定实体可受定势／能力／机械臂移动。</summary>
-        public bool IsMovable => !IsFixed && !IsLocked;
+        public bool IsMovable => !IsFixed && !IsLocked && ClampedByEntityId == 0;
 
         /// <summary>是否已锁定（门轴联系标记等被普通推移送入校正格后停止移动）。</summary>
         public bool IsLocked { get; private set; }
@@ -75,6 +75,15 @@ namespace Everlight.Tales.Board
 
         /// <summary>夹持座当前锁定的实体 ID（0=未夹持）。</summary>
         public int ClampedEntityId { get; internal set; }
+        public int ClampedByEntityId { get; internal set; }
+        public bool PendingClose { get; internal set; }
+        public int ReleaseWindowRemaining { get; internal set; }
+        public int ReleasedEntityId { get; internal set; }
+        public int GrowthRootEntityId { get; internal set; }
+        public int ProtectedElementId { get; internal set; }
+        public System.Collections.Generic.List<int> LinkedElementIds { get; } = new System.Collections.Generic.List<int>();
+        public bool IsLayeredFixture => ObstacleType == ObstacleType.LinkedGate || ObstacleType == ObstacleType.ClampingSeat
+            || ObstacleType == ObstacleType.TurningRail || ObstacleType == ObstacleType.OneWayShutter;
 
         /// <summary>增生封条根是否仍在生长（O-007，切根后 false）。</summary>
         public bool SealActive { get; internal set; }
@@ -142,6 +151,13 @@ namespace Everlight.Tales.Board
 
         /// <summary>伪装层层数（P-013 照明揭层目标，0=无伪装）。</summary>
         public int DisguiseLayers { get; private set; }
+        public bool StabilizesSettling { get; private set; }
+        public void SetSettlingStabilizer()
+        {
+            if (Kind != EntityKind.RepairTarget || RepairConfig == null || !RepairConfig.Accepts(PartType.RivetPliers))
+                throw new System.InvalidOperationException("沉降稳定器必须是接受铆合钳的维修节点。");
+            StabilizesSettling = true;
+        }
 
         /// <summary>设定伪装层层数。</summary>
         public void SetDisguiseLayers(int layers)
@@ -333,9 +349,9 @@ namespace Everlight.Tales.Board
         }
 
         /// <summary>创建一个障碍设施（固定，按配置初始化耐久／方向／闸门状态）。</summary>
-        public static BoardEntity Obstacle(int id, ObstacleConfig config)
+        public static BoardEntity Obstacle(int id, ObstacleConfig config, RepairTargetConfig repair = null)
         {
-            var entity = new BoardEntity(id, EntityKind.Facility, true);
+            var entity = new BoardEntity(id, EntityKind.Facility, true, repairConfig: repair);
             entity.ObstacleType = config.Type;
             entity.MaxDurability = config.MaxDurability;
             entity.Durability = config.MaxDurability;
@@ -348,6 +364,7 @@ namespace Everlight.Tales.Board
             if (config.Type == ObstacleType.ProliferatingSeal)
             {
                 entity.SealActive = true; // O-007 根初始生长中。
+                entity.GrowthRootEntityId = id;
             }
 
             if (config.PassDirection >= 0)
@@ -356,6 +373,18 @@ namespace Everlight.Tales.Board
             }
 
             return entity;
+        }
+
+        public static BoardEntity SealSegment(int id, ObstacleConfig config, int rootId)
+        {
+            BoardEntity entity = Obstacle(id, config);
+            entity.ConfigureSealSegment(rootId); return entity;
+        }
+
+        internal void ConfigureSealSegment(int rootId)
+        {
+            GrowthRootEntityId = rootId; SealActive = false;
+            MaxDurability = ObstacleSetup.SegmentMaxDurability; Durability = MaxDurability;
         }
 
         /// <summary>创建一个棋盘异常区域锚点（固定，按类型登记）。</summary>

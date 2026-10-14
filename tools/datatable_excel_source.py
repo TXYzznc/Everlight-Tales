@@ -199,6 +199,7 @@ TABLE_SCHEMAS: list[dict] = [
             ("RepairPartKinds", "string", "维修零件 PartType 数值，逗号分隔"),
             ("RepairRequired", "int", "维修所需进度"),
             ("RepairEnergyCost", "int", "单次维修能量消耗"),
+            ("InstanceData", "string", "实例关系 k=v；固定元素行ID"),
         ],
     },
     {

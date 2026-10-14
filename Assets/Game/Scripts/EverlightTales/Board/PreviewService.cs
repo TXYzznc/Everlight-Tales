@@ -31,44 +31,78 @@ namespace Everlight.Tales.Board
         {
             var occupied = new HashSet<HexCoord>();
             var movable = new List<BoardEntity>();
+            var pendingClosed = new HashSet<int>();
+            var simulatedUses = new Dictionary<int, int>();
+            var simulatedExpansion = new Dictionary<int, int>();
+            foreach (AnomalyRegion region in board.AnomalyRegions)
+            { simulatedUses[region.Id] = region.UseCount; simulatedExpansion[region.Id] = region.ExpansionCount; }
             foreach (BoardEntity entity in board.Entities)
             {
-                if (entity.IsMovable)
-                {
-                    movable.Add(entity);
-                }
-                else
-                {
-                    occupied.Add(entity.Coord);
-                }
+                if (!entity.IsLayeredFixture) occupied.Add(entity.Coord);
+                if (entity.IsMovable) movable.Add(entity);
             }
-
             movable.Sort(new GravityOrderComparer { Offset = settle.GravityOffset });
-
-            HexCoord offset = settle.GravityOffset;
             var moves = new List<PreviewMove>();
+            var visits = new HashSet<(HexCoord, HexDirection)>();
+            var portals = new HashSet<int>();
             foreach (BoardEntity entity in movable)
             {
+                occupied.Remove(entity.Coord);
                 HexCoord current = entity.Coord;
+                visits.Clear();
                 while (true)
                 {
-                    HexCoord next = new HexCoord(current.Q + offset.Q, current.R + offset.R);
-                    if (!board.IsValid(next) || occupied.Contains(next))
-                    {
-                        break;
-                    }
-
+                    HexDirection direction = AnomalyService.GravityAt(board, current, settle.GravityDirection);
+                    if (!visits.Add((current, direction))) break;
+                    HexCoord next = current.Neighbor(direction);
+                    BoardEntity nextFixture = board.FixtureAt(next);
+                    if (!board.IsValid(next) || occupied.Contains(next) || !board.CanEnterFixture(next, direction)
+                        || nextFixture != null && pendingClosed.Contains(nextFixture.Id)) break;
+                    Leave(board, current, pendingClosed);
                     current = next;
+                    if (Clamps(board, current, entity)) break;
+                    portals.Clear();
+                    while (true)
+                    {
+                        AnomalyRegion selected = null;
+                        foreach (AnomalyRegion region in board.AnomalyRegions)
+                        {
+                            if (region.Type != Data.AnomalyType.ExpandingRift) continue;
+                            bool inside = false;
+                            for (int i = 0; i < region.Cells.Count; i++) inside |= region.Cells[i] == current;
+                            for (int i = 0; i < simulatedExpansion[region.Id]; i++) inside |= region.ExpansionCells[i] == current;
+                            if (inside && (selected == null || region.Config.Priority > selected.Config.Priority
+                                || region.Config.Priority == selected.Config.Priority && region.Id < selected.Id)) selected = region;
+                        }
+                        if (selected == null || !portals.Add(selected.Id) || selected.ExitCell == current
+                            || occupied.Contains(selected.ExitCell) || !board.CanEnterFixture(selected.ExitCell, BoardState.Incoming(current, selected.ExitCell))
+                            || board.FixtureAt(selected.ExitCell) != null && pendingClosed.Contains(board.FixtureAt(selected.ExitCell).Id)) break;
+                        Leave(board, current, pendingClosed); current = selected.ExitCell;
+                        if (++simulatedUses[selected.Id] % selected.Config.Threshold == 0
+                            && simulatedExpansion[selected.Id] < System.Math.Min(selected.Config.MaxExpansion, selected.ExpansionCells.Count))
+                            simulatedExpansion[selected.Id]++;
+                        if (Clamps(board, current, entity)) break;
+                    }
+                    if (Clamps(board, current, entity)) break;
                 }
-
                 occupied.Add(current);
-                if (current != entity.Coord)
-                {
-                    moves.Add(new PreviewMove(entity.Id, entity.Coord, current));
-                }
+                if (current != entity.Coord) moves.Add(new PreviewMove(entity.Id, entity.Coord, current));
             }
 
             return moves;
+        }
+
+        private static void Leave(BoardState board, HexCoord at, HashSet<int> closed)
+        {
+            BoardEntity fixture = board.FixtureAt(at);
+            if (fixture != null && fixture.PendingClose) closed.Add(fixture.Id);
+        }
+        private static bool Clamps(BoardState board, HexCoord at, BoardEntity entity)
+        {
+            BoardEntity fixture = board.FixtureAt(at);
+            return fixture?.ObstacleType == Data.ObstacleType.ClampingSeat && fixture.ClampedEntityId == 0
+                && fixture.ReleaseWindowRemaining == 0 && fixture.ReleasedEntityId != entity.Id
+                && fixture.ObstacleSetup.AllowsTag(entity.Kind == EntityKind.Part ? "normal" : "task");
         }
 
         /// <summary>重力方向投影排序：前到后（投影大者在前），同投影按 q、r、ID 升序。</summary>

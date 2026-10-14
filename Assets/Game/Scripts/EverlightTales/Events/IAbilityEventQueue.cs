@@ -1,3 +1,5 @@
+using Everlight.Tales.Board;
+
 namespace Everlight.Tales.Events
 {
     /// <summary>
@@ -17,6 +19,7 @@ namespace Everlight.Tales.Events
 
         /// <summary>被触发目标标识，用于「同根同接收件」级去重。</summary>
         int TargetId { get; }
+        EffectProvenance Provenance { get; }
     }
 
     /// <summary>

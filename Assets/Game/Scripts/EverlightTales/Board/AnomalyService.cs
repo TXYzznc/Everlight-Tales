@@ -7,7 +7,7 @@ namespace Everlight.Tales.Board
     /// 棋盘异常区域（P2-003）：区域格集合 + 配置 + 运行时状态。
     /// 区域由关卡实例注册到 BoardState；触发判定由 AnomalyService 按类型解释。
     /// </summary>
-    public sealed class AnomalyRegion
+    public sealed partial class AnomalyRegion
     {
         public AnomalyType Type { get; }
 
@@ -43,14 +43,26 @@ namespace Everlight.Tales.Board
         /// <summary>A-008 拍计数。</summary>
         public int TapCounter { get; private set; }
 
+        public void RestoreState(int uses, int expansion, int heat, int cores, int taps)
+        {
+            if (uses < 0 || expansion < 0 || expansion > System.Math.Min(ExpansionCells.Count, Config.MaxExpansion)
+                || heat < 0 || cores < 0 || cores > Config.CoreCount || taps < 0
+                || (Type == AnomalyType.PostTapReversal && taps >= Config.TapPeriod)
+                || (Type == AnomalyType.OverloadField && heat >= Config.Threshold))
+                throw new System.ArgumentException("Invalid anomaly snapshot.");
+            UseCount = uses; ExpansionCount = expansion; Heat = heat; Cores = cores; TapCounter = taps;
+        }
+
         public AnomalyRegion(AnomalyType type, IReadOnlyList<HexCoord> cells, HexCoord exitCell = default, IReadOnlyList<HexCoord> expansionCells = null)
         {
             Type = type;
-            Config = AnomalyCatalog.Get(type);
-            Cells = cells ?? System.Array.Empty<HexCoord>();
+            Config = AnomalyCatalog.Get(type) ?? throw new System.ArgumentException("Missing anomaly config: " + type);
+            Cells = cells == null ? (IReadOnlyList<HexCoord>)System.Array.Empty<HexCoord>() : new List<HexCoord>(cells);
             ExitCell = exitCell;
-            ExpansionCells = expansionCells ?? System.Array.Empty<HexCoord>();
-            Cores = Config == null ? 0 : Config.CoreCount;
+            ExpansionCells = expansionCells == null ? (IReadOnlyList<HexCoord>)System.Array.Empty<HexCoord>() : new List<HexCoord>(expansionCells);
+            Cores = Config.CoreCount;
+            EchoRemaining = type == AnomalyType.EchoZone ? Config.EchoQuota : 0;
+            Silent = type == AnomalyType.SilenceZone;
         }
 
         /// <summary>坐标是否在当前入口范围内（含已扩张格）。</summary>
@@ -79,7 +91,7 @@ namespace Everlight.Tales.Board
         public void RecordUse()
         {
             UseCount++;
-            if (Config != null && UseCount >= Config.Threshold && ExpansionCount < ExpansionCells.Count)
+            if (UseCount % Config.Threshold == 0 && ExpansionCount < System.Math.Min(Config.MaxExpansion, ExpansionCells.Count))
             {
                 ExpansionCount++;
             }
@@ -88,18 +100,18 @@ namespace Everlight.Tales.Board
         /// <summary>场热 +1。</summary>
         public void AddHeat()
         {
-            Heat++;
+            if (!Silent && Cores > 0) Heat++;
         }
 
         /// <summary>场热达到阈值则触发一次过载（扣热、补能、耗芯），返回是否过载。</summary>
         public bool TryOverload()
         {
-            if (Config == null || Heat < Config.Threshold)
+            if (Silent || Cores <= 0 || Heat < Config.Threshold)
             {
                 return false;
             }
 
-            Heat = 0;
+            Heat -= Config.Threshold;
             Cores--;
             if (Cores <= 0)
             {
@@ -112,20 +124,22 @@ namespace Everlight.Tales.Board
         /// <summary>拍计数 +1，达周期即应反转（A-008）。</summary>
         public bool TickTap()
         {
-            TapCounter++;
-            return Config != null && TapCounter >= Config.TapPeriod;
+            if (++TapCounter < Config.TapPeriod) return false;
+            TapCounter = 0;
+            if (FreezeNextReversal) { FreezeNextReversal = false; return false; }
+            return true;
         }
     }
 
     /// <summary>棋盘异常触发解释器（P2-003）：按区域类型解释定势偏转、静默、传送、沉降。</summary>
-    public static class AnomalyService
+    public static partial class AnomalyService
     {
         /// <summary>A-001：区域内局部定势 = 全盘定势偏转 +1（可开关）。</summary>
         public static HexDirection LocalSettle(AnomalyRegion region, HexDirection global)
         {
             if (region != null && region.Type == AnomalyType.LocalSettleDeflection && region.DeflectionActive)
             {
-                return HexDirections.Rotate(global, region.Config == null ? 1 : region.Config.Deflection);
+                return HexDirections.Rotate(global, region.Config.Deflection);
             }
 
             return global;
@@ -149,17 +163,17 @@ namespace Everlight.Tales.Board
         public static bool TryTeleport(BoardState board, AnomalyRegion region, BoardEntity entity, out HexCoord to)
         {
             to = default;
-            if (region == null || region.Type != AnomalyType.ExpandingRift || entity == null)
+            if (region == null || region.Type != AnomalyType.ExpandingRift || entity == null || !entity.IsMovable)
             {
                 return false;
             }
 
-            if (!region.TryEnter(entity.Coord) || board.IsOccupied(region.ExitCell))
+            if (!region.TryEnter(entity.Coord) || entity.Coord == region.ExitCell)
             {
                 return false;
             }
 
-            if (board.Move(entity, region.ExitCell) != MoveResult.Ok)
+            if (board.Teleport(entity, region.ExitCell) != MoveResult.Ok)
             {
                 return false;
             }

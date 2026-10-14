@@ -32,8 +32,13 @@ namespace Everlight.Tales.Board
 
         public GoalConfig Goal { get; }
         public RepairTargetConfig RepairTarget { get; }
+        public int ElementId { get; }
+        public string OwnerKey { get; }
+        public FixedElementRelations Relations { get; }
 
-        public FixedElementConfig(FixedElementKind kind, HexCoord position, ObstacleType obstacleType = ObstacleType.None, int label = 0, GoalConfig goal = null, RepairTargetConfig repairTarget = null)
+        public FixedElementConfig(FixedElementKind kind, HexCoord position, ObstacleType obstacleType = ObstacleType.None,
+            int label = 0, GoalConfig goal = null, RepairTargetConfig repairTarget = null,
+            int elementId = 0, string instanceData = null, string owner = null)
         {
             Kind = kind;
             Position = position;
@@ -41,6 +46,11 @@ namespace Everlight.Tales.Board
             Label = label;
             Goal = goal;
             RepairTarget = repairTarget;
+            ElementId = elementId; OwnerKey = owner ?? "fixed-element/" + elementId;
+            Relations = new FixedElementRelations(obstacleType, kind == FixedElementKind.Facility, instanceData, OwnerKey,
+                kind == FixedElementKind.RepairTarget);
+            if (elementId < 0 || (Relations.HasBindings && elementId == 0))
+                throw new ArgumentException(OwnerKey + " 的实例关系需要有效稳定行ID。");
         }
 
         public BoardEntity CreateEntity(int id)
@@ -48,9 +58,11 @@ namespace Everlight.Tales.Board
             switch (Kind)
             {
                 case FixedElementKind.RepairTarget:
-                    return BoardEntity.RepairTarget(id, RepairTarget);
+                    BoardEntity repair = BoardEntity.RepairTarget(id, RepairTarget);
+                    if (Relations.StabilizesSettling) repair.SetSettlingStabilizer();
+                    return repair;
                 case FixedElementKind.Obstacle:
-                    return BoardEntity.Obstacle(id, ObstacleCatalog.Get(ObstacleType));
+                    return BoardEntity.Obstacle(id, ObstacleCatalog.Get(ObstacleType), RepairTarget);
 
                 case FixedElementKind.TaskMarker:
                     return BoardEntity.TaskMarker(id);
@@ -80,6 +92,8 @@ namespace Everlight.Tales.Board
             }
 
             var board = new BoardState(config.BoardRadius);
+            FixedElementBinding.Validate(config);
+            var fixedIds = new Dictionary<int, int>();
             int nextId = 1;
 
             // 1. 固定元素（地形设施、障碍、任务标记、可移动标记、端点标签）。
@@ -91,13 +105,17 @@ namespace Everlight.Tales.Board
                     continue;
                 }
 
-                board.Place(element.CreateEntity(nextId++), element.Position);
+                BoardEntity entity = element.CreateEntity(nextId++);
+                if (board.Place(entity, element.Position) != PlaceResult.Ok)
+                    throw new ArgumentException(element.OwnerKey + " 固定元素落位失败。");
+                if (element.ElementId != 0) fixedIds.Add(element.ElementId, entity.Id);
             }
 
             // 2. 关键件固定工作位（按当前形态写入 FormId，D-060）。
             foreach (KeyPieceConfig key in config.KeyPieces)
             {
-                board.Place(BoardEntity.Part(nextId++, key.PartType, ResolveForm(forms, key.PartType)), key.Position);
+                if (board.Place(BoardEntity.Part(nextId++, key.PartType, ResolveForm(forms, key.PartType)), key.Position) != PlaceResult.Ok)
+                    throw new ArgumentException(config.LevelName + " 关键件落位失败：" + key.Position);
             }
 
             // 3. 剩余名额从携带池等权有放回抽种类、随机合法空格落位。
@@ -130,6 +148,7 @@ namespace Everlight.Tales.Board
                 board.Place(BoardEntity.Part(nextId++, kind, ResolveForm(forms, kind)), coord);
             }
 
+            FixedElementBinding.Resolve(board, config, fixedIds);
             return board;
         }
 

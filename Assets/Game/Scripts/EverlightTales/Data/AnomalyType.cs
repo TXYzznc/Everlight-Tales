@@ -19,7 +19,7 @@ namespace Everlight.Tales.Data
         /// <summary>A-004 静默区：区内能力源主动能力被抑制。</summary>
         SilenceZone = 4,
 
-        /// <summary>A-005 沉降轨道：区内同格停留者在轮后沿固定方向推进。</summary>
+        /// <summary>A-005 沉降轨道：拍首与拍末同格停留者沿固定方向推进。</summary>
         SettlingRail = 5,
 
         /// <summary>A-006 超载蓄势场：能力执行计热，满阈值补能，芯耗尽转静默。</summary>
@@ -169,6 +169,7 @@ namespace Everlight.Tales.Data
                 {
                     AnomalyType.EchoZone, new Dictionary<string, ExtraParamKind>
                     {
+                        { "Priority", ExtraParamKind.Int },
                         { "EchoQuota", ExtraParamKind.Int },
                         { "Resettable", ExtraParamKind.Bool },
                         { "NoEchoOfEcho", ExtraParamKind.Bool },
@@ -222,6 +223,18 @@ namespace Everlight.Tales.Data
 
                 ExtraSchema.TryGetValue(config.Type, out Dictionary<string, ExtraParamKind> schema);
                 config.Extra.Validate("异常 " + config.Type, schema);
+                bool invalid = schema == null;
+                switch (config.Type)
+                {
+                    case AnomalyType.LocalSettleDeflection: invalid |= config.Deflection > 5; break;
+                    case AnomalyType.ExpandingRift: invalid |= config.Threshold <= 0 || config.MaxExpansion < 0; break;
+                    case AnomalyType.EchoZone: invalid |= config.EchoQuota < 0 || !config.NoEchoOfEcho; break;
+                    case AnomalyType.SettlingRail: invalid |= config.SettleDirection < 0 || config.SettleDirection > 5 || config.StepLength <= 0; break;
+                    case AnomalyType.OverloadField: invalid |= config.Threshold <= 0 || config.CoreCount <= 0 || config.RechargeAmount <= 0; break;
+                    case AnomalyType.RedrawCurtain: invalid |= config.MaxLayers <= 0 || config.PerRoundTargets <= 0; break;
+                    case AnomalyType.PostTapReversal: invalid |= config.TapPeriod <= 0 || config.FlipDegrees <= 0 || config.FlipDegrees >= 360 || config.FlipDegrees % 60 != 0; break;
+                }
+                if (invalid) throw new System.InvalidOperationException("异常参数不满足规则：" + config.Type);
             }
 
             _installed = index;

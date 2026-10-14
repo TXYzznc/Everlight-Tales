@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -573,9 +573,18 @@ namespace Everlight.Tales.UI
                 throw new InvalidOperationException("Board/ChallengeTable 应包含 15 个专属挑战，实际为 " + challenges.Count + "。");
             }
 
-            var levels = BuildLevelPresets(calibrations);
+            var levels = BuildLevelPresets(calibrations, obstacles);
             var redShoePresets = BuildRedShoePresets();
             var snapshot = new GameConfigSnapshot(partConfigs, codexConfigs, materialConfigs, formConfigs, buffConfigs, anomalyConfigs, releases, places, supplies, trials, tasks, normalEvents, rewards, cases, investigations, copies, portraits, tutorialHints, calibrations, obstacles, audioCues, bgms, assetBindings, narratives, caseEvents, batches, caseRewardOptions, challenges);
+            var assembledChallenges = ChallengeAssemblyCatalog.Prepare(snapshot.Challenges, snapshot.Cases, snapshot.Releases, levels, redShoePresets);
+            foreach (ChallengeAssembly assembly in assembledChallenges)
+            {
+                CaseEventConfig matched = null;
+                foreach (CaseEventConfig entry in snapshot.CaseEvents)
+                    if (entry.Id == assembly.Level.EventKey) matched = entry;
+                if (matched == null || matched.CaseId != assembly.Challenge.CaseKey || matched.RepairTimeCost != assembly.Level.Board.Duration)
+                    throw new InvalidOperationException("挑战 " + assembly.Challenge.Key + " 的LevelTable.EventKey/CaseEventTable案件或耗时不匹配。");
+            }
             PartCatalog.Install(snapshot.Parts);
             PartCodexCatalog.Install(snapshot.PartCodex);
             MaterialCatalog.Install(snapshot.Materials);
@@ -606,6 +615,7 @@ namespace Everlight.Tales.UI
             ChallengeCatalog.Install(snapshot.Challenges);
             LevelPresetCatalog.Install(levels);
             RedShoePresetCatalog.Install(redShoePresets);
+            ChallengeAssemblyCatalog.Install(assembledChallenges);
             Current = snapshot;
             Debug.Log("[GameConfigRuntime] 全局 DataTable 配置校验通过，已安装零件 20、材料 6、形态 19、配方 54、Buff 20、异常 8、投放 39、地点 5、供给 6、试机 4、任务 4、普通事件 6、奖励 " + rewards.Count + "、案件 " + cases.Count + "、调查 " + investigations.Count + "、文案 " + copies.Count + "、立绘 " + portraits.Count + "、教学 " + tutorialHints.Count + "、校准 " + calibrations.Count + "、障碍 " + obstacles.Count + "、音效位 " + audioCues.Count + "、BGM " + bgms.Count + "、资源槽位 " + assetBindings.Count + "、叙事 " + narratives.Count + "、案件事件 " + caseEvents.Count + "、关卡 " + levels.Count + "、红舞鞋规则 " + redShoePresets.Count + "、专属挑战 " + challenges.Count + "。");
             return true;
@@ -671,7 +681,7 @@ namespace Everlight.Tales.UI
             return result.AsReadOnly();
         }
 
-        private static IReadOnlyList<LevelPreset> BuildLevelPresets(IReadOnlyList<CalibrationBound> calibrations)
+        private static IReadOnlyList<LevelPreset> BuildLevelPresets(IReadOnlyList<CalibrationBound> calibrations, IReadOnlyList<ObstacleConfig> obstacles)
         {
             int defaultRepairScore = GetCalibrationValue(calibrations, "REPAIR-SCORE");
             var levelRows = new Dictionary<string, LevelTable>(StringComparer.Ordinal);
@@ -761,16 +771,21 @@ namespace Everlight.Tales.UI
                 var fixedConfigs = new List<FixedElementConfig>();
                 if (fixedElements.TryGetValue(row.Key, out List<LevelFixedElementTable> configuredFixed))
                 {
+                    configuredFixed.Sort((a, b) => a.Id.CompareTo(b.Id));
                     foreach (LevelFixedElementTable element in configuredFixed)
                     {
                         GoalConfig goal = string.IsNullOrEmpty(element.GoalKey) ? null : new GoalConfig(element.GoalKey, (GoalKind)element.GoalKind, element.GoalEntityId, element.GoalAnchorLabel, element.GoalRequired);
                         RepairTargetConfig repair = null;
-                        if (element.ElementKind == (int)FixedElementKind.RepairTarget)
+                        if (element.ElementKind == (int)FixedElementKind.RepairTarget
+                            || element.ElementKind == (int)FixedElementKind.Obstacle && !string.IsNullOrEmpty(element.RepairPartKinds))
                             repair = new RepairTargetConfig(ParsePartKinds(element.RepairPartKinds), element.RepairRequired, element.RepairEnergyCost, defaultRepairScore);
-                        fixedConfigs.Add(new FixedElementConfig((FixedElementKind)element.ElementKind, new HexCoord(element.Q, element.R), (ObstacleType)element.ObstacleType, element.Label, goal, repair));
+                        fixedConfigs.Add(new FixedElementConfig((FixedElementKind)element.ElementKind, new HexCoord(element.Q, element.R),
+                            (ObstacleType)element.ObstacleType, element.Label, goal, repair, element.Id, element.InstanceData,
+                            "Board/LevelFixedElementTable " + element.LevelKey + "/" + element.Id));
                     }
                 }
                 var board = new LevelBoardConfig(row.Name, row.Radius, keyConfigs, carryPool, row.InitialPartCount, row.InitialArmMoves, row.InitialPublicRepairEnergy, borrowed, fixedElements: fixedConfigs, objective: row.Objective, duration: row.Duration);
+                FixedElementBinding.Validate(board, obstacles);
                 result.Add(new LevelPreset(row.Key, row.EventKey, board, new LevelConfig(roundConfigs)));
             }
             return result.AsReadOnly();

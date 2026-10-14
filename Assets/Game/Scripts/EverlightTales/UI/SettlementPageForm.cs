@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
@@ -25,6 +25,7 @@ namespace Everlight.Tales.UI
         private bool m_Finished;
         private WorldSession _owner;
         private bool _roundReward;
+        private string _attemptId;
         private readonly ListRowCollection m_RewardRows = new ListRowCollection();
 
         protected override void OnOpen(object userData)
@@ -32,6 +33,7 @@ namespace Everlight.Tales.UI
             base.OnOpen(userData);
             m_Finished = false;
             _owner = WorldSession.Current;
+            _attemptId = _owner?.ActiveAttemptId;
             _roundReward = Params.TryGet<VarObject>("FirstCase.Round", out VarObject value) && value.Value is bool flag && flag;
             BuildContent();
         }
@@ -69,10 +71,10 @@ namespace Everlight.Tales.UI
                     RewardText.gameObject.SetActive(true);
                     RewardText.text = BuildRewardText(reward);
                     ReasonText.gameObject.SetActive(false);
-                    RewardChoices.gameObject.SetActive(!session.IsFirstCaseEvent);
-                    if (!session.IsFirstCaseEvent) BuildChoices(session);
-                    else RewardText.text = "红舞鞋已封存，铆合钳已解锁。回店后，清晨可向沈遥领取回访报酬。";
-                    BackToMap.gameObject.SetActive(session.IsFirstCaseEvent);
+                    RewardChoices.gameObject.SetActive(!session.IsFirstCaseEvent && session.HasPendingSettlementReward);
+                    if (!session.IsFirstCaseEvent && session.HasPendingSettlementReward) BuildChoices(session);
+                    else if (session.IsFirstCaseEvent) RewardText.text = "红舞鞋已封存，铆合钳已解锁。回店后，清晨可向沈遥领取回访报酬。";
+                    BackToMap.gameObject.SetActive(session.IsFirstCaseEvent || !session.HasPendingSettlementReward);
                     break;
 
                 case SettlementOutcomeKind.Failure:
@@ -163,15 +165,23 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            m_Finished = true;
-
             WorldSession session = WorldSession.Current;
             if (session != null && session == _owner)
             {
-                if (_roundReward) session.ChooseFirstCaseRoundReward(option);
-                else session.ApplyReward(option);
+                if (_roundReward && session.ActiveAttemptId != _attemptId) return;
+                if (_roundReward && !session.ChooseFirstCaseRoundReward(option))
+                {
+                    GlobalUI.ShowToast("下一轮保存失败，请再次选择以重试已确定奖励：" + session.LastPersistenceError, ToastKind.Warning);
+                    return;
+                }
+                else if (!_roundReward && !session.TryApplyReward(option))
+                {
+                    GlobalUI.ShowToast("奖励保存失败，请重试已确定选择：" + session.LastPersistenceError, ToastKind.Warning);
+                    return;
+                }
             }
-
+            else return;
+            m_Finished = true;
             OnClickClose();
         }
 

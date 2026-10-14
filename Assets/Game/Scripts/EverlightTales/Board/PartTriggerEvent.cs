@@ -8,6 +8,7 @@ namespace Everlight.Tales.Board
 
         /// <summary>冲击触发：线圈爆破等其他对象效果，无实体入射方向。</summary>
         public const string Shock = "shock";
+        public const string Sound = "sound";
     }
 
     /// <summary>

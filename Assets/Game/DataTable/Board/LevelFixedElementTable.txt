@@ -1,23 +1,23 @@
-#	LevelFixedElementTable															
-#	ID		LevelKey	ElementKind	Q	R	ObstacleType	Label	GoalKey	GoalKind	GoalEntityId	GoalAnchorLabel	GoalRequired	RepairPartKinds	RepairRequired	RepairEnergyCost
-#	int		string	int	int	int	int	int	string	int	int	int	int	string	int	int
-#		关卡固定元素关系	关卡稳定键	FixedElementKind 数值	六边形坐标 Q	六边形坐标 R	ObstacleType 数值	端点标签	绑定目标稳定键	GoalKind 数值	目标实体 ID	目标锚点标签	目标所需量	维修零件 PartType 数值	维修所需进度	单次维修能量消耗
-	1		EV-N01	1	-1	0	1	0		0	0	0	0		0	0
-	2		EV-N01	3	1	0	0	0	gate	4	0	1	1		0	0
-	3		EV-N01	4	2	0	0	1		0	0	0	0		0	0
-	4		T-G01	1	-1	0	1	0		0	0	0	0		0	0
-	5		T-G01	3	1	0	0	0	trial	4	0	2	1		0	0
-	6		T-G01	4	2	0	0	2		0	0	0	0		0	0
-	7		T-G02	1	-1	0	1	0		0	0	0	0		0	0
-	8		T-G02	3	1	0	0	0	trial	4	0	2	1		0	0
-	9		T-G02	4	2	0	0	2		0	0	0	0		0	0
-	10		T-G03	1	-1	0	1	0		0	0	0	0		0	0
-	11		T-G03	3	1	0	0	0	trial	4	0	2	1		0	0
-	12		T-G03	4	2	0	0	2		0	0	0	0		0	0
-	13		T-G04	1	-1	0	1	0		0	0	0	0		0	0
-	14		T-G04	3	1	0	0	0	trial	4	0	2	1		0	0
-	15		T-G04	4	2	0	0	2		0	0	0	0		0	0
-	16		TUT-RC	0	2	0	0	0		0	0	0	0		0	0
-	17		TUT-ER	5	1	0	0	0		0	0	0	0	2	1	1
-	18		TUT-BC	0	3	0	0	0		0	0	0	0		0	0
-	19		REDSHOE	5	2	0	0	0		0	0	0	0	5	2	2
+#	LevelFixedElementTable																
+#	ID		LevelKey	ElementKind	Q	R	ObstacleType	Label	GoalKey	GoalKind	GoalEntityId	GoalAnchorLabel	GoalRequired	RepairPartKinds	RepairRequired	RepairEnergyCost	InstanceData
+#	int		string	int	int	int	int	int	string	int	int	int	int	string	int	int	string
+#		关卡固定元素关系	关卡稳定键	FixedElementKind 数值	六边形坐标 Q	六边形坐标 R	ObstacleType 数值	端点标签	绑定目标稳定键	GoalKind 数值	目标实体 ID	目标锚点标签	目标所需量	维修零件 PartType 数值	维修所需进度	单次维修能量消耗	实例关系 k=v；固定元素行ID
+	1		EV-N01	1	-1	0	1	0		0	0	0	0		0	0	
+	2		EV-N01	3	1	0	0	0	gate	4	0	1	1		0	0	
+	3		EV-N01	4	2	0	0	1		0	0	0	0		0	0	
+	4		T-G01	1	-1	0	1	0		0	0	0	0		0	0	
+	5		T-G01	3	1	0	0	0	trial	4	0	2	1		0	0	
+	6		T-G01	4	2	0	0	2		0	0	0	0		0	0	
+	7		T-G02	1	-1	0	1	0		0	0	0	0		0	0	
+	8		T-G02	3	1	0	0	0	trial	4	0	2	1		0	0	
+	9		T-G02	4	2	0	0	2		0	0	0	0		0	0	
+	10		T-G03	1	-1	0	1	0		0	0	0	0		0	0	
+	11		T-G03	3	1	0	0	0	trial	4	0	2	1		0	0	
+	12		T-G03	4	2	0	0	2		0	0	0	0		0	0	
+	13		T-G04	1	-1	0	1	0		0	0	0	0		0	0	
+	14		T-G04	3	1	0	0	0	trial	4	0	2	1		0	0	
+	15		T-G04	4	2	0	0	2		0	0	0	0		0	0	
+	16		TUT-RC	0	2	0	0	0		0	0	0	0		0	0	
+	17		TUT-ER	5	1	0	0	0		0	0	0	0	2	1	1	
+	18		TUT-BC	0	3	0	0	0		0	0	0	0		0	0	
+	19		REDSHOE	5	2	0	0	0		0	0	0	0	5	2	2	

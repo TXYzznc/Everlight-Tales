@@ -27,6 +27,15 @@ namespace Everlight.Tales.Board
 
         /// <summary>已消费的随机次数，只增不减，重置时归零。</summary>
         public int ConsumedCount => m_ConsumedCount;
+        public uint State => m_State;
+
+        public void RestoreState(int seed, int consumed, uint state)
+        {
+            if (consumed < 0 || state == 0) throw new ArgumentException("Invalid random state.");
+            m_Seed = seed;
+            m_ConsumedCount = consumed;
+            m_State = state;
+        }
 
         /// <summary>重置种子并清零消费计数。</summary>
         public void Reset(int seed)

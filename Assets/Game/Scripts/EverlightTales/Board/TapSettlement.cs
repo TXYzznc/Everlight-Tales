@@ -60,8 +60,12 @@ namespace Everlight.Tales.Board
                     continue;
                 }
 
-                effect.Apply(settlementContext);
-                log.Add(new SettlementEvent(SettlementEventKind.DueEffectApplied, message: effect.Name));
+                using (settlementContext.BeginEffect(BoardEffectKind.Due, 0, default))
+                {
+                    effect.Apply(settlementContext);
+                    log.Add(new SettlementEvent(SettlementEventKind.DueEffectApplied, message: effect.Name,
+                        provenance: settlementContext.CurrentEffect));
+                }
             }
 
             // 3. 基础定势下落 + 碰撞 + FIFO 排空 + 重力接续，直到稳定。
@@ -75,10 +79,18 @@ namespace Everlight.Tales.Board
                     continue;
                 }
 
-                effect.Apply(settlementContext);
-                log.Add(new SettlementEvent(SettlementEventKind.TapEndEffectApplied, message: effect.Name));
+                using (settlementContext.BeginEffect(BoardEffectKind.TapEnd, 0, default))
+                {
+                    effect.Apply(settlementContext);
+                    log.Add(new SettlementEvent(SettlementEventKind.TapEndEffectApplied, message: effect.Name,
+                        provenance: settlementContext.CurrentEffect));
+                }
                 SettleToStable(settlementContext);
             }
+
+            // 拍末设施在主连锁及其它拍末演算之后、胜败检查之前执行一次。
+            ApplyAnomalyTapEnd(settlementContext, context.IsTerminalTap);
+            ObstacleService.ApplyTapEnd(settlementContext);
 
             // 5. 稳定。
             log.Add(new SettlementEvent(SettlementEventKind.Stabilized));
@@ -131,9 +143,11 @@ namespace Everlight.Tales.Board
             bool continuationLogged = false;
             foreach (BoardEntity entity in movable)
             {
+                if (!board.TryGetEntity(entity.Id, out BoardEntity currentEntity)
+                    || !ReferenceEquals(entity, currentEntity) || !entity.IsMovable) continue;
                 HexCoord start = entity.Coord;
                 int steps = 0;
-                BoardEntity blocker = SlideEntity(entity, board, context.Settle, ref steps);
+                BoardEntity blocker = SlideEntity(entity, context, ref steps, out HexDirection incoming);
 
                 if (steps > 0)
                 {
@@ -149,8 +163,11 @@ namespace Everlight.Tales.Board
 
                 if (blocker != null)
                 {
-                    context.Log.Add(new SettlementEvent(SettlementEventKind.Collision, entity.Id, entity.Coord, blocker.Coord, blocker.Id));
-                    context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Collision, entity.Id, blocker.Id, context.Settle.GravityDirection));
+                    using var collisionScope = context.BeginEffect(BoardEffectKind.Interaction, entity.Id,
+                        entity.Coord, incoming, true);
+                    context.Log.Add(new SettlementEvent(SettlementEventKind.Collision, entity.Id, entity.Coord, blocker.Coord,
+                        blocker.Id, provenance: context.CurrentEffect));
+                    context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Collision, entity.Id, blocker.Id, incoming));
                     if (blocker.Kind == EntityKind.RepairTarget)
                     {
                         // D-116：适配零件下落受阻于维修对象时，入队一次维修效果；
@@ -172,43 +189,82 @@ namespace Everlight.Tales.Board
         }
 
         /// <summary>滑落单个实体，返回移动步数与首次碰撞的阻挡实体（无碰撞为 null）。</summary>
-        private static BoardEntity SlideEntity(BoardEntity entity, BoardState board, SettleState settle, ref int steps)
+        private static BoardEntity SlideEntity(BoardEntity entity, SettlementContext context, ref int steps, out HexDirection incoming)
         {
-            HexCoord offset = settle.GravityOffset;
+            BoardState board = context.Board;
+            incoming = context.Settle.GravityDirection;
             HexCoord current = entity.Coord;
             while (true)
             {
-                HexCoord next = new HexCoord(current.Q + offset.Q, current.R + offset.R);
+                incoming = AnomalyService.GravityAt(board, current, context.Settle.GravityDirection);
+                HexCoord next = current.Neighbor(incoming);
                 if (!board.IsValid(next))
                 {
                     return null; // 到达边缘，停止。
                 }
 
-                BoardEntity occupant = board.EntityAt(next);
+                BoardEntity occupant = board.BlockerAt(next, incoming);
                 if (occupant != null)
                 {
                     // 仅当已移动至少一步后受阻，才算新碰撞；静止相邻不重复触发（SR-002）。
                     return steps > 0 ? occupant : null;
                 }
 
-                board.Move(entity, next);
+                if (!context.GravityVisits.Add((entity.Id, current, incoming, board.ExternalTraversalRevision(entity.Id)))) return null;
+                if (board.Move(entity, next) != MoveResult.Ok) return null;
                 steps++;
-                current = next;
+                current = entity.Coord;
+                if (!entity.IsMovable) return null;
+            }
+        }
+
+        private void ApplyAnomalyTapEnd(SettlementContext context, bool terminal)
+        {
+            BoardState board = context.Board;
+            if (board.LastAnomalyTap == context.Session.TapSerial) return;
+            board.LastAnomalyTap = context.Session.TapSerial;
+            context.ObstacleSnapshot.Clear();
+            foreach (BoardEntity entity in board.Entities)
+                if (entity.Kind == EntityKind.Part && entity.IsMovable) context.ObstacleSnapshot.Add(entity);
+            context.ObstacleSnapshot.Sort((a, b) => a.Id.CompareTo(b.Id));
+            foreach (BoardEntity entity in context.ObstacleSnapshot)
+            {
+                if (!entity.IsMovable || !board.TryGetEntity(entity.Id, out BoardEntity live) || !ReferenceEquals(live, entity)
+                    || !context.TapStartPositions.TryGetValue(entity.Id, out HexCoord start) || start != entity.Coord) continue;
+                AnomalyRegion region = AnomalyService.Select(board, AnomalyType.SettlingRail, entity.Coord);
+                if (region == null || region.SettlingStopped) continue;
+                using var scope = context.BeginEffect(BoardEffectKind.TapEnd, entity.Id, entity.Coord, independent: true);
+                HexDirection direction = AnomalyService.SettleDirection(region);
+                bool moved = false;
+                for (int step = 0; step < region.Config.StepLength; step++)
+                {
+                    if (!AbilityMovement.Step(context, entity, ref direction, out _, MoveSource.Gravity)) break;
+                    moved = true;
+                }
+                BoardEntity blocker = board.BlockerAt(entity.Coord.Neighbor(direction), direction);
+                if (moved && blocker != null)
+                {
+                    context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Collision, entity.Id, blocker.Id, direction));
+                    if (blocker.Kind == EntityKind.RepairTarget) context.Queue.Enqueue(new RepairEffect(entity.PartType, blocker.Id));
+                    if (blocker.MaxDurability > 0) ObstacleService.Damage(context, blocker);
+                }
+            }
+            SettleToStable(context);
+            if (terminal) return;
+            foreach (AnomalyRegion region in board.AnomalyRegions)
+            {
+                if (region.Type != AnomalyType.PostTapReversal || !region.TickTap()) continue;
+                context.Settle.SetGravity(HexDirections.Rotate(context.Settle.GravityDirection, region.Config.FlipDegrees / 60));
+                board.MarkTraversalChanged();
+                context.Log.Add(new SettlementEvent(SettlementEventKind.AnomalyApplied, message: "reversal#" + region.Id));
+                SettleToStable(context);
             }
         }
 
         /// <summary>按 FIFO 排空事件队列，每个事件取出后立即执行（新事件入队尾）。</summary>
         private static bool DrainAll(SettlementContext context)
         {
-            bool drained = false;
-            while (context.Queue.TryDequeue(out ISettlementEvent settlementEvent))
-            {
-                settlementEvent.Apply(context);
-                context.Log.Add(new SettlementEvent(SettlementEventKind.TriggerDispatched, message: settlementEvent.Name));
-                drained = true;
-            }
-
-            return drained;
+            return context.DrainQueue();
         }
 
         /// <summary>重力方向投影排序：前到后（投影大者在前），同投影按 q、r、ID 升序。</summary>

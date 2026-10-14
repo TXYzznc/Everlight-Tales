@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Everlight.Tales.Board;
 using Everlight.Tales.Data;
+using Everlight.Tales.Events;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,6 +24,9 @@ namespace Everlight.Tales.UI
         private readonly List<string> _report = new List<string>();
         private WorldSession _previous;
         private bool _restored;
+        private bool _testedEntryFailure;
+        private bool _testedChallengeBinding;
+        private bool _testedDisabledChallenge;
 
         public static void PreservePrefs()
         {
@@ -31,12 +35,13 @@ namespace Everlight.Tales.UI
             var backup = new PrefBackup();
             for (int slot = 1; slot <= 3; slot++)
             {
-                foreach (string key in IntKeys) Capture(backup, SaveSlotService.SlotKey("et.world." + key, slot), true);
-                foreach (string key in StringKeys) Capture(backup, SaveSlotService.SlotKey("et.world." + key, slot), false);
-                Capture(backup, "et.world.meta." + slot, false);
+                foreach (string key in PlayerPrefsWorldImageStore.EnumerateKeys(slot, true))
+                    Capture(backup, key, PlayerPrefsWorldImageStore.IsIntegerKey(slot, key));
             }
             foreach (string key in new[] { "enabled", "normalFlow", "smoke" }) Capture(backup, "et.ui.validation." + key, true);
             File.WriteAllText(Folder + "/prefs-backup.json", JsonUtility.ToJson(backup));
+            UnityEditor.SessionState.SetString("Everlight.RepairPersistence.ValidationRoot",
+                Path.GetFullPath(Folder + "/saves-" + Guid.NewGuid().ToString("N")));
         }
 
         private static void Capture(PrefBackup backup, string key, bool integer)
@@ -55,6 +60,7 @@ namespace Everlight.Tales.UI
                 else if (entry.IsInt) PlayerPrefs.SetInt(entry.Key, entry.Number);
                 else PlayerPrefs.SetString(entry.Key, entry.Text);
             PlayerPrefs.Save(); File.Delete(path);
+            UnityEditor.SessionState.EraseString("Everlight.RepairPersistence.ValidationRoot");
         }
 
         public static void Run()
@@ -145,22 +151,43 @@ namespace Everlight.Tales.UI
             owner = WorldSession.LoadOrNew(WorldSession.DemoSeed, 1); FirstCaseFlow.RefreshMaps();
             yield return StartRepair();
             GF.UI.CloseUIForm(Active<BoardPageForm>().First().Id); yield return Delay();
-            owner = WorldSession.LoadOrNew(WorldSession.DemoSeed, 1); FirstCaseFlow.RefreshMaps();
-            Require(owner.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.AwaitingRepair
-                && owner.CurrentEvent == null && owner.CurrentRedShoeLevel == null, "interrupted repair reloads initial attempt with investigation retained");
-            yield return StartRepair();
+            yield return SelectRecoverySlot(); owner = WorldSession.Current;
+            Require(owner.HasPendingRecovery && owner.CurrentEvent == null && owner.CurrentRedShoeLevel == null,
+                "cold slot selection offers recovery before world shell");
+            string firstAttempt = owner.ActiveAttemptId;
+            Active<RecoveryPageForm>().First().OnClickClose(); yield return WaitFor<SaveSlotPage>();
+            SaveSlotItem recoverySlot = Active<SaveSlotItem>().First(i => Field<int>(i, "_slot") == 1);
+            Field<Button>(recoverySlot, "_actionButton").onClick.Invoke(); yield return WaitFor<RecoveryPageForm>();
+            owner = WorldSession.Current;
+            Require(owner.ActiveAttemptId == firstAttempt, "closing recovery retains same attempt and returns to slots");
+            yield return CaptureImage("04-recovery-round1");
+            Field<Button>(Active<RecoveryPageForm>().First(), "m_ContinueButton").onClick.Invoke();
+            yield return WaitFor<BoardPageForm>();
+            Require(owner.CurrentEvent.Level.RoundIndex == 0 && owner.CurrentRedShoeLevel.Level == owner.CurrentEvent.Level,
+                "recovery rebuilds shared first-round state");
             BoardPage failurePage = Active<BoardPage>().First(); failurePage.Tap(); failurePage.Tap(); failurePage.Tap();
             Require(failurePage.LastRoundResult == RoundPassResult.Failed, "failed special goal"); CloseDialogs();
             Field<Button>(Active<BoardPageForm>().First(), "_settleButton").onClick.Invoke(); yield return WaitFor<SettlementPageForm>();
             Active<SettlementPageForm>().First().BackToMap.onClick.Invoke(); yield return Delay();
             Require(owner.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.AwaitingRepair, "failure retains investigation");
-            yield return StartRepair(); yield return Retreat();
-            Require(owner.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.AwaitingRepair, "retreat permits retry");
-            bool won = false;
+            yield return StartRepair();
+            int retreatCells = owner.CurrentEvent.Config.TimeCost;
+            var retreatExpected = new TimeState(owner.Time.Day, owner.Time.Period, owner.Time.RemainingCells);
+            retreatExpected.Advance(retreatCells);
+            yield return SelectRecoverySlot(); owner = WorldSession.Current;
+            Field<Button>(Active<RecoveryPageForm>().First(), "m_AbandonButton").onClick.Invoke();
+            yield return WaitFor<DialogView>(); ClickDialog(); yield return WaitFor<SettlementPageForm>();
+            Active<SettlementPageForm>().First().BackToMap.onClick.Invoke(); yield return Delay();
+            Require(owner.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.AwaitingRepair
+                && owner.Time.Day == retreatExpected.Day && owner.Time.Period == retreatExpected.Period
+                && owner.Time.RemainingCells == retreatExpected.RemainingCells,
+                "real recovery abandon charges full duration once and permits retry");
+            bool won = false, testedUnchosen = false;
             for (int attempt = 0; attempt < 30 && !won; attempt++)
             {
                 yield return StartRepair();
                 var page = Active<BoardPage>().First(); yield return CaptureImage("04-board");
+                string initialJson = SnapshotJson(owner), unchosenAttempt = owner.ActiveAttemptId;
                 int[] directions = { 5, 1, 2, 1, 5, 0, 5, 5, 5 };
                 bool retry = false;
                 for (int tap = 0; tap < 9; tap++)
@@ -176,13 +203,59 @@ namespace Everlight.Tales.UI
                     if (tap == 2 || tap == 5)
                     {
                         yield return WaitFor<SettlementPageForm>();
+                        if (tap == 2 && !testedUnchosen)
+                        {
+                            string[] unchosenIds = owner.PendingFirstCaseRewards.Select(o => o.Id).ToArray();
+                            uint drawnRng = owner.Rng.State;
+                            Require(unchosenIds.Length == 4, "unselected round reward is present before exit");
+                            yield return SelectRecoverySlot(); owner = WorldSession.Current;
+                            Field<Button>(Active<RecoveryPageForm>().First(), "m_ContinueButton").onClick.Invoke();
+                            yield return WaitFor<BoardPageForm>(); page = Active<BoardPage>().First();
+                            Require(owner.ActiveAttemptId == unchosenAttempt && owner.PendingFirstCaseRewards == null
+                                && SnapshotJson(owner) == initialJson,
+                                "exit before choosing returns exact previous round start including RNG and no partial reward");
+                            foreach (int direction in new[] { 5, 1, 2 })
+                            {
+                                while ((int)owner.CurrentRedShoeLevel.RedShoe.Direction != direction) page.RotateRight();
+                                page.Tap();
+                            }
+                            yield return WaitFor<SettlementPageForm>();
+                            Require(owner.Rng.State == drawnRng && owner.PendingFirstCaseRewards.Select(o => o.Id).SequenceEqual(unchosenIds),
+                                "replaying same legal round produces identical reward candidates and RNG");
+                            testedUnchosen = true;
+                        }
                         var options = owner.PendingFirstCaseRewards;
                         Require(options.Count == 4 && options.Select(o => o.Id).Distinct().Count() == 4, "four unique round choices");
                         int index = tap == 2 ? options.ToList().FindIndex(o => o.Id == "BF-014") : 0;
                         if (index < 0) { index = 0; retry = true; }
-                        Active<SettlementPageForm>().First().RewardChoices.GetComponentsInChildren<ListRowItem>().Where(i => i.gameObject.activeInHierarchy).ToArray()[index].Button.onClick.Invoke();
+                        Button choiceButton = Active<SettlementPageForm>().First().RewardChoices.GetComponentsInChildren<ListRowItem>().Where(i => i.gameObject.activeInHierarchy).ToArray()[index].Button;
+                        if (tap == 2 && !retry)
+                        {
+                            owner.AttemptStore.FaultInjector = point => { if (point == "before-write") throw new IOException("injected-round-save"); };
+                            choiceButton.onClick.Invoke();
+                            Require(owner.PersistenceBlocked && owner.PendingFirstCaseRewards == null,
+                                "round save failure blocks next tap after applying choice once");
+                            int randomCount = owner.Rng.ConsumedCount;
+                            owner.AttemptStore.FaultInjector = null;
+                            choiceButton.onClick.Invoke();
+                            Require(!owner.PersistenceBlocked && owner.Rng.ConsumedCount == randomCount,
+                                "round save retry keeps frozen choice and RNG");
+                        }
+                        else choiceButton.onClick.Invoke();
                         yield return Delay();
                         if (retry) break;
+                        int recoveredRound = owner.CurrentEvent.Level.RoundIndex;
+                        string attemptId = owner.ActiveAttemptId;
+                        GF.UI.CloseUIForm(Active<BoardPageForm>().First().Id); yield return Delay();
+                        owner = WorldSession.LoadOrNew(WorldSession.DemoSeed, 1);
+                        Require(owner.HasPendingRecovery && owner.RecoveryRound == recoveredRound + 1,
+                            "next round checkpoint detected " + (recoveredRound + 1));
+                        GF.UI.OpenUIForm(UIViews.RecoveryPage); yield return WaitFor<RecoveryPageForm>();
+                        yield return CaptureImage("04-recovery-round" + (recoveredRound + 1));
+                        Field<Button>(Active<RecoveryPageForm>().First(), "m_ContinueButton").onClick.Invoke();
+                        yield return WaitFor<BoardPageForm>(); page = Active<BoardPage>().First();
+                        Require(owner.ActiveAttemptId == attemptId && page.Game.Level.RoundIndex == recoveredRound,
+                            "same attempt and round after real continue");
                     }
                 }
                 if (retry) { yield return Retreat(); continue; }
@@ -204,16 +277,144 @@ namespace Everlight.Tales.UI
             owner.RevisitCase(FirstCaseContent.CaseId); Require(owner.World.RepairFee == fee + revisitFee, "duplicate revisit safe");
             owner = WorldSession.LoadOrNew(WorldSession.DemoSeed, 1);
             Require(owner.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.Revisited && owner.World.RepairFee == fee + revisitFee, "revisit survives reload");
+            yield return ValidateRollerAndTerminalReward(); owner = WorldSession.Current;
             SaveSlotService.Delete(1); Require(!PlayerPrefs.HasKey("et.world.firstCase") && !PlayerPrefs.HasKey("et.world.places") && SaveSlotService.HasSlot(2), "delete clears progress and isolates slots");
+        }
+
+        private IEnumerator StartRoller()
+        {
+            yield return OpenMapEvent("home", "卡住的卷帘门"); yield return WaitFor<PreparationPageForm>();
+            WorldSession owner = WorldSession.Current;
+            foreach (CarryAvailableItem item in Active<CarryAvailableItem>())
+                if (!owner.PendingCarry.Contains(item.Part)) Field<Button>(item, "_button").onClick.Invoke();
+            Require(Active<PreparationPageForm>().First().ConfirmButton.interactable, "roller full carry selected via real buttons");
+            Active<PreparationPageForm>().First().ConfirmButton.onClick.Invoke(); yield return WaitFor<BoardPageForm>();
+        }
+
+        private IEnumerator ValidateRollerAndTerminalReward()
+        {
+            WorldSession owner = WorldSession.Current;
+            yield return OpenMapEvent("home", "卡住的卷帘门"); yield return WaitFor<PreparationPageForm>();
+            Active<PreparationPageForm>().First().BackButton.onClick.Invoke(); yield return Delay();
+            Require(owner.ActiveAttemptId == null, "cancelling preparation creates no repair checkpoint");
+            yield return StartRoller();
+            RepairRouteValidation.Route route = RepairRouteValidation.FindRoller(owner);
+            Require(route != null, "bounded legal route available for formal roller state");
+            _report.Add("ROUTE roller seed=" + owner.Rng.Seed + " consumed=" + owner.Rng.ConsumedCount
+                + " arm=" + route.ArmEntityId + " target=" + route.ArmTarget + " phases=" + string.Join(",", route.Phases));
+            BoardPage page = Active<BoardPage>().First();
+            if (route.ArmEntityId != 0)
+            {
+                owner.CurrentEvent.Board.TryGetEntity(route.ArmEntityId, out BoardEntity entity);
+                Field<Button>(Active<BoardPageForm>().First(), "_armButton").onClick.Invoke();
+                page.BoardView.EntityClicked(entity); page.BoardView.CellClicked(route.ArmTarget);
+            }
+            foreach (int phase in route.Phases)
+            {
+                while ((int)page.Game.Settle.GravityDirection != phase) page.RotateRight();
+                page.Tap();
+            }
+            Require(page.LastRoundResult == RoundPassResult.Passed && owner.IsCurrentSpecialGoalMet(),
+                "formal roller completes real score and pushed marker");
+            CloseDialogs(); int fee = owner.World.RepairFee;
+            owner.WorldPersistenceFaultInjector = point => { if (point == "after-world-save") throw new IOException("injected-final-settlement"); };
+            Field<Button>(Active<BoardPageForm>().First(), "_settleButton").onClick.Invoke();
+            Require(owner.PersistenceBlocked && Active<SettlementPageForm>().Length == 0 && owner.World.RepairFee == fee,
+                "final world save interruption does not show premature settlement");
+            owner.WorldPersistenceFaultInjector = null;
+            Field<Button>(Active<BoardPageForm>().First(), "_settleButton").onClick.Invoke();
+            yield return WaitFor<SettlementPageForm>(); yield return CaptureImage("07-roller-success");
+            Require(owner.World.RepairFee == fee + 40 && owner.HasPendingSettlementReward,
+                "formal roller settlement gives base reward once and freezes choices");
+            var choices = new List<string>(); foreach (var option in owner.DrawRewardChoice()) choices.Add(option.Id);
+            uint rng = owner.Rng.State;
+            foreach (var form in GF.UI.GetAllLoadedUIForms())
+                if (form.Logic is UIFormBase view && view.Params?.IsSubUIForm == false && GF.UI.HasUIForm(view.Id)) GF.UI.CloseUIForm(view.Id);
+            yield return Delay(); GF.UI.OpenUIForm(UIViews.SaveSlotPage); yield return WaitFor<SaveSlotPage>();
+            SaveSlotItem slot = Active<SaveSlotItem>().First(i => Field<int>(i, "_slot") == 1);
+            Field<Button>(slot, "_actionButton").onClick.Invoke(); yield return WaitFor<SettlementPageForm>();
+            owner = WorldSession.Current;
+            Require(owner.Rng.State == rng && owner.DrawRewardChoice().Select(x => x.Id).SequenceEqual(choices),
+                "cold slot selection returns to same terminal choices without reroll");
+            yield return CaptureImage("08-terminal-choice-recovery");
+            Active<SettlementPageForm>().First().RewardChoices.GetComponentsInChildren<ListRowItem>()
+                .First(i => i.gameObject.activeInHierarchy).Button.onClick.Invoke(); yield return Delay();
+            Require(!owner.HasPendingSettlementReward, "terminal reward selected and durably consumed");
+            int settledFee = owner.World.RepairFee;
+            yield return StartRoller();
+            // 提前结算是现有正式按钮支持的合法失败路径，不注入分数或目标。
+            Field<Button>(Active<BoardPageForm>().First(), "_settleButton").onClick.Invoke(); yield return WaitFor<SettlementPageForm>();
+            Require(owner.LastSettlement.Outcome == SettlementOutcomeKind.Failure && owner.World.RepairFee == settledFee
+                && owner.LastSettlement.Failure != null, "formal roller failure reports real unmet goals with no success reward");
+            Active<SettlementPageForm>().First().BackToMap.onClick.Invoke(); yield return Delay();
+            yield return StartRoller();
+            var expected = new TimeState(owner.Time.Day, owner.Time.Period, owner.Time.RemainingCells);
+            expected.Advance(owner.CurrentEvent.Config.TimeCost);
+            yield return Retreat();
+            Require(owner.LastSettlement.Outcome == SettlementOutcomeKind.Retreat && owner.World.RepairFee == settledFee
+                && owner.Time.Day == expected.Day && owner.Time.Period == expected.Period && owner.Time.RemainingCells == expected.RemainingCells,
+                "formal roller retreat charges full duration once without reward");
+        }
+
+        private IEnumerator SelectRecoverySlot()
+        {
+            foreach (var form in GF.UI.GetAllLoadedUIForms())
+                if (form.Logic is UIFormBase view && view.Params?.IsSubUIForm == false && GF.UI.HasUIForm(view.Id))
+                    GF.UI.CloseUIForm(view.Id);
+            yield return Delay(); GF.UI.OpenUIForm(UIViews.SaveSlotPage); yield return WaitFor<SaveSlotPage>();
+            SaveSlotItem slot = Active<SaveSlotItem>().First(i => Field<int>(i, "_slot") == 1);
+            Field<Button>(slot, "_actionButton").onClick.Invoke(); yield return WaitFor<RecoveryPageForm>();
         }
 
         private IEnumerator StartRepair()
         {
-            yield return Night(); yield return OpenMapEvent("dance", "停不下来的排练"); yield return WaitFor<PreparationPageForm>();
+            yield return Night();
+            if (!_testedDisabledChallenge)
+            {
+                var previous = ChallengeAssemblyCatalog.All;
+                try
+                {
+                    ChallengeAssemblyCatalog.Install(Array.Empty<ChallengeAssembly>());
+                    WorldSession current = WorldSession.Current;
+                    Require(!current.FirstCaseChallengeEnabled && !current.CanStartFirstCase && current.PrepareFirstCase() == null
+                        && current.GetCase(FirstCaseContent.CaseId).Kind == CaseStateKind.AwaitingRepair,
+                        "disabled challenge closes request and repair entry without changing saved case state");
+                }
+                finally { ChallengeAssemblyCatalog.Install(previous); }
+                _testedDisabledChallenge = true;
+            }
+            yield return OpenMapEvent("dance", "停不下来的排练"); yield return WaitFor<PreparationPageForm>();
             Require(WorldSession.Current.PendingCarry.SelectedCount == 4, "four fixed carried types");
             Require(Active<PreviewBoardView>().First().transform.GetComponentsInChildren<Image>().Any(i => i.name == "RedShoes" && i.sprite != null), "preview red shoes art");
-            Active<PreparationPageForm>().First().ConfirmButton.onClick.Invoke(); yield return WaitFor<BoardPageForm>();
+            Button confirm = Active<PreparationPageForm>().First().ConfirmButton;
+            if (!_testedEntryFailure)
+            {
+                WorldSession session = WorldSession.Current;
+                session.AttemptStore.FaultInjector = point => { if (point == "before-write") throw new IOException("injected-entry-save"); };
+                confirm.onClick.Invoke();
+                Require(session.PersistenceBlocked && Active<BoardPageForm>().Length == 0,
+                    "entry save failure keeps board closed");
+                string attempt = session.ActiveAttemptId; int consumed = session.Rng.ConsumedCount;
+                session.AttemptStore.FaultInjector = null; confirm.onClick.Invoke();
+                Require(session.ActiveAttemptId == attempt && session.Rng.ConsumedCount == consumed,
+                    "entry retry does not rebuild or redraw");
+                _testedEntryFailure = true;
+            }
+            else confirm.onClick.Invoke();
+            yield return WaitFor<BoardPageForm>();
             var boardForm = Active<BoardPageForm>().First();
+            if (!_testedChallengeBinding)
+            {
+                ChallengeAssembly assembly = ChallengeAssemblyCatalog.RequireCase(FirstCaseContent.CaseId);
+                WorldSession current = WorldSession.Current;
+                Require(assembly.Challenge.Key == "C-001" && assembly.Challenge.RuleId == "CR-001"
+                    && current.CurrentBoardConfig == assembly.Level.Board
+                    && current.CurrentRedShoeLevel.Config.SourceLevel == assembly.Level,
+                    "formal entry resolves CaseKey through C001 level and registered CR001");
+                Require(ChallengeAssemblyCatalog.All.Count == 1 && current.CurrentRedShoeLevel.Config.RedShoe.StepsPerTap == 1,
+                    "fourteen deferred challenges remain closed and redshoe keeps one-step baseline");
+                _testedChallengeBinding = true;
+            }
             Image background = Field<Image>(boardForm, "_sceneBackground");
             var catalog = Field<UIFormalSpriteCatalog>(boardForm, "_spriteCatalog");
             Require(background != null && background.enabled && background.sprite == catalog.Get("SCR-07-08-dance-night") && background.color == Color.white,
@@ -252,6 +453,9 @@ namespace Everlight.Tales.UI
             Field<Button[]>(form, "m_Buttons")[0].onClick.Invoke(); yield return Delay();
         }
         private static T[] Active<T>() where T : Component => UnityEngine.Object.FindObjectsOfType<T>().Where(x => x.gameObject.activeInHierarchy).ToArray();
+        private static string SnapshotJson(WorldSession owner) => new NewtonsoftJsonHelper().ToJson(RepairSaveService.Capture(
+            owner.ActiveAttemptId, "REDSHOE", owner.CurrentEvent.Board, owner.CurrentEvent.Level,
+            owner.Rng, owner.HeldBuffs, owner.CurrentSettle, owner.CurrentRedShoeLevel.RedShoe));
         private static T Field<T>(object obj, string name) => (T)obj.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(obj);
         private static IEnumerator WaitFor<T>() where T : Component
         {

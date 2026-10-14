@@ -78,7 +78,7 @@ namespace Everlight.Tales.UI
                 return;
             }
 
-            var settle = new SettleState();
+            var settle = session.CurrentSettle;
             var game = new BoardGame(evt.Board, settle, evt.Level.Session, evt.Level, session.IsFirstCaseEvent ? session.CurrentRedShoeLevel : null);
             game.Bonuses = BuffEffectService.Resolve(session.HeldBuffs);
 
@@ -184,9 +184,14 @@ namespace Everlight.Tales.UI
                 EventResultKind outcome = session.IsFirstCaseEvent
                     ? (_firstCaseResult == RoundPassResult.Passed && session.CurrentEvent.Level.IsLevelComplete && specialGoalMet ? EventResultKind.Success : EventResultKind.Failure)
                     : RepairEventShell.EvaluateOutcome(session.CurrentEvent, specialGoalMet);
-                session.SettleEvent(outcome == EventResultKind.Success
+                if (!session.TrySettleEvent(outcome == EventResultKind.Success
                     ? SettlementOutcomeKind.Success
-                    : SettlementOutcomeKind.Failure);
+                    : SettlementOutcomeKind.Failure, out _))
+                {
+                    SetBoardInput(false);
+                    GlobalUI.ShowToast("结算保存失败，请再次点击结算重试：" + session.LastPersistenceError, ToastKind.Warning);
+                    return;
+                }
             }
 
             OnClickClose();
@@ -219,7 +224,12 @@ namespace Everlight.Tales.UI
             WorldSession session = WorldSession.Current;
             if (session != null && session.CurrentEvent != null)
             {
-                session.SettleEvent(SettlementOutcomeKind.Retreat);
+                if (!session.TrySettleEvent(SettlementOutcomeKind.Retreat, out _))
+                {
+                    SetBoardInput(false);
+                    GlobalUI.ShowToast("撤退保存失败，请重试：" + session.LastPersistenceError, ToastKind.Warning);
+                    return;
+                }
             }
 
             OnClickClose();

@@ -1,3 +1,5 @@
+using Everlight.Tales.Board;
+
 namespace Everlight.Tales.Events
 {
     /// <summary>
@@ -17,13 +19,15 @@ namespace Everlight.Tales.Events
 
         /// <inheritdoc />
         public int TargetId { get; }
+        public EffectProvenance Provenance { get; }
 
-        public AbilityEvent(int sequence, int sourceId, string kind, int targetId = 0)
+        public AbilityEvent(int sequence, int sourceId, string kind, int targetId = 0, EffectProvenance provenance = default)
         {
             Sequence = sequence;
             SourceId = sourceId;
             Kind = kind;
             TargetId = targetId;
+            Provenance = provenance;
         }
 
         public override string ToString()

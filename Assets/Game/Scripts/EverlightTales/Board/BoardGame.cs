@@ -9,6 +9,7 @@ namespace Everlight.Tales.Board
     /// </summary>
     public sealed class BoardGame
     {
+        public const int RulesVersion = 3;
         public BoardState Board { get; }
 
         public SettleState Settle { get; }
@@ -68,11 +69,26 @@ namespace Everlight.Tales.Board
             SettlementResult result = TapTransaction.Settle(
                 Board,
                 Settle,
-                new TapContext(Level.Round.TapQuotaRemaining, dueEffects),
+                new TapContext(Level.Round.TapQuotaRemaining, dueEffects, isTerminalTap:
+                    Level.Round.TapQuotaRemaining == 1 && Level.RoundIndex + 1 == Level.Config.Rounds.Count),
                 Session, Bonuses);
             if (Bonuses != null) Session.PublicRepairEnergy += Bonuses.TapEndEnergy;
             Session.TapSerial++;
             LastSettlement = result;
+            // 配置中的盘面标记目标必须回填同名轮目标，不能只在UI中检查实体。
+            foreach (SpecialGoalState goal in Level.Round.Goals)
+            {
+                int complete = 0;
+                bool hasBinding = false;
+                foreach (BoardEntity entity in Board.Entities)
+                {
+                    if (entity.Goal == null || entity.Goal.Id != goal.Id
+                        || entity.Goal.Kind != GoalKind.PushedInto) continue;
+                    hasBinding = true;
+                    if (GoalEvaluator.IsComplete(Board, entity)) complete++;
+                }
+                if (hasBinding) goal.Progress(complete - goal.Current);
+            }
             if (RedShoeLevel != null)
             {
                 RedShoeService.StepAfterTap(Board, RedShoeLevel.Config.RedShoe, RedShoeLevel.RedShoe);
@@ -91,6 +107,7 @@ namespace Everlight.Tales.Board
                 if (pass == RoundPassResult.Passed && !RedShoeRoundEvaluator.IsRoundComplete(
                     RedShoeLevel.Config.Rounds[Level.RoundIndex], RedShoeLevel)) return RoundPassResult.Failed;
             }
+            if (pass == RoundPassResult.Passed) AnomalyService.ApplyRoundEnd(Board, Level.RoundIndex);
             return pass;
         }
     }

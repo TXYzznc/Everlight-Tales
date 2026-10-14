@@ -112,6 +112,14 @@ namespace Everlight.Tales.Board
         public int RestraintLimit;
 
         private readonly HashSet<HexCoord> _countedGuides = new HashSet<HexCoord>();
+        public IReadOnlyCollection<HexCoord> CountedGuides => _countedGuides;
+
+        public void RestoreCountedGuides(IEnumerable<HexCoord> guides)
+        {
+            _countedGuides.Clear();
+            foreach (HexCoord guide in guides)
+                if (!_countedGuides.Add(guide)) throw new System.ArgumentException("Duplicate saved guide.");
+        }
 
         public RedShoeState(HexCoord coord, HexDirection direction, int restraintLimit)
         {

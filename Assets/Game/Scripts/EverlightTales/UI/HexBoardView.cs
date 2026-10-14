@@ -211,7 +211,10 @@ namespace Everlight.Tales.UI
                     shape));
             }
 
-            foreach (BoardEntity entity in board.Entities)
+            var orderedEntities = new List<BoardEntity>(board.Entities);
+            orderedEntities.Sort((a, b) => a.IsLayeredFixture != b.IsLayeredFixture
+                ? (a.IsLayeredFixture ? -1 : 1) : a.Id.CompareTo(b.Id));
+            foreach (BoardEntity entity in orderedEntities)
             {
                 GameObject tile = CreateEntityTile(entity);
                 _entityTiles.Add(entity.Id, tile);
@@ -576,7 +579,8 @@ namespace Everlight.Tales.UI
                 Image surface = tile.Find("EntityArt")?.GetComponent<Image>();
                 if (surface != null) surface.overrideSprite = enabled && selected != null && selected.Coord == cell
                     ? _spriteCatalog?.Get("SCR-07-01-selected") : null;
-                bool target = enabled && selected != null && selected.IsMovable && board.EntityAt(cell) == null;
+                bool target = enabled && selected != null && selected.IsMovable && cell != selected.Coord
+                    && board.CanMove(selected, cell) == MoveResult.Ok;
                 string targetName = "ArmTargetArt_" + cell.Q + "_" + cell.R;
                 Transform existing = m_OverlayRoot.Find(targetName);
                 Image art = target ? SetStructureArt(m_OverlayRoot, targetName, "SCR-07-03", m_CellSize * 2f) : null;

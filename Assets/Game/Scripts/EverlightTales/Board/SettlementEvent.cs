@@ -35,6 +35,10 @@ namespace Everlight.Tales.Board
 
         /// <summary>一次有效维修被结算：维修对象进度推进，携带分数与公共能量消耗。</summary>
         RepairApplied,
+        SoundEmitted,
+        SoundReceived,
+        ControlApplied,
+        AnomalyApplied,
     }
 
     /// <summary>
@@ -65,6 +69,7 @@ namespace Everlight.Tales.Board
 
         /// <summary>本条事件产生的公共维修能量增量（产出为正、消耗为负）。</summary>
         public readonly int EnergyDelta;
+        public readonly EffectProvenance Provenance;
 
         public SettlementEvent(
             SettlementEventKind kind,
@@ -74,7 +79,8 @@ namespace Everlight.Tales.Board
             int targetId = 0,
             string message = null,
             int scoreDelta = 0,
-            int energyDelta = 0)
+            int energyDelta = 0,
+            EffectProvenance provenance = default)
         {
             Kind = kind;
             EntityId = entityId;
@@ -84,13 +90,16 @@ namespace Everlight.Tales.Board
             Message = message;
             ScoreDelta = scoreDelta;
             EnergyDelta = energyDelta;
+            Provenance = provenance;
         }
 
         public override string ToString()
         {
             string extra = Message == null ? string.Empty : " " + Message;
             string gain = ScoreDelta == 0 && EnergyDelta == 0 ? string.Empty : " score+" + ScoreDelta + " energy" + (EnergyDelta >= 0 ? "+" : string.Empty) + EnergyDelta;
-            return Kind + " e#" + EntityId + " " + From + "->" + To + " t#" + TargetId + extra + gain;
+            string source = Provenance.IsValid ? " root#" + Provenance.RootEventId + " ev#" + Provenance.EventId
+                + " parent#" + Provenance.ParentEventId + " " + Provenance.EffectKind + "/" + Provenance.Origin : string.Empty;
+            return Kind + " e#" + EntityId + " " + From + "->" + To + " t#" + TargetId + extra + gain + source;
         }
     }
 }

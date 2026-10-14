@@ -154,6 +154,15 @@ public class LevelFixedElementTable : DataRowBase
             private set;
         }
 
+        /// <summary>
+        /// 实例关系 k=v；固定元素行ID
+        /// </summary>
+        public string InstanceData
+        {
+            get;
+            private set;
+        }
+
         public override bool ParseDataRow(string dataRowString, object userData)
         {
             string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
@@ -180,6 +189,7 @@ public class LevelFixedElementTable : DataRowBase
             RepairPartKinds = columnStrings[index++];
             RepairRequired = int.Parse(columnStrings[index++]);
             RepairEnergyCost = int.Parse(columnStrings[index++]);
+            InstanceData = columnStrings[index++];
 
             return true;
         }
@@ -205,6 +215,7 @@ public class LevelFixedElementTable : DataRowBase
                     RepairPartKinds = binaryReader.ReadString();
                     RepairRequired = binaryReader.Read7BitEncodedInt32();
                     RepairEnergyCost = binaryReader.Read7BitEncodedInt32();
+                    InstanceData = binaryReader.ReadString();
                 }
             }
 

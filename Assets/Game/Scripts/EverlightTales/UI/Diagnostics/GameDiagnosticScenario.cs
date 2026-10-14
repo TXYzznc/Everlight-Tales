@@ -101,9 +101,23 @@ namespace Everlight.Tales.UI.Diagnostics
                 "关卡关系表装配结果不符合预期", "卷帘门、试机、教学和红舞鞋盘面及专属规则装配通过");
             context.Assert(trialRuntimeCount == 4 && trialRuntimeReady,
                 "试机配置运行时装配不完整", "四条试机配置均可从 DataTable 生成盘面并进入准备态");
-            VerifyTrialSessionBoundary(context);
-
-            VerifyWorldDataBoundary(context);
+#if UNITY_EDITOR
+            WorldSession previous = WorldSession.Current;
+            FirstCaseRuntimeValidation.PreservePrefs();
+            try
+            {
+                context.Detail("PersistentProbe.Evidence", "配置/服务边界夹具；不作为正式玩法通关证据");
+                VerifyTrialSessionBoundary(context);
+                VerifyWorldDataBoundary(context);
+            }
+            finally
+            {
+                FirstCaseRuntimeValidation.RestorePrefs();
+                WorldSession.RestoreValidationOwner(previous);
+            }
+#else
+            context.Detail("PersistentProbe.Evidence", "持久化写入验证仅在Editor隔离目录运行；Player不修改存档");
+#endif
             if (GF.DataTable != null)
             {
                 context.Detail("DataTable.PartTable", GF.DataTable.HasDataTable<PartTable>());
@@ -170,7 +184,7 @@ namespace Everlight.Tales.UI.Diagnostics
 
         private static void VerifyTrialSessionBoundary(GFDiagnosticScenarioContext context)
         {
-            const int validationSlot = 4;
+            const int validationSlot = 3;
             WorldSession session = null;
             int taskCount = 0;
             bool allTasksStart = true;

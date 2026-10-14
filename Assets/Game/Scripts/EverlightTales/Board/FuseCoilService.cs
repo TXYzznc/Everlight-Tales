@@ -37,6 +37,7 @@ namespace Everlight.Tales.Board
             }
 
             HexCoord center = target.Coord;
+            using var effectScope = context.BeginEffect(BoardEffectKind.Blast, target.Id, center);
             var hitTargets = new List<BoardEntity>();
             for (int i = 0; i < HexDirections.Count; i++)
             {
@@ -72,7 +73,7 @@ namespace Everlight.Tales.Board
                 SettlementEventKind.DueEffectApplied,
                 entityId: target.Id,
                 message: "fuse-coil-detonate",
-                scoreDelta: effectScore));
+                scoreDelta: effectScore, provenance: context.CurrentEffect));
         }
     }
 

@@ -107,6 +107,7 @@ namespace Everlight.Tales.UI
         /// <summary>左旋一个相位（只改重力方向与盘面旋转动画，不重建盘面）。</summary>
         public void RotateLeft()
         {
+            if (WorldSession.Current?.CurrentEvent?.Board == Game.Board && !WorldSession.Current.CanOperateAttempt) return;
             HidePartDetail();
             Game.RotateLeft();
             FirstCaseBoardArt.Render(BoardView.OverlayRoot, BoardView.CellSize, _spriteCatalog, Game.RedShoeLevel);
@@ -117,6 +118,7 @@ namespace Everlight.Tales.UI
         /// <summary>右旋一个相位。</summary>
         public void RotateRight()
         {
+            if (WorldSession.Current?.CurrentEvent?.Board == Game.Board && !WorldSession.Current.CanOperateAttempt) return;
             HidePartDetail();
             Game.RotateRight();
             FirstCaseBoardArt.Render(BoardView.OverlayRoot, BoardView.CellSize, _spriteCatalog, Game.RedShoeLevel);
@@ -127,6 +129,7 @@ namespace Everlight.Tales.UI
         /// <summary>执行一次拍击并刷新，返回过轮判定。</summary>
         public RoundPassResult Tap()
         {
+            if (WorldSession.Current?.CurrentEvent?.Board == Game.Board && !WorldSession.Current.CanOperateAttempt) return LastRoundResult;
             HidePartDetail();
             if (Game.Level.Round.TapQuotaRemaining <= 0 || WorldSession.Current?.PendingFirstCaseRewards != null) return LastRoundResult;
             RoundPassResult pass = Game.Tap();
@@ -276,6 +279,7 @@ namespace Everlight.Tales.UI
 
         private void OnCellClicked(HexCoord cell)
         {
+            if (WorldSession.Current?.CurrentEvent?.Board == Game.Board && !WorldSession.Current.CanOperateAttempt) return;
             if (!m_ArmMode || m_SelectedArmEntity == null)
             {
                 HidePartDetail();

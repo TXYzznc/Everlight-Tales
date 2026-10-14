@@ -51,10 +51,18 @@ namespace Everlight.Tales.Board
                 return;
             }
 
+            BoardEffectKind effectKind = target.PartType == PartType.BlastCoil ? BoardEffectKind.Blast
+                : target.PartType == PartType.TuningFork || target.PartType == PartType.ConductiveBridge ? BoardEffectKind.Sound
+                : target.PartType == PartType.CalibrationProbe ? BoardEffectKind.Control
+                : target.PartType == PartType.LightingPrism ? BoardEffectKind.Light : BoardEffectKind.Ability;
+            using var effectScope = context.BeginEffect(effectKind, target.Id, target.Coord, incoming);
+
             int triggerScore = config.TriggerScore + context.Bonuses.TriggerBonus(target.PartType);
             context.Tap.TriggerScore += triggerScore;
 
-            Outcome outcome;
+            int energyBefore = target.Energy;
+            Outcome outcome = default;
+            if (!AnomalyService.IsSilenced(context.Board, target.Coord))
             switch (target.PartType)
             {
                 case PartType.InertiaHammer:
@@ -126,7 +134,7 @@ namespace Everlight.Tales.Board
                     break;
 
                 case PartType.ConductiveBridge:
-                    outcome = ConductiveBridge(context, target, config);
+                    outcome = ConductiveBridge(context, target, config, kind == TriggerKinds.Sound);
                     break;
 
                 case PartType.TuningFork:
@@ -142,6 +150,7 @@ namespace Everlight.Tales.Board
                     break;
             }
 
+            if (target.Energy < energyBefore) AnomalyService.RecordAbility(context, target);
             context.Tap.EffectScore += outcome.EffectScore;
             context.Session.PublicRepairEnergy += outcome.PublicEnergyDelta;
 
@@ -151,7 +160,7 @@ namespace Everlight.Tales.Board
                 targetId: targetId,
                 message: kind,
                 scoreDelta: triggerScore + outcome.EffectScore,
-                energyDelta: outcome.PublicEnergyDelta));
+                energyDelta: outcome.PublicEnergyDelta, provenance: context.CurrentEffect));
         }
 
         /// <summary>撞锤：有实体入射且能量足够时，消耗 1 点把来撞实体沿入射反方向推移 1 格，每格 8 效果分。</summary>
@@ -179,15 +188,10 @@ namespace Everlight.Tales.Board
             int distance = 1 + context.Bonuses.DistanceBonus(target.PartType);
             int effectPerCell = config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType);
             int moved = 0;
+            HexDirection direction = HexDirections.Opposite(incoming);
             for (int step = 0; step < distance; step++)
             {
-                HexCoord destination = source.Coord.Neighbor(HexDirections.Opposite(incoming));
-                if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
-                {
-                    break;
-                }
-
-                context.Board.Move(source, destination, MoveSource.Push);
+                if (!AbilityMovement.Step(context, source, ref direction, out _)) break;
                 moved++;
             }
 
@@ -228,7 +232,7 @@ namespace Everlight.Tales.Board
 
             target.Energy -= config.EffectCost;
 
-            BoardEntity outputEntity = context.Board.EntityAt(target.Coord.Neighbor(incoming));
+            BoardEntity outputEntity = context.Board.OccupantAt(target.Coord.Neighbor(incoming));
             if (outputEntity == null || !outputEntity.IsMovable)
             {
                 return default; // 输出侧无对象／固定：已支付能量不退还。
@@ -237,15 +241,10 @@ namespace Everlight.Tales.Board
             int distance = 1 + context.Bonuses.DistanceBonus(target.PartType);
             int effectPerCell = config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType);
             int moved = 0;
+            HexDirection direction = incoming;
             for (int step = 0; step < distance; step++)
             {
-                HexCoord destination = outputEntity.Coord.Neighbor(incoming);
-                if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
-                {
-                    break;
-                }
-
-                context.Board.Move(outputEntity, destination, MoveSource.Push);
+                if (!AbilityMovement.Step(context, outputEntity, ref direction, out _)) break;
                 moved++;
             }
 
@@ -280,20 +279,13 @@ namespace Everlight.Tales.Board
         /// <summary>把撞锤某侧相邻格对象沿该方向推 1 格，返回是否成功推移。</summary>
         private static int PushSide(SettlementContext context, BoardEntity target, HexDirection direction)
         {
-            BoardEntity entity = context.Board.EntityAt(target.Coord.Neighbor(direction));
+            BoardEntity entity = context.Board.OccupantAt(target.Coord.Neighbor(direction));
             if (entity == null || !entity.IsMovable)
             {
                 return 0;
             }
 
-            HexCoord destination = entity.Coord.Neighbor(direction);
-            if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
-            {
-                return 0;
-            }
-
-            context.Board.Move(entity, destination, MoveSource.Push);
-            return 1;
+            return AbilityMovement.Step(context, entity, ref direction, out _) ? 1 : 0;
         }
 
         /// <summary>棘轮：能量足够时消耗 1 点、产出 1 点公共维修能量；本拍第 N 次及以后成功产能另得效果分。</summary>
@@ -411,7 +403,7 @@ namespace Everlight.Tales.Board
                     break;
                 }
 
-                BoardEntity occupant = context.Board.EntityAt(cell);
+                BoardEntity occupant = context.Board.BlockerAt(cell, direction);
                 if (occupant == null)
                 {
                     continue; // 空格继续延伸。
@@ -472,13 +464,7 @@ namespace Everlight.Tales.Board
             }
 
             HexDirection deflected = HexDirections.Rotate(incoming, 1); // 顺时针偏转 60°（D0→D1）。
-            HexCoord destination = source.Coord.Neighbor(deflected);
-            if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
-            {
-                return default; // 落点非法：耗能但不移动。
-            }
-
-            context.Board.Move(source, destination);
+            if (!AbilityMovement.Step(context, source, ref deflected, out _, MoveSource.Gravity)) return default;
             return new Outcome(config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType), 0);
         }
 
@@ -486,7 +472,9 @@ namespace Everlight.Tales.Board
         private static Outcome RivetPliers(SettlementContext context, BoardEntity target)
         {
             BoardEntity node = context.Board.EntityAt(target.Coord.Neighbor(HexDirection.D0));
-            if (node == null || node.Kind != EntityKind.RepairTarget || node.RepairCompleted)
+            if (node == null || (node.Kind != EntityKind.RepairTarget
+                && node.ObstacleType != ObstacleType.PressurePillar && node.ObstacleType != ObstacleType.ProliferatingSeal)
+                || node.Kind == EntityKind.RepairTarget && node.RepairCompleted)
             {
                 return default; // 无合法目标：只触发分。
             }
@@ -528,26 +516,19 @@ namespace Everlight.Tales.Board
             int distance = config.PushDistance;
             int effectPerCell = config.EffectScorePerCell + context.Bonuses.EffectUnitBonus(target.PartType);
             int moved = 0;
+            HexDirection direction = HexDirections.Opposite(incoming);
             for (int step = 0; step < distance; step++)
             {
-                HexCoord destination = source.Coord.Neighbor(HexDirections.Opposite(incoming));
-                if (!context.Board.IsValid(destination))
+                if (!AbilityMovement.Step(context, source, ref direction, out BoardEntity blocker))
                 {
-                    break;
-                }
-
-                if (context.Board.IsOccupied(destination))
-                {
-                    BoardEntity blocker = context.Board.EntityAt(destination);
                     if (blocker != null && blocker.Kind == EntityKind.Part && blocker.PartType != PartType.None)
                     {
-                        context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Collision, source.Id, blocker.Id, HexDirections.Opposite(incoming)));
+                        context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Collision, source.Id, blocker.Id, direction));
                     }
 
                     break;
                 }
 
-                context.Board.Move(source, destination, MoveSource.Push);
                 moved++;
             }
 
@@ -661,8 +642,8 @@ namespace Everlight.Tales.Board
                 return default;
             }
 
-            BoardEntity e0 = context.Board.EntityAt(c0);
-            BoardEntity e3 = context.Board.EntityAt(c3);
+            BoardEntity e0 = context.Board.OccupantAt(c0);
+            BoardEntity e3 = context.Board.OccupantAt(c3);
 
             if (IsSwapBlocked(e0) || IsSwapBlocked(e3))
             {
@@ -671,23 +652,18 @@ namespace Everlight.Tales.Board
 
             if (e0 != null && e3 != null)
             {
-                context.Board.Remove(e0);
-                context.Board.Remove(e3);
-                context.Board.Place(e0, c3);
-                context.Board.Place(e3, c0);
-                return new Outcome(2 * config.EffectScorePerTarget, 0);
+                return context.Board.MoveGroup(new[] { e0, e3 }, new[] { c3, c0 }, MoveSource.Push)
+                    ? new Outcome(2 * config.EffectScorePerTarget, 0) : default;
             }
 
             if (e0 != null)
             {
-                context.Board.Move(e0, c3, MoveSource.Push);
-                return new Outcome(config.EffectScorePerTarget, 0);
+                return context.Board.Move(e0, c3, MoveSource.Push) == MoveResult.Ok ? new Outcome(config.EffectScorePerTarget, 0) : default;
             }
 
             if (e3 != null)
             {
-                context.Board.Move(e3, c0, MoveSource.Push);
-                return new Outcome(config.EffectScorePerTarget, 0);
+                return context.Board.Move(e3, c0, MoveSource.Push) == MoveResult.Ok ? new Outcome(config.EffectScorePerTarget, 0) : default;
             }
 
             return default; // 两空不操作。
@@ -695,7 +671,7 @@ namespace Everlight.Tales.Board
 
         private static bool IsSwapBlocked(BoardEntity e)
         {
-            return e != null && (e.IsLocked || e.Kind == EntityKind.TaskMarker || e.IsFixed);
+            return e != null && (!e.IsMovable || e.Kind == EntityKind.TaskMarker);
         }
 
         /// <summary>旋涡转子（P-010）：六邻格 D0→D1→…→D5→D0 旋移一位，环上有固定/任务对象则整体取消。</summary>
@@ -715,35 +691,26 @@ namespace Everlight.Tales.Board
                     return default; // 邻格越界：取消（不耗能）。
                 }
 
-                ring[i] = context.Board.EntityAt(c);
-                if (ring[i] != null && (ring[i].IsFixed || ring[i].Kind == EntityKind.TaskMarker))
+                ring[i] = context.Board.OccupantAt(c);
+                if (ring[i] != null && (!ring[i].IsMovable || ring[i].Kind == EntityKind.TaskMarker))
                 {
                     return default; // 环上有固定物/任务标记：整体取消。
                 }
             }
 
-            target.Energy -= config.EffectCost;
-
-            for (int i = 0; i < HexDirections.Count; i++)
-            {
-                if (ring[i] != null)
-                {
-                    context.Board.Remove(ring[i]);
-                }
-            }
-
-            int moved = 0;
+            var movedEntities = new List<BoardEntity>(); var destinations = new List<HexCoord>();
             for (int i = 0; i < HexDirections.Count; i++)
             {
                 if (ring[i] != null)
                 {
                     HexCoord dest = target.Coord.Neighbor(HexDirections.All[(i + 1) % HexDirections.Count]);
-                    context.Board.Place(ring[i], dest);
-                    moved++;
+                    movedEntities.Add(ring[i]); destinations.Add(dest);
                 }
             }
 
-            return moved > 0 ? new Outcome(moved * config.EffectScorePerTarget, 0) : default;
+            if (!context.Board.MoveGroup(movedEntities, destinations, MoveSource.Push)) return default;
+            target.Energy -= config.EffectCost;
+            return new Outcome(movedEntities.Count * config.EffectScorePerTarget, 0);
         }
 
         /// <summary>蓄能飞轮（P-011）：受击蓄量+1，达阈值后清蓄并六向射线（最远 RayRange 格）。</summary>
@@ -781,7 +748,7 @@ namespace Everlight.Tales.Board
                         break;
                     }
 
-                    BoardEntity occupant = context.Board.EntityAt(coord);
+                    BoardEntity occupant = context.Board.BlockerAt(coord, dir);
                     if (occupant == null)
                     {
                         continue; // 空格：继续延伸。
@@ -834,7 +801,7 @@ namespace Everlight.Tales.Board
                     break; // 墙体阻断搜索。
                 }
 
-                BoardEntity occupant = context.Board.EntityAt(coord);
+                BoardEntity occupant = context.Board.BlockerAt(coord, HexDirection.D0);
                 if (occupant != null)
                 {
                     found = occupant;
@@ -848,20 +815,16 @@ namespace Everlight.Tales.Board
             }
 
             int moved = 0;
+            HexDirection direction = HexDirection.D3;
             for (int step = 0; step < config.PushDistance; step++)
             {
-                HexCoord destination = found.Coord.Neighbor(HexDirections.Opposite(HexDirection.D0));
+                HexCoord destination = found.Coord.Neighbor(direction);
                 if (destination == target.Coord)
                 {
                     break; // 不拉进自身格。
                 }
 
-                if (!context.Board.IsValid(destination) || context.Board.IsOccupied(destination))
-                {
-                    break;
-                }
-
-                context.Board.Move(found, destination, MoveSource.Push);
+                if (!AbilityMovement.Step(context, found, ref direction, out _)) break;
                 moved++;
             }
 
@@ -1041,76 +1004,30 @@ namespace Everlight.Tales.Board
                 return default;
             }
 
+            AnomalyService.CalibrateAt(context.Board, node.Coord);
+            context.Log.Add(new SettlementEvent(SettlementEventKind.ControlApplied, target.Id, targetId: node.Id,
+                message: "calibration", provenance: context.CurrentEffect));
             return new Outcome(config.EffectScorePerTarget, 0);
         }
 
-        /// <summary>导电桥（P-012）：受击沿 D3 端口转发脉冲到桥或声音端点，转发一次得 8 分（本拍去重防环路）。</summary>
-        private static Outcome ConductiveBridge(SettlementContext context, BoardEntity target, PartConfig config)
+        /// <summary>桥按根和原/回声分别转发一次；普通独立碰撞不被全拍去重。</summary>
+        private static Outcome ConductiveBridge(SettlementContext context, BoardEntity target, PartConfig config, bool relayed)
         {
-            if (target.Energy < config.EffectCost)
-            {
-                return default;
-            }
-
-            // 本拍已转发过则不重复转发（简化环路去重；完整按根信号去重待信号系统批）。
-            if (context.Tap.EffectCounts.ContainsKey(target.Id))
-            {
-                return default;
-            }
-
-            HexCoord next = target.Coord.Neighbor(HexDirection.D3);
-            BoardEntity peer = context.Board.EntityAt(next);
-            if (peer == null)
-            {
-                return default; // 无可发送邻端：不消耗、不记为已转发。
-            }
-
-            if (peer.Kind == EntityKind.Part && peer.PartType == PartType.ConductiveBridge)
-            {
-                target.Energy -= config.EffectCost;
-                context.Tap.BumpEffectCount(target.Id);
-                context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Shock, target.Id, peer.Id));
-                return new Outcome(config.EffectScorePerTarget, 0);
-            }
-
-            if (peer.SoundEndpoint != null)
-            {
-                target.Energy -= config.EffectCost;
-                context.Tap.BumpEffectCount(target.Id);
-                return new Outcome(config.EffectScorePerTarget, 0);
-            }
-
-            return default;
+            if (target.Energy < config.EffectCost
+                || !SoundService.HasReceiver(context.Board, target.Coord.Neighbor(HexDirection.D3))
+                || !context.TryLimited(target.Id, EffectLimit.BridgeForward)) return default;
+            target.Energy -= config.EffectCost;
+            if (relayed) SoundService.Forward(context, target.Id, target.Coord, HexDirection.D3, 0);
+            else SoundService.Emit(context, target.Id, target.Coord, HexDirection.D3, 0);
+            return new Outcome(config.EffectScorePerTarget, 0);
         }
 
-        /// <summary>叩击音叉（P-015）：受击产生根声音，沿 D0 端口传播，端点接收得 4 分。</summary>
+        /// <summary>音叉在实际释放声音时登记回声；端点收益由声音到达事实记录。</summary>
         private static Outcome TuningFork(SettlementContext context, BoardEntity target, PartConfig config)
         {
-            if (target.Energy < config.EffectCost)
-            {
-                return default;
-            }
-
+            if (target.Energy < config.EffectCost) return default;
             target.Energy -= config.EffectCost;
-
-            HexCoord next = target.Coord.Neighbor(HexDirection.D0);
-            BoardEntity peer = context.Board.EntityAt(next);
-            if (peer == null)
-            {
-                return default;
-            }
-
-            if (peer.SoundEndpoint != null)
-            {
-                return new Outcome(config.EffectScorePerTarget, 0); // 端点接收 4 分。
-            }
-
-            if (peer.Kind == EntityKind.Part && peer.PartType == PartType.ConductiveBridge)
-            {
-                context.Queue.Enqueue(new PartTriggerEvent(TriggerKinds.Shock, target.Id, peer.Id));
-                return default; // 桥转发得分由桥记。
-            }
-
+            SoundService.Emit(context, target.Id, target.Coord, HexDirection.D0, config.EffectScorePerTarget);
             return default;
         }
 

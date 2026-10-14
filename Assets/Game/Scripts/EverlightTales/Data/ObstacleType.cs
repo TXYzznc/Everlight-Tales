@@ -47,7 +47,10 @@ namespace Everlight.Tales.Data
             MaxDurability = maxDurability;
             PassDirection = passDirection;
             Extra = extra ?? ExtraParamSet.Empty;
+            _allowedTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string tag in AllowTags.Split(',')) _allowedTags.Add(tag.Trim());
         }
+        private readonly HashSet<string> _allowedTags;
 
         public ObstacleType Type { get; }
 
@@ -146,16 +149,7 @@ namespace Everlight.Tales.Data
                 return false;
             }
 
-            string[] tags = AllowTags.Split(',');
-            for (int i = 0; i < tags.Length; i++)
-            {
-                if (string.Equals(tags[i].Trim(), tag, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return _allowedTags.Contains(tag);
         }
     }
 
@@ -223,6 +217,19 @@ namespace Everlight.Tales.Data
 
                 ExtraSchema.TryGetValue(config.Type, out Dictionary<string, ExtraParamKind> schema);
                 config.Extra.Validate("障碍 " + config.Type, schema);
+                if (config.Type == ObstacleType.BrittlePartition && !config.RootBlastOncePerRoot
+                    || config.Type == ObstacleType.LinkedGate && !config.ToggleOncePerRoot)
+                    throw new ArgumentException("当前规则要求同根爆破/开关只处理一次。", nameof(configs));
+                if ((config.Type == ObstacleType.TurningRail || config.Type == ObstacleType.OneWayShutter) && config.PassDirection < 0
+                    || config.Type == ObstacleType.OneWayShutter && (config.ToggleDirection < 0 || config.ToggleDirection > 5)
+                    || config.Type == ObstacleType.ClampingSeat && (config.ReleaseWindowTaps < 0 || config.InitialClampedEntityId != 0)
+                    || config.Type == ObstacleType.ProliferatingSeal && (config.GrowthPerTap < 0 || config.SegmentMaxDurability <= 0)
+                    || config.Type == ObstacleType.PressurePillar && config.AttachedPartitions < 0)
+                    throw new ArgumentException("障碍参数无效；初始夹持使用固定元素InstanceData行ID，不使用类型表运行时ID。", nameof(configs));
+                if (config.Type == ObstacleType.ClampingSeat)
+                    foreach (string tag in config.AllowTags.Split(','))
+                        if (tag.Trim() != "normal" && tag.Trim() != "task")
+                            throw new ArgumentException("夹持标签仅接受normal或明确登记的task。", nameof(configs));
             }
             _configs = map;
         }
